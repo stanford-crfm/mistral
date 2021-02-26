@@ -1,0 +1,33 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+exclude: ".git"  # TODO - add tox/nox files if we ever get around to implementing testing
+default_stages:
+    - commit
+fail_fast: true
+
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: check-toml
+    -   id: check-merge-conflict
+    -   id: check-added-large-files
+
+-   repo: https://github.com/psf/black
+    rev: 20.8b1
+    hooks:
+    -   id: black
+
+-   repo: https://github.com/timothycrosley/isort
+    rev: 5.6.4
+    hooks:
+    -   id: isort
+
+-   repo: https://gitlab.com/pycqa/flake8
+    rev: 3.8.4
+    hooks:
+    -   id: flake8
+        additional_dependencies: [flake8-isort]
