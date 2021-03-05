@@ -74,6 +74,7 @@ git clone https://github.com/stanford-mercury/mistral.git
 cd mistral
 conda env create -f environments/environment-cpu.yaml
 conda activate mistral
+pip install -r environments/requirements.txt
 pre-commit install  # Important!
 ```
 
