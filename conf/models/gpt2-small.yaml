@@ -1,0 +1,11 @@
+# gpt2-small-config.yaml
+#   Configuration for the GPT-2 Small Model.
+---
+model:
+    id: "gpt2-small"
+
+    # Sequence Length
+    seq_len: 1024
+
+    # Boolean whether to use the pre-existing Hugging Face AutoTokenizer (or train a new one from scratch)
+    pretrained_tokenizer: True

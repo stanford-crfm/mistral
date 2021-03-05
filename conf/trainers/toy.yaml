@@ -1,0 +1,59 @@
+# toy.yaml
+#   Toy trainer config for Single-GPU training, with a fixed batch size of 2 (with gradient accumulation).
+#   This contract exactly follows that of HF.TrainingArguments so we can pass as a simple **kwargs -- make sure this
+#   continues to stay valid!
+#       Reference: https://huggingface.co/transformers/main_classes/trainer.html#trainingarguments
+---
+training_arguments:
+    # Overwrite from Top-Level Config
+    output_dir: null
+
+    # Generally sticks to order from HF.TrainingArguments() Docs, skipping over sane defaults/implicitly set args...
+    do_train: true
+    evaluation_strategy: steps
+
+    # Set these based on GPU RAM available...
+    per_device_train_batch_size: 2
+    per_device_eval_batch_size: 4
+
+    # TODO 9 :: Set this dynamically?
+    gradient_accumulation_steps: 4
+
+    # TODO 10 :: Unclear what a good value is here -- this is somewhat arbitrary...
+    eval_accumulation_steps: 8
+
+    # Learning Rate & Optimization Parameters, assumes AdamW -- TODO 11 :: Check these and then double check them!
+    learning_rate: 5.0e-5
+    weight_decay: 0.01
+    adam_beta1: 0.9
+    adam_beta2: 0.999
+    adam_epsilon: 1.0e-8
+
+    # Gradient Norm
+    max_grad_norm: 1.0
+
+    # Maximum Training Steps (Overrides epochs!) -- TODO 12 :: Check this!
+    max_steps: 50
+
+    # LR Scheduling Parameters -- TODO 13 :: Check these and then double check them!
+    lr_scheduler_type: cosine
+    warmup_steps: 10
+
+    # Logging Parameters -- Logging Directory (Tensorboard - is this necessary?) should be Overwritten at Runtime!
+    run_name: null
+    logging_dir: null
+    logging_first_step: True
+    logging_steps: 10
+
+    # Saving and Evaluation Steps
+    eval_steps: 10
+    save_steps: 10
+
+    # Seeds -- Should be Overwritten at Runtime!
+    seed: null
+
+    ### Optimization -- Precision, DeepSpeed, and FairScale Parameters -- all off for `simple` config
+    fp16: False
+
+    # Should be overwritten from the Top-Level Config or CLI!
+    local_rank: null

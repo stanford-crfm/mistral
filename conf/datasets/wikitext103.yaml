@@ -1,0 +1,9 @@
+# wikitext103.yaml
+#   Configuration for WikiText-103 Dataset.
+---
+dataset:
+    id: wikitext
+    name: wikitext-103-raw-v1
+
+    # Number of Preprocessing Workers -- TODO 13 :: I have no idea the effect this number has when running distributed!
+    num_proc: 4
