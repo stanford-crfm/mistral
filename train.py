@@ -51,6 +51,7 @@ def train() -> None:
 
     # Create Unique Run Name (for Logging, Checkpointing, and W&B) :: Initialize all Directories
     run_id = quinfig.run_id
+    # TODO -5 :: Add a custom run_name or something to the path below so it's not just run_id or the default
     if run_id is None:
         # TODO 4 :: Fix Quinfig (@Karan) so that nested inheritance doesn't require "strings"
         run_id = (
@@ -100,11 +101,13 @@ def train() -> None:
     # Preprocess Dataset in a Streaming Fashion --> TODO 14 :: Validate that this Assertion always holds
     assert "train" in dataset
 
+    # TODO -2 :: wrap data prep in separate function / file for cleanliness
     # First, run straight-up tokenization
     def tokenize(examples: Dict[str, List[int]]) -> Dict[str, List[int]]:
         return tokenizer(examples["text"])
 
     overwatch.info(f"Tokenizing Dataset via Multiprocessing with `{quinfig.dataset['num_proc']}` threads...")
+    # TODO -1 (Laurel's counting backwards) :: Check reloading with HF caches. If we save trainer.py, will it trigger the cache to be stale?
     tokenized_dataset = dataset.map(
         tokenize,
         batched=True,
