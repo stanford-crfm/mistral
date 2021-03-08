@@ -51,6 +51,7 @@ def train() -> None:
 
     # Create Unique Run Name (for Logging, Checkpointing, and W&B) :: Initialize all Directories
     run_id = quinfig.run_id
+    # TODO -5 :: Add a custom run_name or something to the path below so it's not just run_id or the default
     if run_id is None:
         # TODO 4 :: Fix Quinfig (@Karan) so that nested inheritance doesn't require "strings"
         run_id = (
@@ -77,10 +78,17 @@ def train() -> None:
         overwatch.error(err)
         raise NotImplementedError(err)
 
+    # Create Configuration
+    # TODO 26 :: Make Model Creation & Processing Modular + Clean --> Relegate to `src.models.auto`
+    overwatch.info(f"Fetching Hugging Face AutoConfig for Model: `{REGISTRY[quinfig.model['id']]}`...")
+    config = AutoConfig.from_pretrained(REGISTRY[quinfig.model["id"]], cache_dir=paths["configs"])
+
     # Create Tokenizer
     overwatch.info(f"Fetching Hugging Face [Fast] AutoTokenizer for Model: `{REGISTRY[quinfig.model['id']]}`...")
     if quinfig.model["pretrained_tokenizer"]:
-        tokenizer = AutoTokenizer.from_pretrained(REGISTRY[quinfig.model["id"]], cache_dir=paths["tokenizer"])
+        tokenizer = AutoTokenizer.from_pretrained(
+            REGISTRY[quinfig.model["id"]], config=config, cache_dir=paths["tokenizer"]
+        )
     else:
         overwatch.error("Tokenizer Training/Initialization (from Scratch) not yet implemented!")
         raise NotImplementedError()
@@ -100,11 +108,14 @@ def train() -> None:
     # Preprocess Dataset in a Streaming Fashion --> TODO 14 :: Validate that this Assertion always holds
     assert "train" in dataset
 
+    # TODO -2 :: wrap data prep in separate function / file for cleanliness
     # First, run straight-up tokenization
     def tokenize(examples: Dict[str, List[int]]) -> Dict[str, List[int]]:
         return tokenizer(examples["text"])
 
     overwatch.info(f"Tokenizing Dataset via Multiprocessing with `{quinfig.dataset['num_proc']}` threads...")
+    # TODO -1 (Laurel's counting backwards) :: Check reloading with HF caches. If we save trainer.py, will it trigger
+    #  the cache to be stale?
     tokenized_dataset = dataset.map(
         tokenize,
         batched=True,
@@ -145,15 +156,10 @@ def train() -> None:
         load_from_cache_file=True,  # TODO 34 :: For some reason, we never seem to be using the cache? Fix!
     )
 
-    # Create Model Configuration
-    # TODO 26 :: Make Model Creation & Processing Modular + Clean --> Relegate to `src.models.auto`
-    overwatch.info(f"Fetching Hugging Face AutoConfig for Model: `{REGISTRY[quinfig.model['id']]}`...")
-    model_config = AutoConfig.from_pretrained(REGISTRY[quinfig.model["id"]], cache_dir=paths["configs"])
-
     # Initialize Model
     # TODO 27 :: Make sure weight initialization follows GPT-2 Paper & Best Practices [it does not currently]
     overwatch.info(f"Initializing Tabula Rasa Model from Configuration: `{REGISTRY[quinfig.model['id']]}`...")
-    model = AutoModelForCausalLM.from_config(model_config)
+    model = AutoModelForCausalLM.from_config(config)
     model.resize_token_embeddings(len(tokenizer))
 
     # Initialize Training Arguments from Quinfig
