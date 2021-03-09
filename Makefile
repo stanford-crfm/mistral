@@ -15,8 +15,7 @@ help:
 
 serialize-env:
 ifneq ($(filter $(arch),$(ARCHITECTURES)),)
-	rm -f environments/environment-$(arch).yaml
-	conda env export --no-builds | grep -v "^prefix: " > environments/environment-$(arch).yaml
+	python environments/export.py -a $(arch)
 else
 	@echo "Argument 'arch' is not set - try calling 'make serialize-env arch=<ID>' with ID = < cpu | gpu >"
 endif

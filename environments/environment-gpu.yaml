@@ -1,175 +1,188 @@
 name: mistral
 channels:
-  - pytorch
-  - defaults
+- pytorch
+- defaults
 dependencies:
-  - _libgcc_mutex=0.1
-  - argon2-cffi=20.1.0
-  - async_generator=1.10
-  - attrs=20.3.0
-  - backcall=0.2.0
-  - blas=1.0
-  - bleach=3.3.0
-  - ca-certificates=2021.1.19
-  - certifi=2020.12.5
-  - cffi=1.14.5
-  - cudatoolkit=11.0.221
-  - dbus=1.13.18
-  - decorator=4.4.2
-  - defusedxml=0.6.0
-  - entrypoints=0.3
-  - expat=2.2.10
-  - fontconfig=2.13.1
-  - freetype=2.10.4
-  - glib=2.67.4
-  - gst-plugins-base=1.14.0
-  - gstreamer=1.14.0
-  - icu=58.2
-  - importlib-metadata=2.0.0
-  - importlib_metadata=2.0.0
-  - intel-openmp=2020.2
-  - ipykernel=5.3.4
-  - ipython=7.21.0
-  - ipython_genutils=0.2.0
-  - ipywidgets=7.6.3
-  - jedi=0.17.0
-  - jinja2=2.11.3
-  - jpeg=9b
-  - jsonschema=3.2.0
-  - jupyter=1.0.0
-  - jupyter_client=6.1.7
-  - jupyter_console=6.2.0
-  - jupyter_core=4.7.1
-  - jupyterlab_pygments=0.1.2
-  - jupyterlab_widgets=1.0.0
-  - lcms2=2.11
-  - ld_impl_linux-64=2.33.1
-  - libedit=3.1.20191231
-  - libffi=3.3
-  - libgcc-ng=9.1.0
-  - libpng=1.6.37
-  - libsodium=1.0.18
-  - libstdcxx-ng=9.1.0
-  - libtiff=4.1.0
-  - libuuid=1.0.3
-  - libuv=1.40.0
-  - libxcb=1.14
-  - libxml2=2.9.10
-  - lz4-c=1.9.3
-  - markupsafe=1.1.1
-  - mistune=0.8.4
-  - mkl=2020.2
-  - mkl-service=2.3.0
-  - mkl_fft=1.3.0
-  - mkl_random=1.1.1
-  - nbclient=0.5.3
-  - nbconvert=6.0.7
-  - nbformat=5.1.2
-  - ncurses=6.2
-  - nest-asyncio=1.5.1
-  - ninja=1.10.2
-  - notebook=6.2.0
-  - numpy=1.19.2
-  - numpy-base=1.19.2
-  - olefile=0.46
-  - openssl=1.1.1j
-  - packaging=20.9
-  - pandoc=2.11
-  - pandocfilters=1.4.3
-  - parso=0.8.1
-  - pcre=8.44
-  - pexpect=4.8.0
-  - pickleshare=0.7.5
-  - pillow=8.1.1
-  - pip=21.0.1
-  - prometheus_client=0.9.0
-  - prompt-toolkit=3.0.8
-  - prompt_toolkit=3.0.8
-  - ptyprocess=0.7.0
-  - pycparser=2.20
-  - pygments=2.8.0
-  - pyparsing=2.4.7
-  - pyqt=5.9.2
-  - pyrsistent=0.17.3
-  - python=3.8.8
-  - python-dateutil=2.8.1
-  - pytorch=1.7.1
-  - pyzmq=20.0.0
-  - qt=5.9.7
-  - qtconsole=5.0.2
-  - qtpy=1.9.0
-  - readline=8.1
-  - send2trash=1.5.0
-  - setuptools=52.0.0
-  - sip=4.19.13
-  - six=1.15.0
-  - sqlite=3.33.0
-  - terminado=0.9.2
-  - testpath=0.4.4
-  - tk=8.6.10
-  - torchaudio=0.7.2
-  - torchvision=0.8.2
-  - tornado=6.1
-  - traitlets=5.0.5
-  - typing_extensions=3.7.4.3
-  - wcwidth=0.2.5
-  - webencodings=0.5.1
-  - wheel=0.36.2
-  - widgetsnbextension=3.5.1
-  - xz=5.2.5
-  - zeromq=4.3.3
-  - zipp=3.4.0
-  - zlib=1.2.11
-  - zstd=1.4.5
-  - pip:
-    - appdirs==1.4.4
-    - black==20.8b1
-    - cerberus==1.3.2
-    - cfgv==3.2.0
-    - chardet==4.0.0
-    - click==7.1.2
-    - cycler==0.10.0
-    - cytoolz==0.11.0
-    - datasets==1.4.0
-    - dill==0.3.3
-    - distlib==0.3.1
-    - filelock==3.0.12
-    - flake8==3.8.4
-    - fsspec==0.8.7
-    - funcy==1.15
-    - gin-config==0.3.0
-    - h5py==3.2.0
-    - huggingface-hub==0.0.2
-    - identify==2.1.0
-    - idna==2.10
-    - isort==5.7.0
-    - joblib==1.0.1
-    - kiwisolver==1.3.1
-    - matplotlib==3.3.4
-    - mccabe==0.6.1
-    - multiprocess==0.70.11.1
-    - munch==2.5.0
-    - mypy-extensions==0.4.3
-    - nodeenv==1.5.0
-    - pandas==1.2.3
-    - pathspec==0.8.1
-    - pre-commit==2.10.1
-    - pyarrow==3.0.0
-    - pycodestyle==2.6.0
-    - pyflakes==2.2.0
-    - pytz==2021.1
-    - pyyaml==5.3.1
-    - quinine==0.1.2
-    - regex==2020.11.13
-    - requests==2.25.1
-    - sacremoses==0.0.43
-    - tokenizers==0.10.1
-    - toml==0.10.2
-    - toolz==0.11.1
-    - toposort==1.5
-    - tqdm==4.49.0
-    - transformers==4.4.0.dev0
-    - typed-ast==1.4.2
-    - urllib3==1.26.3
-    - virtualenv==20.4.2
-    - xxhash==2.0.0
+- _libgcc_mutex=0.1
+- argon2-cffi=20.1.0
+- async_generator=1.10
+- attrs=20.3.0
+- backcall=0.2.0
+- blas=1.0
+- bleach=3.3.0
+- ca-certificates=2021.1.19
+- certifi=2020.12.5
+- cffi=1.14.5
+- cudatoolkit=11.0.221
+- dbus=1.13.18
+- decorator=4.4.2
+- defusedxml=0.6.0
+- entrypoints=0.3
+- expat=2.2.10
+- fontconfig=2.13.1
+- freetype=2.10.4
+- glib=2.67.4
+- gst-plugins-base=1.14.0
+- gstreamer=1.14.0
+- icu=58.2
+- importlib-metadata=2.0.0
+- importlib_metadata=2.0.0
+- intel-openmp=2020.2
+- ipykernel=5.3.4
+- ipython=7.21.0
+- ipython_genutils=0.2.0
+- ipywidgets=7.6.3
+- jedi=0.17.0
+- jinja2=2.11.3
+- jpeg=9b
+- jsonschema=3.2.0
+- jupyter=1.0.0
+- jupyter_client=6.1.7
+- jupyter_console=6.2.0
+- jupyter_core=4.7.1
+- jupyterlab_pygments=0.1.2
+- jupyterlab_widgets=1.0.0
+- lcms2=2.11
+- ld_impl_linux-64=2.33.1
+- libedit=3.1.20191231
+- libffi=3.3
+- libgcc-ng=9.1.0
+- libpng=1.6.37
+- libsodium=1.0.18
+- libstdcxx-ng=9.1.0
+- libtiff=4.1.0
+- libuuid=1.0.3
+- libuv=1.40.0
+- libxcb=1.14
+- libxml2=2.9.10
+- lz4-c=1.9.3
+- markupsafe=1.1.1
+- mistune=0.8.4
+- mkl=2020.2
+- mkl-service=2.3.0
+- mkl_fft=1.3.0
+- mkl_random=1.1.1
+- nbclient=0.5.3
+- nbconvert=6.0.7
+- nbformat=5.1.2
+- ncurses=6.2
+- nest-asyncio=1.5.1
+- ninja=1.10.2
+- notebook=6.2.0
+- numpy=1.19.2
+- numpy-base=1.19.2
+- olefile=0.46
+- openssl=1.1.1j
+- packaging=20.9
+- pandoc=2.11
+- pandocfilters=1.4.3
+- parso=0.8.1
+- pcre=8.44
+- pexpect=4.8.0
+- pickleshare=0.7.5
+- pillow=8.1.1
+- pip=21.0.1
+- prometheus_client=0.9.0
+- prompt-toolkit=3.0.8
+- prompt_toolkit=3.0.8
+- ptyprocess=0.7.0
+- pycparser=2.20
+- pygments=2.8.0
+- pyparsing=2.4.7
+- pyqt=5.9.2
+- pyrsistent=0.17.3
+- python=3.8.8
+- python-dateutil=2.8.1
+- pytorch=1.7.1
+- pyzmq=20.0.0
+- qt=5.9.7
+- qtconsole=5.0.2
+- qtpy=1.9.0
+- readline=8.1
+- send2trash=1.5.0
+- setuptools=52.0.0
+- sip=4.19.13
+- six=1.15.0
+- sqlite=3.33.0
+- terminado=0.9.2
+- testpath=0.4.4
+- tk=8.6.10
+- torchaudio=0.7.2
+- torchvision=0.8.2
+- tornado=6.1
+- traitlets=5.0.5
+- typing_extensions=3.7.4.3
+- wcwidth=0.2.5
+- webencodings=0.5.1
+- wheel=0.36.2
+- widgetsnbextension=3.5.1
+- xz=5.2.5
+- zeromq=4.3.3
+- zipp=3.4.0
+- zlib=1.2.11
+- zstd=1.4.5
+- pip:
+  - appdirs==1.4.4
+  - black==20.8b1
+  - cerberus==1.3.2
+  - cfgv==3.2.0
+  - chardet==4.0.0
+  - click==7.1.2
+  - configparser==5.0.2
+  - cycler==0.10.0
+  - cytoolz==0.11.0
+  - datasets==1.4.0
+  - dill==0.3.3
+  - distlib==0.3.1
+  - docker-pycreds==0.4.0
+  - filelock==3.0.12
+  - flake8==3.8.4
+  - fsspec==0.8.7
+  - funcy==1.15
+  - gin-config==0.3.0
+  - gitdb==4.0.5
+  - gitpython==3.1.14
+  - h5py==3.2.0
+  - huggingface-hub==0.0.2
+  - identify==2.1.0
+  - idna==2.10
+  - isort==5.7.0
+  - joblib==1.0.1
+  - kiwisolver==1.3.1
+  - matplotlib==3.3.4
+  - mccabe==0.6.1
+  - multiprocess==0.70.11.1
+  - munch==2.5.0
+  - mypy-extensions==0.4.3
+  - nodeenv==1.5.0
+  - pandas==1.2.3
+  - pathspec==0.8.1
+  - pathtools==0.1.2
+  - pre-commit==2.10.1
+  - promise==2.3
+  - protobuf==3.15.5
+  - psutil==5.8.0
+  - pyarrow==3.0.0
+  - pycodestyle==2.6.0
+  - pyflakes==2.2.0
+  - pytz==2021.1
+  - pyyaml==5.3.1
+  - git+https://github.com/krandiash/quinine.git
+  - regex==2020.11.13
+  - requests==2.25.1
+  - sacremoses==0.0.43
+  - sentry-sdk==1.0.0
+  - shortuuid==1.0.1
+  - smmap==3.0.5
+  - subprocess32==3.5.4
+  - tokenizers==0.10.1
+  - toml==0.10.2
+  - toolz==0.11.1
+  - toposort==1.5
+  - tqdm==4.49.0
+  - git+https://github.com/huggingface/transformers@4.4.0.dev0
+  - typed-ast==1.4.2
+  - urllib3==1.26.3
+  - virtualenv==20.4.2
+  - wandb==0.10.21
+  - xxhash==2.0.0
