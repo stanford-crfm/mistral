@@ -1,30 +1,37 @@
-"""Cerberus schema used by Quinine for train.py"""
+"""
+train_schema.py
+
+Cerberus schema used by Quinine for train.py.
+"""
+from typing import Any, Dict
+
 from quinine.common.cerberus import default, merge, nullable, required, stdict, tboolean, tfloat, tinteger, tstring
 
 
-def get_schema():
-    """Get the Cerberus schema for the Quinine config used in train.py."""
-    # Schema for dataset
+def get_schema() -> Dict[str, Any]:
+    """ Get the Cerberus schema for the Quinine config used in train.py. """
+
+    # Schema for Dataset
     data_schema = {
         "name": merge(tstring, required),
         "id": merge(tstring, required),
         "num_proc": merge(tinteger, default(4)),
     }
 
-    # Schema for model
+    # Schema for Model
     model_schema = {
         "id": merge(tstring, required),
         "pretrained_tokenizer": merge(tboolean, default(True)),
         "seq_len": merge(tinteger, default(1024)),
     }
 
-    # Schema for run information
+    # Schema for Run Information
     run_schema = {
         "seed": merge(tinteger, default(1234)),
         "log_level": merge(tstring, default("INFO")),
     }
 
-    # Schema for Huggingface Trainer and training arguments
+    # Schema for Huggingface Trainer and Training Arguments
     trainer_schema = {
         "output_dir": merge(tstring, nullable, default(None)),
         "do_train": merge(tboolean, default(True)),
@@ -53,20 +60,20 @@ def get_schema():
         "local_rank": merge(tboolean, nullable, default(None)),
     }
 
-    # Schema for training infrastructure
+    # Schema for Training Infrastructure
     infra_schema = {
         "rank": merge(tinteger, default(-1)),
         "nodes": merge(tinteger, default(1)),
         "gpus": merge(tinteger, default(1)),
     }
 
-    # Schema for storing training and data artifacts
+    # Schema for Storing Training and Data Artifacts
     artifacts_schema = {
         "cache_dir": merge(tstring, default("/u/scr/nlp/mercury/mistral/artifacts")),
         "run_dir": merge(tstring, default("/u/scr/nlp/mercury/mistral/runs")),
     }
 
-    # Combined schema for train.py
+    # Combined Schema for `train.py`
     schema = {
         "dataset": stdict(data_schema),
         "run": stdict(run_schema),
