@@ -13,8 +13,6 @@ import yaml
 
 
 MAP = {
-    # We always want the latest version of Quinine -- TODO :: Maybe lock this to a specific version after fixes?
-    "quinine": "git+https://github.com/krandiash/quinine.git",
     # We always want the latest version of Transformers -- TODO :: Maybe lock this to a specific version?
     "transformers": "git+https://github.com/huggingface/transformers",
 }

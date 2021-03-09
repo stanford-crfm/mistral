@@ -160,7 +160,7 @@ dependencies:
   - pyflakes==2.2.0
   - pytz==2021.1
   - pyyaml==5.3.1
-  - git+https://github.com/krandiash/quinine.git
+  - quinine==0.2.1
   - regex==2020.11.13
   - requests==2.25.1
   - sacremoses==0.0.43
