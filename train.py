@@ -112,7 +112,6 @@ def train() -> None:
     def tokenize(examples: Dict[str, List[int]]) -> Dict[str, List[int]]:
         return tokenizer(examples["text"])
 
-
     overwatch.info(f"Tokenizing Dataset via Multiprocessing with `{quinfig.dataset.num_proc}` threads...")
     # TODO -1 (Laurel's counting backwards) :: Check reloading with HF caches. If we save trainer.py, will it trigger the cache to be stale?
 
@@ -156,15 +155,10 @@ def train() -> None:
         load_from_cache_file=True,  # TODO 34 :: For some reason, we never seem to be using the cache? Fix!
     )
 
-    # Create Model Configuration
-    # TODO 26 :: Make Model Creation & Processing Modular + Clean --> Relegate to `src.models.auto`
-    overwatch.info(f"Fetching Hugging Face AutoConfig for Model: `{REGISTRY[quinfig.model.id]}`...")
-    model_config = AutoConfig.from_pretrained(REGISTRY[quinfig.model.id], cache_dir=paths["configs"])
-
     # Initialize Model
     # TODO 27 :: Make sure weight initialization follows GPT-2 Paper & Best Practices [it does not currently]
     overwatch.info(f"Initializing Tabula Rasa Model from Configuration: `{REGISTRY[quinfig.model.id]}`...")
-    model = AutoModelForCausalLM.from_config(model_config)
+    model = AutoModelForCausalLM.from_config(config)
     model.resize_token_embeddings(len(tokenizer))
 
     # Initialize Training Arguments from Quinfig
