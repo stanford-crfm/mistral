@@ -12,15 +12,16 @@ from .registry import REGISTRY
 
 
 # TODO -3 :: use Path() from pathlib for paths...cleaner and nicer
-def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[str, str]:
+def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, local_cache_dir: str) -> Dict[str, str]:
     """
     Create the necessary directories and sub-directories conditioned on the `run_id`, checkpoint directory, and cache
-    directory.
+    directories (NFS and Local Storage).
 
     :param run_id: Unique Run Identifier.
     :param model: Huggingface.Transformers Model ID for specifying the desired configuration.
     :param run_dir: Path to run directory to save model checkpoints and run metrics.
-    :param cache_dir: Path to artifacts/cache directory to store any intermediate values, configurations, etc.
+    :param cache_dir: Path to artifacts/cache directory on NFS to store any intermediate values, configurations, etc.
+    :param local_cache_dir: Path to artifacts/cache on local storage (SSD, usually) for writing preprocessed files.
 
     :return: Dictionary mapping str ids --> paths on the filesystem.
     """
@@ -31,10 +32,12 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[
         "logs": os.path.join(run_dir, run_id, "logs"),
         # WandB Save Directory
         "wandb": os.path.join(run_dir, run_id, "wandb"),
-        # Cache Directories for various components
+        # Cache Directories for various components (NFS)
         "configs": os.path.join(cache_dir, f"{REGISTRY[model]}-configs"),
         "tokenizer": os.path.join(cache_dir, f"{REGISTRY[model]}-tokenizer"),
-        "dataset": os.path.join(cache_dir, f"{REGISTRY[model]}-dataset"),
+        "dataset": os.path.join(cache_dir, "datasets"),
+        # Cache Directories for Local Storage (on Sphinxes, usually /scr-ssd/mercury/artifacts)
+        "dataset-cache": os.path.join(cache_dir, f"{REGISTRY[model]}-processed"),
     }
 
     # Programatically Create Paths for each Directory

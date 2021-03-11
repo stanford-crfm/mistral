@@ -57,7 +57,13 @@ def train() -> None:
             f"{quinfig.model.id}-d={quinfig.dataset.id}-n={quinfig.infra.nodes}-g={quinfig.infra.gpus}+"
             f"{datetime.now().strftime('%Y-%m-%d-%H:%M')}"
         )
-    paths = create_paths(run_id, quinfig.model.id, quinfig.artifacts.run_dir, quinfig.artifacts.cache_dir)
+    paths = create_paths(
+        run_id,
+        quinfig.model.id,
+        quinfig.artifacts.run_dir,
+        quinfig.artifacts.cache_dir,
+        quinfig.artifacts.local_cache_dir,
+    )
 
     # Overwatch :: Setup & Configure Console/File Logger --> Handle Process 0 vs. other Process Logging!
     overwatch = get_overwatch(os.path.join(paths["runs"], f"{run_id}.log"), quinfig.log_level, rank=quinfig.infra.rank)
@@ -94,7 +100,7 @@ def train() -> None:
     # Load Dataset w/ Preprocessing, Batching, and Collating
     # TODO 25 :: Make Dataset Creation & Processing Modular + Clean --> Relegate to `src.corpora.auto`
     overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
-    lm_dataset = get_auto_dataset(tokenizer, quinfig, paths, overwatch)
+    lm_dataset = get_auto_dataset(tokenizer, quinfig, paths)
 
     # Initialize Model
     # TODO 27 :: Make sure weight initialization follows GPT-2 Paper & Best Practices [it does not currently]

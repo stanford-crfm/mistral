@@ -5,6 +5,7 @@ Default Dataset/Corpus Utilities. Downloads (if necessary) from the Hugging Face
 de-facto training, validation, and testing tests. Performs additional tokenization and normalization as well.
 """
 import logging
+import os
 from typing import Dict, List
 
 import datasets
@@ -17,17 +18,17 @@ overwatch = logging.getLogger("mistral.corpora.auto")
 
 
 def get_auto_dataset(tokenizer: PreTrainedTokenizerBase, quinfig: Quinfig, paths: Dict[str, str]) -> datasets.Dataset:
-    dataset = datasets.load_dataset(quinfig.dataset.id, quinfig.dataset.name, cache_dir=paths["dataset"])
+    dataset = datasets.load_dataset(quinfig.dataset.id, cache_dir=paths["dataset"])
 
     # TODO 7 -- For Text Corpora that DO NOT have pre-defined validation sets -- we need to create our own.
     #   Reference: https://github.com/huggingface/transformers/blob/master/examples/language-modeling/run_clm.py#L214
-    if "validation" not in dataset:
-        err = "Automatic Creation of Validation Dataset is not yet implemented!"
-        overwatch.error(err)
-        raise NotImplementedError(err)
+    # if "validation" not in dataset:
+    #     err = "Automatic Creation of Validation Dataset is not yet implemented!"
+    #     overwatch.error(err)
+    #     raise NotImplementedError(err)
 
     # Preprocess Dataset in a Streaming Fashion --> TODO 14 :: Validate that this Assertion always holds
-    assert "train" in dataset
+    # assert "train" in dataset
 
     # TODO -2 :: wrap data prep in separate function / file for cleanliness
     # First, run straight-up tokenization
@@ -38,11 +39,17 @@ def get_auto_dataset(tokenizer: PreTrainedTokenizerBase, quinfig: Quinfig, paths
     # TODO -1 (Laurel's counting backwards) :: Check reloading with HF caches. If we save trainer.py, will it trigger
     #  the cache to be stale?
 
+    # Create Post-Tokenization Cache Paths
+    post_tokenization_cache_files = {
+        k: os.path.join(paths["dataset-cache"], "preprocessing", "tokenization", f"{k}-tokenized.hf") for k in dataset
+    }
+
     tokenized_dataset = dataset.map(
         tokenize,
         batched=True,
         num_proc=quinfig.dataset.num_proc,
         remove_columns=dataset["train"].column_names,  # TODO 15 :: This line may save marginally on memory?
+        cache_file_names=post_tokenization_cache_files,
         load_from_cache_file=True,
     )
 
