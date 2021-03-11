@@ -40,7 +40,7 @@ from transformers import (
 from conf.train_schema import get_schema
 from src.corpora import get_auto_dataset
 from src.overwatch import get_overwatch
-from src.util import REGISTRY, create_paths
+from src.util import REGISTRY, create_paths, set_permissions
 
 
 def train() -> None:
@@ -51,7 +51,6 @@ def train() -> None:
 
     # Create Unique Run Name (for Logging, Checkpointing, and W&B) :: Initialize all Directories
     run_id = quinfig.run_id
-    # TODO -5 :: Add a custom run_name or something to the path below so it's not just run_id or the default
     if run_id is None:
         run_id = (
             f"{quinfig.model.id}-d={quinfig.dataset.id}-n={quinfig.infra.nodes}-g={quinfig.infra.gpus}+"
@@ -91,10 +90,10 @@ def train() -> None:
         overwatch.error("Tokenizer Training/Initialization (from Scratch) not yet implemented!")
         raise NotImplementedError()
 
-    # Load Dataset w/ Preprocessing, Batching, and Collating
-    # TODO 25 :: Make Dataset Creation & Processing Modular + Clean --> Relegate to `src.corpora.auto`
+    # Load Dataset w/ Preprocessing, Batching, and Collating --> Fix Permissions immediately afterwards
     overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
     lm_dataset = get_auto_dataset(tokenizer, quinfig, paths)
+    set_permissions(paths)
 
     # Initialize Model
     # TODO 27 :: Make sure weight initialization follows GPT-2 Paper & Best Practices [it does not currently]

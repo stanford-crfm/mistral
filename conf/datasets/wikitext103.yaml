@@ -5,5 +5,5 @@ dataset:
     id: wikitext
     name: wikitext-103-raw-v1
 
-    # Number of Preprocessing Workers -- TODO 13 :: I have no idea the effect this number has when running distributed!
+    # Number of Preprocessing Workers
     num_proc: 4

@@ -18,7 +18,7 @@ overwatch = logging.getLogger("mistral.corpora.auto")
 
 
 def get_auto_dataset(tokenizer: PreTrainedTokenizerBase, quinfig: Quinfig, paths: Dict[str, str]) -> datasets.Dataset:
-    dataset = datasets.load_dataset(quinfig.dataset.id, cache_dir=paths["dataset"])
+    dataset = datasets.load_dataset(quinfig.dataset.id, cache_dir=paths["dataset"], keep_in_memory=True)
 
     if "validation" not in dataset:
         # Create Dataset Split Cache Files
@@ -44,21 +44,18 @@ def get_auto_dataset(tokenizer: PreTrainedTokenizerBase, quinfig: Quinfig, paths
 
     # Create Post-Tokenization Cache Paths
     post_tokenization_cache_files = {
-        k: os.path.join(paths["dataset-cache"], "preprocessing", "tokenization", f"{k}-tokenized.hf") for k in dataset
+        k: os.path.join(paths["preprocessed"], "preprocessing", "tokenization", f"{k}-tokenized.hf") for k in dataset
     }
+    os.makedirs(os.path.join(paths["preprocessed"], "preprocessing", "tokenization"), exist_ok=True)
 
     tokenized_dataset = dataset.map(
         tokenize,
         batched=True,
         num_proc=quinfig.dataset.num_proc,
-        remove_columns=dataset["train"].column_names,  # TODO 15 :: This line may save marginally on memory?
+        remove_columns=dataset["train"].column_names,
         cache_file_names=post_tokenization_cache_files,
         load_from_cache_file=True,
     )
-
-    import IPython
-
-    IPython.embed()
 
     # Second, actually run chunking (collapse multiple sequences into a giant document to read `seq_len` chunks from)
     def group(examples: Dict[str, List[int]]) -> Dict[str, List[int]]:
@@ -67,7 +64,6 @@ def get_auto_dataset(tokenizer: PreTrainedTokenizerBase, quinfig: Quinfig, paths
         total_length = len(concatenated[list(examples.keys())[0]])
 
         # Drop the "very last" bit of the dataset that doesn't fit into block size...
-        # TODO 16 :: If someone really, really feels like it they can implement the wraparound logic...
         total_length = (total_length // quinfig.model.seq_len) * quinfig.model.seq_len
 
         # Split by chunks of Maximum Length - TODO 17 :: I don't like the fact that we precompute splits once...
@@ -81,14 +77,21 @@ def get_auto_dataset(tokenizer: PreTrainedTokenizerBase, quinfig: Quinfig, paths
     # From HF.Examples :: Note that with `batched=True`, this map processes 1,000 texts together, so group_texts throws
     # away a remainder for each of those groups of 1,000 texts. You can adjust that batch_size here but a higher
     # value might be slower to preprocess.
-    # TODO 18 :: Fix this so it's cleaner - I don't like dropping text, and this code (single split) is bad if we're
-    #   running multiple epochs of training... To be honest, can probably go back to just the `Tempest` dataset class!
+    #   - Sidd Note (3/11): We're dropping a max of 8M / 9B tokens... we're probably fine!
     overwatch.info(f"Auto-Batching Dataset via Multiprocessing with `{quinfig.dataset.num_proc}` threads...")
+
+    # Create Post-Chunking Cache Paths
+    post_chunking_cache_files = {
+        k: os.path.join(paths["preprocessed"], "preprocessing", "chunking", f"{k}-chunked.hf") for k in dataset
+    }
+    os.makedirs(os.path.join(paths["preprocessed"], "preprocessing", "chunking"), exist_ok=True)
+
     lm_dataset = tokenized_dataset.map(
         group,
         batched=True,
-        batch_size=1000,  # Default value in HF --> should probably tweak this as part of 17?
         num_proc=quinfig.dataset.num_proc,
-        load_from_cache_file=True,  # TODO 34 :: For some reason, we never seem to be using the cache? Fix!
+        cache_file_names=post_chunking_cache_files,
+        load_from_cache_file=True,
     )
+
     return lm_dataset

@@ -15,7 +15,7 @@ from .registry import REGISTRY
 def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[str, str]:
     """
     Create the necessary directories and sub-directories conditioned on the `run_id`, checkpoint directory, and cache
-    directories (NFS and Local Storage).
+    directories.
 
     :param run_id: Unique Run Identifier.
     :param model: Huggingface.Transformers Model ID for specifying the desired configuration.
@@ -31,12 +31,11 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[
         "logs": os.path.join(run_dir, run_id, "logs"),
         # WandB Save Directory
         "wandb": os.path.join(run_dir, run_id, "wandb"),
-        # Cache Directories for various components (NFS)
+        # Cache Directories for various components
         "configs": os.path.join(cache_dir, f"{REGISTRY[model]}-configs"),
         "tokenizer": os.path.join(cache_dir, f"{REGISTRY[model]}-tokenizer"),
         "dataset": os.path.join(cache_dir, "datasets"),
-        # Cache Directories for Local Storage (on Sphinxes, usually /scr-ssd/mercury/artifacts)
-        "dataset-cache": os.path.join(cache_dir, f"{REGISTRY[model]}-processed"),
+        "preprocessed": os.path.join(cache_dir, f"{REGISTRY[model]}-processed"),
     }
 
     # Programatically Create Paths for each Directory
@@ -44,3 +43,10 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[
         os.makedirs(paths[p], exist_ok=True)
 
     return paths
+
+
+def set_permissions(paths: Dict[str, str], keys=("configs", "tokenizer", "dataset", "preprocessed")) -> None:
+    """ Recursively call `os.chmod(775) recursively for the given paths. """
+    for k in keys:
+        if k in paths:
+            os.system(f"chmod -R 775 {paths[k]}")
