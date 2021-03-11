@@ -22,10 +22,10 @@ def get_auto_dataset(tokenizer: PreTrainedTokenizerBase, quinfig: Quinfig, paths
 
     # TODO 7 -- For Text Corpora that DO NOT have pre-defined validation sets -- we need to create our own.
     #   Reference: https://github.com/huggingface/transformers/blob/master/examples/language-modeling/run_clm.py#L214
-    # if "validation" not in dataset:
-    #     err = "Automatic Creation of Validation Dataset is not yet implemented!"
-    #     overwatch.error(err)
-    #     raise NotImplementedError(err)
+    if "validation" not in dataset:
+        dataset = dataset["train"].train_test_split(test_size=quinfig.dataset.validation_ratio)
+        dataset["validation"] = dataset["test"]
+        del dataset["test"]
 
     # Preprocess Dataset in a Streaming Fashion
     assert "train" in dataset, "Field `train` not in Dataset!"
