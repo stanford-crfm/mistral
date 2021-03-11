@@ -16,9 +16,8 @@ wandb: null
 
 # Artifacts & Caching
 artifacts:
-    cache_dir: /u/scr/nlp/mercury/mistral/artifacts
-    local_cache_dir: /scr-ssd/mercury/mistral/artifacts     # Note: Path only good for Sphinx Machines!
-    run_dir: /u/scr/nlp/mercury/mistral/runs
+    cache_dir: /scr-ssd/mercury/mistral/artifacts
+    run_dir: /scr-ssd/mercury/mistral/runs
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
 # TODO 8 :: Do we want to dynamically set gradient accumulation based on effective batch size?

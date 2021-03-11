@@ -20,10 +20,16 @@ overwatch = logging.getLogger("mistral.corpora.auto")
 def get_auto_dataset(tokenizer: PreTrainedTokenizerBase, quinfig: Quinfig, paths: Dict[str, str]) -> datasets.Dataset:
     dataset = datasets.load_dataset(quinfig.dataset.id, cache_dir=paths["dataset"])
 
-    # TODO 7 -- For Text Corpora that DO NOT have pre-defined validation sets -- we need to create our own.
-    #   Reference: https://github.com/huggingface/transformers/blob/master/examples/language-modeling/run_clm.py#L214
     if "validation" not in dataset:
-        dataset = dataset["train"].train_test_split(test_size=quinfig.dataset.validation_ratio)
+        # Create Dataset Split Cache Files
+        train_fn, val_fn = [
+            os.path.join(paths["dataset"], quinfig.dataset.id, f"{k}-split.hf") for k in ["train", "val"]
+        ]
+        dataset = dataset["train"].train_test_split(
+            test_size=quinfig.dataset.validation_ratio,
+            train_indices_cache_file_name=train_fn,
+            test_indices_cache_file_name=val_fn,
+        )
         dataset["validation"] = dataset["test"]
         del dataset["test"]
 

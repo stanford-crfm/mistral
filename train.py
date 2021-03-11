@@ -57,13 +57,7 @@ def train() -> None:
             f"{quinfig.model.id}-d={quinfig.dataset.id}-n={quinfig.infra.nodes}-g={quinfig.infra.gpus}+"
             f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
         )
-    paths = create_paths(
-        run_id,
-        quinfig.model.id,
-        quinfig.artifacts.run_dir,
-        quinfig.artifacts.cache_dir,
-        quinfig.artifacts.local_cache_dir,
-    )
+    paths = create_paths(run_id, quinfig.model.id, quinfig.artifacts.run_dir, quinfig.artifacts.cache_dir)
 
     # Overwatch :: Setup & Configure Console/File Logger --> Handle Process 0 vs. other Process Logging!
     overwatch = get_overwatch(os.path.join(paths["runs"], f"{run_id}.log"), quinfig.log_level, rank=quinfig.infra.rank)

@@ -12,7 +12,7 @@ from .registry import REGISTRY
 
 
 # TODO -3 :: use Path() from pathlib for paths...cleaner and nicer
-def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, local_cache_dir: str) -> Dict[str, str]:
+def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[str, str]:
     """
     Create the necessary directories and sub-directories conditioned on the `run_id`, checkpoint directory, and cache
     directories (NFS and Local Storage).
@@ -20,8 +20,7 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, local_ca
     :param run_id: Unique Run Identifier.
     :param model: Huggingface.Transformers Model ID for specifying the desired configuration.
     :param run_dir: Path to run directory to save model checkpoints and run metrics.
-    :param cache_dir: Path to artifacts/cache directory on NFS to store any intermediate values, configurations, etc.
-    :param local_cache_dir: Path to artifacts/cache on local storage (SSD, usually) for writing preprocessed files.
+    :param cache_dir: Path to artifacts/cache directory to store any intermediate values, configurations, etc.
 
     :return: Dictionary mapping str ids --> paths on the filesystem.
     """
