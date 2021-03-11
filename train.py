@@ -45,7 +45,7 @@ from src.util import REGISTRY, create_paths
 
 def train() -> None:
     # Parse Quinfig (via Quinine Argparse Binding)
-    print("[*] Mercury :: Launching =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}", end="")
+    print("[*] Mercury :: Launching =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
     quinfig = QuinineArgumentParser(schema=get_schema()).parse_quinfig()
     print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)\n')
 
