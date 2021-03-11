@@ -92,7 +92,14 @@ def train() -> None:
 
     # Load Dataset w/ Preprocessing, Batching, and Collating --> Fix Permissions immediately afterwards
     overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
-    lm_dataset = get_auto_dataset(tokenizer, quinfig, paths)
+    lm_dataset = get_auto_dataset(
+        tokenizer,
+        paths,
+        dataset_id=quinfig.dataset.id,
+        validation_ratio=quinfig.dataset.validation_ratio,
+        seq_len=quinfig.model.seq_len,
+        preprocessing_num_proc=quinfig.dataset.num_proc,
+    )
     set_permissions(paths)
 
     # Initialize Model
