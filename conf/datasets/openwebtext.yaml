@@ -4,6 +4,7 @@
 dataset:
     id: openwebtext
     name: plain_text
+    validation_ratio: 0.01
 
     # Number of Preprocessing Workers -- TODO 13 :: I have no idea the effect this number has when running distributed!
     num_proc: 4
