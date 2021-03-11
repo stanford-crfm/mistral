@@ -4,6 +4,7 @@
 dataset:
     id: wikitext
     name: wikitext-103-raw-v1
+    validation_ratio: null
 
     # Number of Preprocessing Workers
     num_proc: 4
