@@ -71,7 +71,6 @@ def get_schema() -> Dict[str, Any]:
     # Schema for Storing Training and Data Artifacts
     artifacts_schema = {
         "cache_dir": merge(tstring, default("/u/scr/nlp/mercury/mistral/artifacts")),
-        "local_cache_dir": merge(tstring, default("/scr-ssd/mercury/mistral/artifacts")),
         "run_dir": merge(tstring, default("/u/scr/nlp/mercury/mistral/runs")),
     }
 
