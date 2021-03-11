@@ -4,13 +4,19 @@ auto.py
 Default Dataset/Corpus Utilities. Downloads (if necessary) from the Hugging Face `datasets` Hub, and organizes into
 de-facto training, validation, and testing tests. Performs additional tokenization and normalization as well.
 """
-import datasets
+import logging
 from typing import Dict, List
 
-__all__ = ["get_dataset"]
+import datasets
+from quinine import Quinfig
+from transformers import BatchEncoding, PreTrainedTokenizerBase
 
 
-def get_dataset(tokenizer, quinfig, paths, overwatch):
+# Nest Overwatch under root `mistral` logger, inheriting formatting!
+overwatch = logging.getLogger("mistral.corpora.auto")
+
+
+def get_auto_dataset(tokenizer: PreTrainedTokenizerBase, quinfig: Quinfig, paths: Dict[str, str]) -> datasets.Dataset:
     dataset = datasets.load_dataset(quinfig.dataset.id, quinfig.dataset.name, cache_dir=paths["dataset"])
 
     # TODO 7 -- For Text Corpora that DO NOT have pre-defined validation sets -- we need to create our own.
@@ -25,11 +31,12 @@ def get_dataset(tokenizer, quinfig, paths, overwatch):
 
     # TODO -2 :: wrap data prep in separate function / file for cleanliness
     # First, run straight-up tokenization
-    def tokenize(examples: Dict[str, List[int]]) -> Dict[str, List[int]]:
+    def tokenize(examples: Dict[str, List[str]]) -> BatchEncoding:
         return tokenizer(examples["text"])
 
     overwatch.info(f"Tokenizing Dataset via Multiprocessing with `{quinfig.dataset.num_proc}` threads...")
-    # TODO -1 (Laurel's counting backwards) :: Check reloading with HF caches. If we save trainer.py, will it trigger the cache to be stale?
+    # TODO -1 (Laurel's counting backwards) :: Check reloading with HF caches. If we save trainer.py, will it trigger
+    #  the cache to be stale?
 
     tokenized_dataset = dataset.map(
         tokenize,

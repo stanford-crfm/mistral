@@ -1,0 +1,42 @@
+# gpt-toy-config.yaml
+#   Toy GPT-2 Config, currently working with the WikiText-103 Dataset, GPT-2 Small Architecture, and Single-Node
+#   Trainer. Inheritance and core paths can all be overridden from the command line or by re-writing these files.
+---
+# Inherit Dataset, Tokenization, Model, and Training Details
+inherit:
+    - datasets/wikitext103.yaml
+    - models/gpt2-small.yaml
+    - trainers/toy.yaml
+
+# Run ID -- defaults to `null`; override as you like!
+run_id: null
+
+# Weights & Biases (Set os.environ["WANDB_PROJECT"])
+wandb: null
+
+# Artifacts & Caching
+artifacts:
+    cache_dir: /u/scr/nlp/mercury/mistral/artifacts
+    run_dir: /u/scr/nlp/mercury/mistral/runs
+
+# Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
+# TODO 8 :: Do we want to dynamically set gradient accumulation based on effective batch size?
+bsz: 2
+
+# Resume from Checkpoint
+resume: false
+
+# Logging Parameters -- 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL :: Fix w/ TODO 1
+log_level: 20
+
+# Top-Level Infrastructure Parameters
+infra:
+    # Local Rank -- for Distributed Training :: -1 refers to non-distributed training, 0-8 (16?) otherwise
+    rank: -1
+
+    # GPUs assumed to be uniform *across* nodes
+    nodes: 1
+    gpus: 1
+
+# Random Seed
+seed: 21

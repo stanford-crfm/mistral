@@ -1,5 +1,5 @@
 # wikitext103.yaml
-#   Configuration for WikiText-103 Dataset.
+#   Configuration for WikiText-103 Dataset (https://huggingface.co/datasets/wikitext).
 ---
 dataset:
     id: wikitext

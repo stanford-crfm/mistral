@@ -24,7 +24,6 @@ import math
 import os
 import random
 from datetime import datetime
-from typing import Dict, List
 
 import numpy as np
 import torch
@@ -39,9 +38,9 @@ from transformers import (
 )
 
 from conf.train_schema import get_schema
+from src.corpora import get_auto_dataset
 from src.overwatch import get_overwatch
 from src.util import REGISTRY, create_paths
-from src.corpora.auto import get_dataset
 
 
 def train() -> None:
@@ -95,7 +94,7 @@ def train() -> None:
     # Load Dataset w/ Preprocessing, Batching, and Collating
     # TODO 25 :: Make Dataset Creation & Processing Modular + Clean --> Relegate to `src.corpora.auto`
     overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
-    lm_dataset = get_dataset(tokenizer, quinfig, paths, overwatch)
+    lm_dataset = get_auto_dataset(tokenizer, quinfig, paths, overwatch)
 
     # Initialize Model
     # TODO 27 :: Make sure weight initialization follows GPT-2 Paper & Best Practices [it does not currently]
