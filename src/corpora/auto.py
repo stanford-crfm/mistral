@@ -27,17 +27,14 @@ def get_auto_dataset(tokenizer: PreTrainedTokenizerBase, quinfig: Quinfig, paths
     #     overwatch.error(err)
     #     raise NotImplementedError(err)
 
-    # Preprocess Dataset in a Streaming Fashion --> TODO 14 :: Validate that this Assertion always holds
-    # assert "train" in dataset
+    # Preprocess Dataset in a Streaming Fashion
+    assert "train" in dataset, "Field `train` not in Dataset!"
 
-    # TODO -2 :: wrap data prep in separate function / file for cleanliness
     # First, run straight-up tokenization
     def tokenize(examples: Dict[str, List[str]]) -> BatchEncoding:
         return tokenizer(examples["text"])
 
     overwatch.info(f"Tokenizing Dataset via Multiprocessing with `{quinfig.dataset.num_proc}` threads...")
-    # TODO -1 (Laurel's counting backwards) :: Check reloading with HF caches. If we save trainer.py, will it trigger
-    #  the cache to be stale?
 
     # Create Post-Tokenization Cache Paths
     post_tokenization_cache_files = {
@@ -52,6 +49,10 @@ def get_auto_dataset(tokenizer: PreTrainedTokenizerBase, quinfig: Quinfig, paths
         cache_file_names=post_tokenization_cache_files,
         load_from_cache_file=True,
     )
+
+    import IPython
+
+    IPython.embed()
 
     # Second, actually run chunking (collapse multiple sequences into a giant document to read `seq_len` chunks from)
     def group(examples: Dict[str, List[int]]) -> Dict[str, List[int]]:

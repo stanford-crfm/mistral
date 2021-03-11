@@ -55,7 +55,7 @@ def train() -> None:
     if run_id is None:
         run_id = (
             f"{quinfig.model.id}-d={quinfig.dataset.id}-n={quinfig.infra.nodes}-g={quinfig.infra.gpus}+"
-            f"{datetime.now().strftime('%Y-%m-%d-%H:%M')}"
+            f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
         )
     paths = create_paths(
         run_id,

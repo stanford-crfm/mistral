@@ -6,4 +6,4 @@ dataset:
     name: plain_text
 
     # Number of Preprocessing Workers -- TODO 13 :: I have no idea the effect this number has when running distributed!
-    num_proc: 4
+    num_proc: 128
