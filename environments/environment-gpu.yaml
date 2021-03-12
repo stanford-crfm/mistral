@@ -17,6 +17,7 @@ dependencies:
 - dbus=1.13.18
 - decorator=4.4.2
 - defusedxml=0.6.0
+- experiment-impact-tracker=0.1.8
 - entrypoints=0.3
 - expat=2.2.10
 - fontconfig=2.13.1

@@ -28,7 +28,7 @@ from datetime import datetime
 import numpy as np
 import torch
 
-from datasets import DatasetDict, load_dataset
+from experiment_impact_tracker.compute_tracker import ImpactTracker
 
 from quinine import QuinineArgumentParser
 from transformers import (
@@ -45,8 +45,6 @@ from src.corpora import get_auto_dataset
 from src.overwatch import get_overwatch
 from src.util import REGISTRY, create_paths, set_permissions
 from src.util.callbacks import CustomWandbCallback, compute_metrics
-from experiment_impact_tracker.compute_tracker import ImpactTracker
-
 
 
 
@@ -63,7 +61,9 @@ def train() -> None:
             f"{quinfig.model.id}-d={quinfig.dataset.id}-n={quinfig.infra.nodes}-g={quinfig.infra.gpus}+"
             f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
         )
-    paths = create_paths(run_id, quinfig.model.id, quinfig.artifacts.run_dir, quinfig.artifacts.cache_dir, quinfig.artifacts.energy_dir)
+    paths = create_paths(
+        run_id, quinfig.model.id, quinfig.artifacts.run_dir, quinfig.artifacts.cache_dir, quinfig.artifacts.energy_dir
+    )
 
     # Overwatch :: Setup & Configure Console/File Logger --> Handle Process 0 vs. other Process Logging!
     overwatch = get_overwatch(os.path.join(paths["runs"], f"{run_id}.log"), quinfig.log_level, rank=quinfig.infra.rank)
@@ -83,7 +83,7 @@ def train() -> None:
         raise NotImplementedError(err)
 
     # Set up Energy/Carbon Tracking
-    energy_tracker = ImpactTracker(paths['energy'])
+    energy_tracker = ImpactTracker(paths["energy"])
     energy_tracker.launch_impact_monitor()
 
     # Create Configuration
@@ -126,6 +126,7 @@ def train() -> None:
     training_args.run_name = run_id
     training_args.output_dir = paths["runs"]
     training_args.logging_dir = paths["logs"]
+    training_args.energy_dir = paths["energy"]
     training_args.seed = quinfig.seed
     training_args.local_rank = quinfig.infra.rank
     training_args = TrainingArguments(**quinfig.training_arguments)
@@ -153,7 +154,7 @@ def train() -> None:
         data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
         compute_metrics=compute_metrics,
         callbacks=[
-            CustomWandbCallback(quinfig.wandb, energy_tracker),
+            CustomWandbCallback(quinfig.wandb),
         ],
     )
 

@@ -2,6 +2,7 @@ import logging
 import math
 import os
 
+from experiment_impact_tracker.data_interface import DataInterface
 from transformers import PreTrainedModel, TrainerControl, TrainerState, TrainingArguments
 from transformers.integrations import WandbCallback
 
@@ -27,7 +28,6 @@ class CustomWandbCallback(WandbCallback):
     def __init__(
         self,
         project: str,
-        energy_tracker
     ):
         super(CustomWandbCallback, self).__init__()
 
@@ -38,7 +38,6 @@ class CustomWandbCallback(WandbCallback):
 
         logger.info(os.getenv("WANDB_WATCH"))
         os.environ["WANDB_WATCH"] = "false"
-        self.energy_tracker = energy_tracker
 
     def on_init_end(
         self,
@@ -84,13 +83,18 @@ class CustomWandbCallback(WandbCallback):
         **kwargs,
     ):
         super().on_epoch_end(args, state, control, **kwargs)
-        output = self.energy_tracker.get_latest_info_and_check_for_errors()
+
         # Log energy information @ epoch
+        energy_data = DataInterface(args.energy_dir)
+        energy_metrics = {
+            "carbon_kg": energy_data.kg_carbon,
+            "total_power": energy_data.total_power,
+            "power_usage_effectiveness": energy_data.PUE,
+            "exp_len_hrs": energy_data.exp_len_hours,
+        }
         self._wandb.log(
-            {
-                "energy": output,
-            },
-            step=epoch,
+            {"energy_metrics": energy_metrics},
+            step=state.epoch,
         )
 
     def on_step_begin(
