@@ -26,6 +26,7 @@ class CustomWandbCallback(WandbCallback):
     # TODO: Override the methods below to log useful things
     """
 
+
     def __init__(self, project: str, energy_log: str, json_file: str):
         super(CustomWandbCallback, self).__init__()
 
@@ -100,7 +101,11 @@ class CustomWandbCallback(WandbCallback):
             "power_usage_effectiveness": energy_data.PUE,
             "exp_len_hrs": energy_data.exp_len_hours,
         }
-        self._wandb.log({"energy_metrics": energy_metrics})
+
+        self._wandb.log(
+            {"energy_metrics": energy_metrics},
+            step=state.global_step,
+        )
 
     def on_step_begin(
         self,
