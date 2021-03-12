@@ -27,6 +27,7 @@ class CustomWandbCallback(WandbCallback):
     def __init__(
         self,
         project: str,
+        energy_tracker
     ):
         super(CustomWandbCallback, self).__init__()
 
@@ -37,6 +38,7 @@ class CustomWandbCallback(WandbCallback):
 
         logger.info(os.getenv("WANDB_WATCH"))
         os.environ["WANDB_WATCH"] = "false"
+        self.energy_tracker = energy_tracker
 
     def on_init_end(
         self,
@@ -82,6 +84,14 @@ class CustomWandbCallback(WandbCallback):
         **kwargs,
     ):
         super().on_epoch_end(args, state, control, **kwargs)
+        output = self.energy_tracker.get_latest_info_and_check_for_errors()
+        # Log energy information @ epoch
+        self._wandb.log(
+            {
+                "energy": output,
+            },
+            step=epoch,
+        )
 
     def on_step_begin(
         self,

@@ -12,7 +12,7 @@ from .registry import REGISTRY
 
 
 # TODO -3 :: use Path() from pathlib for paths...cleaner and nicer
-def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[str, str]:
+def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, energy_dir: str) -> Dict[str, str]:
     """
     Create the necessary directories and sub-directories conditioned on the `run_id`, checkpoint directory, and cache
     directories.
@@ -31,6 +31,9 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[
         "logs": os.path.join(run_dir, run_id, "logs"),
         # WandB Save Directory
         "wandb": os.path.join(run_dir, run_id, "wandb"),
+        # Energy Directory to save Carbon Metrics
+        "energy": os.path.join(energy_dir, run_id, "energy"),
+
         # Cache Directories for various components
         "configs": os.path.join(cache_dir, f"{REGISTRY[model]}-configs"),
         "tokenizer": os.path.join(cache_dir, f"{REGISTRY[model]}-tokenizer"),

@@ -45,6 +45,8 @@ from src.corpora import get_auto_dataset
 from src.overwatch import get_overwatch
 from src.util import REGISTRY, create_paths, set_permissions
 from src.util.callbacks import CustomWandbCallback, compute_metrics
+from experiment_impact_tracker.compute_tracker import ImpactTracker
+
 
 
 
@@ -61,7 +63,7 @@ def train() -> None:
             f"{quinfig.model.id}-d={quinfig.dataset.id}-n={quinfig.infra.nodes}-g={quinfig.infra.gpus}+"
             f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
         )
-    paths = create_paths(run_id, quinfig.model.id, quinfig.artifacts.run_dir, quinfig.artifacts.cache_dir)
+    paths = create_paths(run_id, quinfig.model.id, quinfig.artifacts.run_dir, quinfig.artifacts.cache_dir, quinfig.artifacts.energy_dir)
 
     # Overwatch :: Setup & Configure Console/File Logger --> Handle Process 0 vs. other Process Logging!
     overwatch = get_overwatch(os.path.join(paths["runs"], f"{run_id}.log"), quinfig.log_level, rank=quinfig.infra.rank)
@@ -79,6 +81,10 @@ def train() -> None:
         err = "Resume behavior is not yet implemented!"
         overwatch.error(err)
         raise NotImplementedError(err)
+
+    # Set up Energy/Carbon Tracking
+    energy_tracker = ImpactTracker(paths['energy'])
+    energy_tracker.launch_impact_monitor()
 
     # Create Configuration
     # TODO 26 :: Make Model Creation & Processing Modular + Clean --> Relegate to `src.models.auto`
@@ -147,7 +153,7 @@ def train() -> None:
         data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
         compute_metrics=compute_metrics,
         callbacks=[
-            CustomWandbCallback(quinfig.wandb),
+            CustomWandbCallback(quinfig.wandb, energy_tracker),
         ],
     )
 
