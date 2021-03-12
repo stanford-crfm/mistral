@@ -1,3 +1,4 @@
+import json
 import logging
 import math
 import os
@@ -25,7 +26,7 @@ class CustomWandbCallback(WandbCallback):
     # TODO: Override the methods below to log useful things
     """
 
-    def __init__(self, project: str, energy_log: str):
+    def __init__(self, project: str, energy_log: str, json_file: str):
         super(CustomWandbCallback, self).__init__()
 
         # Set the project name
@@ -36,6 +37,15 @@ class CustomWandbCallback(WandbCallback):
         logger.info(os.getenv("WANDB_WATCH"))
         os.environ["WANDB_WATCH"] = "false"
         self.energy_log = energy_log
+
+        # Set up json schema
+        self.json_schema = {
+            "model_info": {},
+            "energy_metrics": [],
+            "global_step_info": [],
+        }
+        with open(json_file, "w") as f:
+            json.dump(self.json_schema, f)
 
     def on_init_end(
         self,
