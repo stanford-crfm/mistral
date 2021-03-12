@@ -26,7 +26,6 @@ class CustomWandbCallback(WandbCallback):
     # TODO: Override the methods below to log useful things
     """
 
-
     def __init__(self, project: str, energy_log: str, json_file: str):
         super(CustomWandbCallback, self).__init__()
 
@@ -99,7 +98,6 @@ class CustomWandbCallback(WandbCallback):
         **kwargs,
     ):
         super().on_epoch_end(args, state, control, **kwargs)
-
 
         try:
             # Log energy information @ epoch
