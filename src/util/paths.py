@@ -34,7 +34,6 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, energy_d
         "wandb": Path(run_dir) / run_id / "wandb",
         # Energy Directory to save Carbon Metrics
         "energy": Path(energy_dir) / run_id / "energy",
-
         # Cache Directories for various components
         "configs": Path(cache_dir) / f"{REGISTRY[model]}-configs",
         "tokenizer": Path(cache_dir) / f"{REGISTRY[model]}-tokenizer",
