@@ -27,6 +27,7 @@ class CustomWandbCallback(WandbCallback):
     """
 
     def __init__(self, project: str, energy_log: str, json_file: str):
+
         super(CustomWandbCallback, self).__init__()
 
         # Set the project name
@@ -99,13 +100,18 @@ class CustomWandbCallback(WandbCallback):
         **kwargs,
     ):
         super().on_epoch_end(args, state, control, **kwargs)
-        output = self.energy_tracker.get_latest_info_and_check_for_errors()
+
         # Log energy information @ epoch
+        energy_data = DataInterface(args.energy_dir)
+        energy_metrics = {
+            "carbon_kg": energy_data.kg_carbon,
+            "total_power": energy_data.total_power,
+            "power_usage_effectiveness": energy_data.PUE,
+            "exp_len_hrs": energy_data.exp_len_hours,
+        }
         self._wandb.log(
-            {
-                "energy": output,
-            },
-            step=epoch,
+            {"energy_metrics": energy_metrics},
+            step=state.epoch,
         )
 
         try:

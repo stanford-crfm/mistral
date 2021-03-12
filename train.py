@@ -26,6 +26,7 @@ from datetime import datetime
 
 import numpy as np
 import torch
+
 from experiment_impact_tracker.compute_tracker import ImpactTracker
 from quinine import QuinineArgumentParser
 from transformers import (
@@ -42,8 +43,6 @@ from src.corpora import get_auto_dataset
 from src.overwatch import get_overwatch
 from src.util import REGISTRY, create_paths, set_permissions
 from src.util.callbacks import CustomWandbCallback, compute_metrics
-from experiment_impact_tracker.compute_tracker import ImpactTracker
-
 
 
 def train() -> None:
@@ -126,6 +125,7 @@ def train() -> None:
     training_args.run_name = run_id
     training_args.output_dir = paths["runs"]
     training_args.logging_dir = paths["logs"]
+    training_args.energy_dir = paths["energy"]
     training_args.seed = quinfig.seed
     training_args.local_rank = quinfig.infra.rank
     training_args = TrainingArguments(**quinfig.training_arguments)
