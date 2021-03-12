@@ -27,6 +27,9 @@ from datetime import datetime
 
 import numpy as np
 import torch
+
+from datasets import DatasetDict, load_dataset
+
 from quinine import QuinineArgumentParser
 from transformers import (
     AutoConfig,
@@ -41,6 +44,8 @@ from conf.train_schema import get_schema
 from src.corpora import get_auto_dataset
 from src.overwatch import get_overwatch
 from src.util import REGISTRY, create_paths, set_permissions
+from src.util.callbacks import CustomWandbCallback, compute_metrics
+
 
 
 def train() -> None:
@@ -92,6 +97,7 @@ def train() -> None:
 
     # Load Dataset w/ Preprocessing, Batching, and Collating --> Fix Permissions immediately afterwards
     overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
+
     lm_dataset = get_auto_dataset(
         tokenizer,
         paths,
@@ -139,6 +145,10 @@ def train() -> None:
         eval_dataset=lm_dataset["validation"],
         tokenizer=tokenizer,
         data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
+        compute_metrics=compute_metrics,
+        callbacks=[
+            CustomWandbCallback(quinfig.wandb),
+        ],
     )
 
     # Training Time!
