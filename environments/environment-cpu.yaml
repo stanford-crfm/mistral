@@ -16,7 +16,6 @@ dependencies:
 - dbus=1.13.18
 - decorator=4.4.2
 - defusedxml=0.6.0
-- experiment-impact-tracker=0.1.8
 - entrypoints=0.3
 - expat=2.2.10
 - freetype=2.10.4
@@ -180,3 +179,4 @@ dependencies:
   - virtualenv==20.4.2
   - wandb==0.10.21
   - xxhash==2.0.0
+  - "--editable=git+https://github.com/Breakend/experiment-impact-tracker#egg=experiment-impact-tracker"
