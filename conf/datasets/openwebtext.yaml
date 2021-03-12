@@ -1,0 +1,10 @@
+# openwebtext.yaml
+#   Configuration for OpenWebText Dataset (https://huggingface.co/datasets/openwebtext)
+---
+dataset:
+    id: openwebtext
+    name: plain_text
+    validation_ratio: 0.01
+
+    # Number of Preprocessing Workers
+    num_proc: 64

@@ -24,11 +24,9 @@ import math
 import os
 import random
 from datetime import datetime
-from typing import Dict, List
 
 import numpy as np
 import torch
-from datasets import load_dataset
 from quinine import QuinineArgumentParser
 from transformers import (
     AutoConfig,
@@ -40,23 +38,23 @@ from transformers import (
 )
 
 from conf.train_schema import get_schema
+from src.corpora import get_auto_dataset
 from src.overwatch import get_overwatch
-from src.util import REGISTRY, create_paths
+from src.util import REGISTRY, create_paths, set_permissions
 
 
 def train() -> None:
     # Parse Quinfig (via Quinine Argparse Binding)
-    print("[*] Mercury :: Launching =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}", end="")
+    print("[*] Mercury :: Launching =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
     quinfig = QuinineArgumentParser(schema=get_schema()).parse_quinfig()
     print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)\n')
 
     # Create Unique Run Name (for Logging, Checkpointing, and W&B) :: Initialize all Directories
     run_id = quinfig.run_id
-    # TODO -5 :: Add a custom run_name or something to the path below so it's not just run_id or the default
     if run_id is None:
         run_id = (
             f"{quinfig.model.id}-d={quinfig.dataset.id}-n={quinfig.infra.nodes}-g={quinfig.infra.gpus}+"
-            f"{datetime.now().strftime('%Y-%m-%d-%H:%M')}"
+            f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
         )
     paths = create_paths(run_id, quinfig.model.id, quinfig.artifacts.run_dir, quinfig.artifacts.cache_dir)
 
@@ -92,68 +90,17 @@ def train() -> None:
         overwatch.error("Tokenizer Training/Initialization (from Scratch) not yet implemented!")
         raise NotImplementedError()
 
-    # Load Dataset w/ Preprocessing, Batching, and Collating
-    # TODO 25 :: Make Dataset Creation & Processing Modular + Clean --> Relegate to `src.corpora.auto`
+    # Load Dataset w/ Preprocessing, Batching, and Collating --> Fix Permissions immediately afterwards
     overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
-    dataset = load_dataset(quinfig.dataset.id, quinfig.dataset.name, cache_dir=paths["dataset"])
-
-    # TODO 7 -- For Text Corpora that DO NOT have pre-defined validation sets -- we need to create our own.
-    #   Reference: https://github.com/huggingface/transformers/blob/master/examples/language-modeling/run_clm.py#L214
-    if "validation" not in dataset:
-        err = "Automatic Creation of Validation Dataset is not yet implemented!"
-        overwatch.error(err)
-        raise NotImplementedError(err)
-
-    # Preprocess Dataset in a Streaming Fashion --> TODO 14 :: Validate that this Assertion always holds
-    assert "train" in dataset
-
-    # TODO -2 :: wrap data prep in separate function / file for cleanliness
-    # First, run straight-up tokenization
-    def tokenize(examples: Dict[str, List[int]]) -> Dict[str, List[int]]:
-        return tokenizer(examples["text"])
-
-    overwatch.info(f"Tokenizing Dataset via Multiprocessing with `{quinfig.dataset.num_proc}` threads...")
-    # TODO -1 (Laurel's counting backwards) :: Check reloading with HF caches. If we save trainer.py, will it trigger the cache to be stale?
-
-    tokenized_dataset = dataset.map(
-        tokenize,
-        batched=True,
-        num_proc=quinfig.dataset.num_proc,
-        remove_columns=dataset["train"].column_names,  # TODO 15 :: This line may save marginally on memory?
-        load_from_cache_file=True,
+    lm_dataset = get_auto_dataset(
+        tokenizer,
+        paths,
+        dataset_id=quinfig.dataset.id,
+        validation_ratio=quinfig.dataset.validation_ratio,
+        seq_len=quinfig.model.seq_len,
+        preprocessing_num_proc=quinfig.dataset.num_proc,
     )
-
-    # Second, actually run chunking (collapse multiple sequences into a giant document to read `seq_len` chunks from)
-    def group(examples: Dict[str, List[int]]) -> Dict[str, List[int]]:
-        # Concatenate all the Texts
-        concatenated = {k: sum(examples[k], []) for k in examples.keys()}
-        total_length = len(concatenated[list(examples.keys())[0]])
-
-        # Drop the "very last" bit of the dataset that doesn't fit into block size...
-        # TODO 16 :: If someone really, really feels like it they can implement the wraparound logic...
-        total_length = (total_length // quinfig.model.seq_len) * quinfig.model.seq_len
-
-        # Split by chunks of Maximum Length - TODO 17 :: I don't like the fact that we precompute splits once...
-        result = {
-            k: [t[i : i + quinfig.model.seq_len] for i in range(0, total_length, quinfig.model.seq_len)]
-            for k, t in concatenated.items()
-        }
-        result["labels"] = result["input_ids"].copy()
-        return result
-
-    # From HF.Examples :: Note that with `batched=True`, this map processes 1,000 texts together, so group_texts throws
-    # away a remainder for each of those groups of 1,000 texts. You can adjust that batch_size here but a higher
-    # value might be slower to preprocess.
-    # TODO 18 :: Fix this so it's cleaner - I don't like dropping text, and this code (single split) is bad if we're
-    #   running multiple epochs of training... To be honest, can probably go back to just the `Tempest` dataset class!
-    overwatch.info(f"Auto-Batching Dataset via Multiprocessing with `{quinfig.dataset.num_proc}` threads...")
-    lm_dataset = tokenized_dataset.map(
-        group,
-        batched=True,
-        batch_size=1000,  # Default value in HF --> should probably tweak this as part of 17?
-        num_proc=quinfig.dataset.num_proc,
-        load_from_cache_file=True,  # TODO 34 :: For some reason, we never seem to be using the cache? Fix!
-    )
+    set_permissions(paths)
 
     # Initialize Model
     # TODO 27 :: Make sure weight initialization follows GPT-2 Paper & Best Practices [it does not currently]

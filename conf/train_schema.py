@@ -16,6 +16,7 @@ def get_schema() -> Dict[str, Any]:
         "name": merge(tstring, required),
         "id": merge(tstring, required),
         "num_proc": merge(tinteger, default(4)),
+        "validation_ratio": merge(tfloat, default(0.01)),
     }
 
     # Schema for Model
