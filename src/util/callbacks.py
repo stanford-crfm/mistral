@@ -37,6 +37,7 @@ class CustomWandbCallback(WandbCallback):
         # Set wandb.watch(model) to False, throws an error otherwise
         # Note: we manually watch the model in self.on_train_begin(..)
         os.environ["WANDB_WATCH"] = "false"
+
         self.energy_log = energy_log
 
         # Set up json schema
@@ -98,6 +99,14 @@ class CustomWandbCallback(WandbCallback):
         **kwargs,
     ):
         super().on_epoch_end(args, state, control, **kwargs)
+        output = self.energy_tracker.get_latest_info_and_check_for_errors()
+        # Log energy information @ epoch
+        self._wandb.log(
+            {
+                "energy": output,
+            },
+            step=epoch,
+        )
 
         try:
             # Log energy information @ epoch

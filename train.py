@@ -42,6 +42,8 @@ from src.corpora import get_auto_dataset
 from src.overwatch import get_overwatch
 from src.util import REGISTRY, create_paths, set_permissions
 from src.util.callbacks import CustomWandbCallback, compute_metrics
+from experiment_impact_tracker.compute_tracker import ImpactTracker
+
 
 
 def train() -> None:
@@ -57,6 +59,7 @@ def train() -> None:
             f"{quinfig.model.id}-d={quinfig.dataset.id}-n={quinfig.infra.nodes}-g={quinfig.infra.gpus}+"
             f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
         )
+
     paths = create_paths(
         run_id, quinfig.model.id, quinfig.artifacts.run_dir, quinfig.artifacts.cache_dir, quinfig.artifacts.energy_dir
     )
