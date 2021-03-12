@@ -32,8 +32,7 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, energy_d
         # WandB Save Directory
         "wandb": os.path.join(run_dir, run_id, "wandb"),
         # Energy Directory to save Carbon Metrics
-        "energy": os.path.join(energy_dir, run_id, "energy"),
-
+        "energy": os.path.join(energy_dir, run_id),
         # Cache Directories for various components
         "configs": os.path.join(cache_dir, f"{REGISTRY[model]}-configs"),
         "tokenizer": os.path.join(cache_dir, f"{REGISTRY[model]}-tokenizer"),
