@@ -37,6 +37,7 @@ from transformers import (
     TrainingArguments,
     default_data_collator,
 )
+from transformers.trainer_utils import get_last_checkpoint
 
 from conf.train_schema import get_schema
 from src.corpora import get_auto_dataset
@@ -74,10 +75,11 @@ def train() -> None:
 
     # TODO 6 -- Resume from Checkpoint Behavior!
     #   See: https://github.com/huggingface/transformers/blob/master/examples/language-modeling/run_clm.py#L166
+    last_checkpoint = None
     if quinfig.resume:
-        err = "Resume behavior is not yet implemented!"
-        overwatch.error(err)
-        raise NotImplementedError(err)
+        last_checkpoint = get_last_checkpoint(paths["runs"])
+        assert last_checkpoint is not None, "Cannot detect checkpoint in run dir. Resuming failed."
+        overwatch.info(f"Checkpoint detected, resuming training at {last_checkpoint}.")
 
     # Set up Energy/Carbon Tracking
     energy_tracker = ImpactTracker(paths["energy"])
@@ -159,7 +161,7 @@ def train() -> None:
     # TODO 6 -- Resume from Checkpoint Behavior!
     #   See: https://github.com/huggingface/transformers/blob/master/examples/language-modeling/run_clm.py#L369
     overwatch.info("Training...")
-    train_result = trainer.train()
+    train_result = trainer.train(resume_from_checkpoint=last_checkpoint)
     trainer.save_model()
 
     # Get and Log Metrics --> TODO 28 :: Is this necessary? Separately - we should write a Custom Simplified Logger!
