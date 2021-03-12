@@ -126,7 +126,6 @@ def train() -> None:
     training_args.run_name = run_id
     training_args.output_dir = paths["runs"]
     training_args.logging_dir = paths["logs"]
-    training_args.energy_dir = paths["energy"]
     training_args.seed = quinfig.seed
     training_args.local_rank = quinfig.infra.rank
     training_args = TrainingArguments(**quinfig.training_arguments)
@@ -154,7 +153,7 @@ def train() -> None:
         data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
         compute_metrics=compute_metrics,
         callbacks=[
-            CustomWandbCallback(quinfig.wandb),
+            CustomWandbCallback(quinfig.wandb, energy_log=paths["energy"]),
         ],
     )
 

@@ -72,6 +72,7 @@ def get_schema() -> Dict[str, Any]:
     artifacts_schema = {
         "cache_dir": merge(tstring, default("/u/scr/nlp/mercury/mistral/artifacts")),
         "run_dir": merge(tstring, default("/u/scr/nlp/mercury/mistral/runs")),
+        "energy_dir": merge(tstring, default("/u/scr/nlp/mercury/mistral/energy")),
     }
 
     # Combined Schema for `train.py`

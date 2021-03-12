@@ -25,10 +25,7 @@ class CustomWandbCallback(WandbCallback):
     # TODO: Override the methods below to log useful things
     """
 
-    def __init__(
-        self,
-        project: str,
-    ):
+    def __init__(self, project: str, energy_log: str):
         super(CustomWandbCallback, self).__init__()
 
         # Set the project name
@@ -38,6 +35,7 @@ class CustomWandbCallback(WandbCallback):
 
         logger.info(os.getenv("WANDB_WATCH"))
         os.environ["WANDB_WATCH"] = "false"
+        self.energy_log = energy_log
 
     def on_init_end(
         self,
@@ -85,17 +83,14 @@ class CustomWandbCallback(WandbCallback):
         super().on_epoch_end(args, state, control, **kwargs)
 
         # Log energy information @ epoch
-        energy_data = DataInterface(args.energy_dir)
+        energy_data = DataInterface(self.energy_log)
         energy_metrics = {
             "carbon_kg": energy_data.kg_carbon,
             "total_power": energy_data.total_power,
             "power_usage_effectiveness": energy_data.PUE,
             "exp_len_hrs": energy_data.exp_len_hours,
         }
-        self._wandb.log(
-            {"energy_metrics": energy_metrics},
-            step=state.epoch,
-        )
+        self._wandb.log({"energy_metrics": energy_metrics})
 
     def on_step_begin(
         self,
