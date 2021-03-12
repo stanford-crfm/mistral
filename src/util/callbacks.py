@@ -40,13 +40,19 @@ class CustomWandbCallback(WandbCallback):
         self.energy_log = energy_log
 
         # Set up json schema
+        self.json_file = json_file
+
         self.json_schema = {
             "model_info": {},
             "energy_metrics": [],
             "global_step_info": [],
         }
-        with open(json_file, "w") as f:
-            json.dump(self.json_schema, f)
+
+        self.write_to_json(self.json_schema, self.json_file)
+
+    def write_to_json(self, data, file_name):
+        with open(file_name, "w") as f:
+            json.dump(data, f)
 
     def on_init_end(
         self,
@@ -107,6 +113,13 @@ class CustomWandbCallback(WandbCallback):
             step=state.global_step,
         )
 
+        with open(self.json_file) as f:
+            training_data = json.loads(f)
+            energy_data = training_data["energy"]
+            energy_data.append(energy_metrics)
+
+        self.write_to_json(training_data, self.json_file)
+
     def on_step_begin(
         self,
         args: TrainingArguments,
@@ -142,6 +155,13 @@ class CustomWandbCallback(WandbCallback):
             },
             step=state.global_step,
         )
+
+        with open(self.json_file) as f:
+            training_data = json.loads(f)
+            info = training_data["info"]
+            info.append(state.global_step)
+
+        self.write_to_json(training_data, self.json_file)
 
     def on_evaluate(
         self,
@@ -215,6 +235,15 @@ class CustomWandbCallback(WandbCallback):
             },
             step=state.global_step,
         )
+
+        with open(self.json_file) as f:
+            training_data = json.loads(f)
+            training_data["model_info"] = {
+                "num_parameters": model.num_parameters(),
+                "trainable_parameters": model.num_parameters(only_trainable=True),
+            }
+
+        self.write_to_json(training_data, self.json_file)
 
     def on_train_end(
         self,

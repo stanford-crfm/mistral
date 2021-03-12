@@ -130,6 +130,9 @@ def train() -> None:
     training_args.local_rank = quinfig.infra.rank
     training_args = TrainingArguments(**quinfig.training_arguments)
 
+    # Set training data json dump file
+    train_json_file = os.path.join(paths["runs"], "training_dump.json")
+
     # Important - Note that by default if multiple GPUs available on node, HF.Trainer defaults to `torch.DataParallel`
     #   which is almost always worse in efficiency than the DDP equivalent. So basically, always run with DDP!
     # TODO 21 :: Set up DDP (Single-Node), DDP (Multi-Node) Training + Mixed Precision Training
@@ -152,9 +155,7 @@ def train() -> None:
         tokenizer=tokenizer,
         data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
         compute_metrics=compute_metrics,
-        callbacks=[
-            CustomWandbCallback(quinfig.wandb, energy_log=paths["energy"]),
-        ],
+        callbacks=[CustomWandbCallback(quinfig.wandb, energy_log=paths["energy"], json_file=train_json_file)],
     )
 
     # Training Time!
