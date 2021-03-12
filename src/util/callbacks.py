@@ -35,7 +35,8 @@ class CustomWandbCallback(WandbCallback):
             logger.info(f"Setting wandb project: {project}")
             os.environ["WANDB_PROJECT"] = project
 
-        logger.info(os.getenv("WANDB_WATCH"))
+        # Set wandb.watch(model) to False, throws an error otherwise
+        # Note: we manually watch the model in self.on_train_begin(..)
         os.environ["WANDB_WATCH"] = "false"
         self.energy_log = energy_log
 
@@ -99,22 +100,26 @@ class CustomWandbCallback(WandbCallback):
     ):
         super().on_epoch_end(args, state, control, **kwargs)
 
-        # Log energy information @ epoch
-        energy_data = DataInterface(self.energy_log)
-        energy_metrics = {
-            "carbon_kg": energy_data.kg_carbon,
-            "total_power": energy_data.total_power,
-            "power_usage_effectiveness": energy_data.PUE,
-            "exp_len_hrs": energy_data.exp_len_hours,
-        }
 
-        self._wandb.log(
-            {"energy_metrics": energy_metrics},
-            step=state.global_step,
-        )
+        try:
+            # Log energy information @ epoch
+            energy_data = DataInterface(self.energy_log)
+            energy_metrics = {
+                "carbon_kg": energy_data.kg_carbon,
+                "total_power": energy_data.total_power,
+                "power_usage_effectiveness": energy_data.PUE,
+                "exp_len_hrs": energy_data.exp_len_hours,
+            }
+            self._wandb.log(
+                {"energy_metrics": energy_metrics},
+                step=state.global_step,
+            )
 
-        self.json_schema["energy_metrics"].append(energy_metrics)
-        self.write_to_json(self.json_schema, self.json_file)
+            self.json_schema["energy_metrics"].append(energy_metrics)
+            self.write_to_json(self.json_schema, self.json_file)
+        except ValueError:
+            # In case the energy tracker raises "Unable to get either GPU or CPU metric."
+            pass
 
     def on_step_begin(
         self,
@@ -169,7 +174,6 @@ class CustomWandbCallback(WandbCallback):
         metrics=None,
         **kwargs,
     ):
-        print("Metrics:", metrics)
         super().on_evaluate(args, state, control, metrics=metrics, **kwargs)
 
     def on_save(
@@ -263,6 +267,7 @@ class CustomWandbCallback(WandbCallback):
         logs=None,
         **kwargs,
     ):
+        # Log train perplexity
         if any([k == "loss" for k in logs]):
             logs["perplexity"] = math.exp(logs["loss"])
         super().on_log(args, state, control, model, logs, **kwargs)
