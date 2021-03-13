@@ -29,7 +29,6 @@ def get_auto_dataset(
 
     if "validation" not in dataset:
         # Create Dataset Split Cache Files
-        # train_test_split requires string paths
         train_fn, val_fn = [str(paths["dataset"] / dataset_id / f"{k}-split.hf") for k in ["train", "val"]]
         dataset = dataset["train"].train_test_split(
             test_size=validation_ratio,
@@ -49,7 +48,6 @@ def get_auto_dataset(
     overwatch.info(f"Tokenizing Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
 
     # Create Post-Tokenization Cache Paths
-    # HF requires the cache paths to be strings
     post_tokenization_cache_files = {
         k: str(paths["preprocessed"] / "preprocessing" / "tokenization" / f"{k}-tokenized.hf") for k in dataset
     }
@@ -86,7 +84,6 @@ def get_auto_dataset(
     overwatch.info(f"Auto-Batching Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
 
     # Create Post-Chunking Cache Paths
-    # HF requires the cache paths to be strings
     post_chunking_cache_files = {
         k: str(paths["preprocessed"] / "preprocessing" / "chunking" / f"{k}-chunked.hf") for k in dataset
     }
