@@ -12,7 +12,6 @@ from typing import Dict
 from .registry import REGISTRY
 
 
-# TODO -3 :: use Path() from pathlib for paths...cleaner and nicer
 def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[str, Path]:
     """
     Create the necessary directories and sub-directories conditioned on the `run_id`, checkpoint directory, and cache
