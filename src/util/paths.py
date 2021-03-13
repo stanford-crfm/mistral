@@ -6,13 +6,13 @@ main code in case we want separate directory structures/artifact storage based o
 GCP).
 """
 import os
+from pathlib import Path
 from typing import Dict
 
 from .registry import REGISTRY
 
 
-# TODO -3 :: use Path() from pathlib for paths...cleaner and nicer
-def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, energy_dir: str) -> Dict[str, str]:
+def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, energy_dir: str) -> Dict[str, Path]:
     """
     Create the necessary directories and sub-directories conditioned on the `run_id`, checkpoint directory, and cache
     directories.
@@ -26,28 +26,29 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, energy_d
     """
     paths = {
         # Top-Level Checkpoint Directory for Given Run
-        "runs": os.path.join(run_dir, run_id),
+        "runs": Path(run_dir) / run_id,
         # Logging Directory (HF defaults to Tensorboard -- TODO 19 :: Remove Tensorboard and just use W&B and Custom?
-        "logs": os.path.join(run_dir, run_id, "logs"),
+        "logs": Path(run_dir) / run_id / "logs",
         # WandB Save Directory
-        "wandb": os.path.join(run_dir, run_id, "wandb"),
+        "wandb": Path(run_dir) / run_id / "wandb",
         # Energy Directory to save Carbon Metrics
-        "energy": os.path.join(energy_dir, run_id),
+        "energy": Path(energy_dir) / run_id / "energy",
+
         # Cache Directories for various components
-        "configs": os.path.join(cache_dir, f"{REGISTRY[model]}-configs"),
-        "tokenizer": os.path.join(cache_dir, f"{REGISTRY[model]}-tokenizer"),
-        "dataset": os.path.join(cache_dir, "datasets"),
-        "preprocessed": os.path.join(cache_dir, f"{REGISTRY[model]}-processed"),
+        "configs": Path(cache_dir) / f"{REGISTRY[model]}-configs",
+        "tokenizer": Path(cache_dir) / f"{REGISTRY[model]}-tokenizer",
+        "dataset": Path(cache_dir) / "datasets",
+        "preprocessed": Path(cache_dir) / f"{REGISTRY[model]}-processed",
     }
 
     # Programatically Create Paths for each Directory
     for p in paths:
-        os.makedirs(paths[p], exist_ok=True)
+        paths[p].mkdir(parents=True, exist_ok=True)
 
     return paths
 
 
-def set_permissions(paths: Dict[str, str], keys=("configs", "tokenizer", "dataset", "preprocessed")) -> None:
+def set_permissions(paths: Dict[str, Path], keys=("configs", "tokenizer", "dataset", "preprocessed")) -> None:
     """ Recursively call `os.chmod(775) recursively for the given paths. """
     for k in keys:
         if k in paths:

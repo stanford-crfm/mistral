@@ -7,12 +7,14 @@ logging level.
 import logging
 import sys
 
-
 # Constants - for Formatting
+from pathlib import Path
+
+
 FORMATTER = logging.Formatter("[*] %(asctime)s - %(name)s - %(levelname)s :: %(message)s", datefmt="%m/%d [%H:%M:%S]")
 
 
-def get_overwatch(path: str, level: int, rank: int = 0, name: str = "mistral") -> logging.Logger:
+def get_overwatch(path: Path, level: int, rank: int = 0, name: str = "mistral") -> logging.Logger:
     """
     Initialize logging.Logger with the appropriate name, console, and file handlers.
 
