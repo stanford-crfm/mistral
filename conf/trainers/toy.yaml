@@ -13,8 +13,8 @@ training_arguments:
     evaluation_strategy: steps
 
     # Set these based on GPU RAM available...
-    per_device_train_batch_size: 2
-    per_device_eval_batch_size: 4
+    per_device_train_batch_size: 4
+    per_device_eval_batch_size: 8
 
     # TODO 9 :: Set this dynamically?
     gradient_accumulation_steps: 4
@@ -47,13 +47,14 @@ training_arguments:
 
     # Saving and Evaluation Steps
     eval_steps: 10
-    save_steps: 10
+    save_steps: 30
 
     # Seeds -- Should be Overwritten at Runtime!
     seed: null
 
     ### Optimization -- Precision, DeepSpeed, and FairScale Parameters -- all off for `simple` config
-    fp16: False
+    fp16: True
+    sharded_ddp: False
 
     # Should be overwritten from the Top-Level Config or CLI!
     local_rank: null

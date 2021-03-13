@@ -21,6 +21,7 @@ Reference:
 =>> A Project Mercury Endeavor
 """
 import math
+import os
 import random
 from datetime import datetime
 
@@ -39,7 +40,7 @@ from transformers import (
 from conf.train_schema import get_schema
 from src.corpora import get_auto_dataset
 from src.overwatch import get_overwatch
-from src.util import REGISTRY, create_paths, set_permissions
+from src.util import REGISTRY, create_paths
 
 
 def train() -> None:
@@ -48,17 +49,20 @@ def train() -> None:
     quinfig = QuinineArgumentParser(schema=get_schema()).parse_quinfig()
     print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)\n')
 
+    # Set Infra Args
+    quinfig.world_size = int(os.getenv("WORLD_SIZE", quinfig.nproc_per_node))
+
     # Create Unique Run Name (for Logging, Checkpointing, and W&B) :: Initialize all Directories
     run_id = quinfig.run_id
     if run_id is None:
         run_id = (
-            f"{quinfig.model.id}-d={quinfig.dataset.id}-n={quinfig.infra.nodes}-g={quinfig.infra.gpus}+"
+            f"{quinfig.model.id}-d={quinfig.dataset.id}-n={quinfig.nnodes}-g={quinfig.nproc_per_node}-w={quinfig.world_size}+"
             f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
         )
     paths = create_paths(run_id, quinfig.model.id, quinfig.artifacts.run_dir, quinfig.artifacts.cache_dir)
 
     # Overwatch :: Setup & Configure Console/File Logger --> Handle Process 0 vs. other Process Logging!
-    overwatch = get_overwatch(paths["runs"] / f"{run_id}.log", quinfig.log_level, rank=quinfig.infra.rank)
+    overwatch = get_overwatch(paths["logs"] / f"{run_id}.log", quinfig.log_level, rank=quinfig.local_rank)
     overwatch.info(f"Starting Run: {run_id}...")
 
     # Set Randomness
@@ -95,11 +99,14 @@ def train() -> None:
         tokenizer,
         paths,
         dataset_id=quinfig.dataset.id,
+        dataset_name=quinfig.dataset.name,
         validation_ratio=quinfig.dataset.validation_ratio,
         seq_len=quinfig.model.seq_len,
         preprocessing_num_proc=quinfig.dataset.num_proc,
     )
-    set_permissions(paths)
+    # TODO: set permissions is broken with multi-node training
+    # if quinfig.local_rank == -1:
+    #     set_permissions(paths)
 
     # Initialize Model
     # TODO 27 :: Make sure weight initialization follows GPT-2 Paper & Best Practices [it does not currently]
@@ -111,10 +118,10 @@ def train() -> None:
     # TODO 20 :: Clean this up in a neat way -- probably overwrite in grand-child config itself... but path injection?
     training_args = quinfig.training_arguments
     training_args.run_name = run_id
-    training_args.output_dir = paths["runs"]
-    training_args.logging_dir = paths["logs"]
+    training_args.output_dir = str(paths["runs"])
+    training_args.logging_dir = str(paths["logs"])
     training_args.seed = quinfig.seed
-    training_args.local_rank = quinfig.infra.rank
+    training_args.local_rank = quinfig.local_rank
     training_args = TrainingArguments(**quinfig.training_arguments)
 
     # Important - Note that by default if multiple GPUs available on node, HF.Trainer defaults to `torch.DataParallel`
@@ -131,6 +138,8 @@ def train() -> None:
     # TODO 32 :: Make sure we're using the right opt/schedule... should be configured by `training_args` so check!
     # TODO 33 :: Pass in `compute_metrics` for correct evaluation metrics --> Perplexity! Do during train as well?
     overwatch.info("Initializing Model Trainer...")
+    if quinfig.local_rank <= 0:
+        print("DEBUG", training_args)
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -145,24 +154,25 @@ def train() -> None:
     #   See: https://github.com/huggingface/transformers/blob/master/examples/language-modeling/run_clm.py#L369
     overwatch.info("Training...")
     train_result = trainer.train()
-    trainer.save_model()
-
-    # Get and Log Metrics --> TODO 28 :: Is this necessary? Separately - we should write a Custom Simplified Logger!
-    metrics = train_result.metrics
-    trainer.log_metrics("train", metrics)
-    trainer.save_metrics("train", metrics)
-    trainer.save_state()  # No idea what this does...
+    if quinfig.local_rank <= 0:
+        trainer.save_model()
+        print("SAVED THE BASTARD SOMEWHERE")
+        # Get and Log Metrics --> TODO 28 :: Is this necessary? Separately - we should write a Custom Simplified Logger!
+        metrics = train_result.metrics
+        trainer.log_metrics("train", metrics)
+        trainer.save_metrics("train", metrics)
+        trainer.save_state()  # No idea what this does...
 
     # Evaluation Time
     overwatch.info("Evaluating...")
     eval_result = trainer.evaluate()
-
-    # Compute PPL and Log
-    perplexity = math.exp(eval_result["eval_loss"])
-    results = {"perplexity": perplexity}
-    trainer.log_metrics("eval", results)
-    trainer.save_metrics("eval", results)
-
+    if quinfig.local_rank <= 0:
+        # Compute PPL and Log
+        perplexity = math.exp(eval_result["eval_loss"])
+        results = {"perplexity": perplexity}
+        trainer.log_metrics("eval", results)
+        trainer.save_metrics("eval", results)
+    overwatch.info(f"Model saved potentially to {paths['runs']} or somewhere else...")
     overwatch.info("...and that's all folks!")
 
 

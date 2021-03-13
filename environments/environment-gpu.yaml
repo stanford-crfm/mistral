@@ -1,6 +1,7 @@
 name: mistral
 channels:
 - pytorch
+- conda-forge
 - defaults
 dependencies:
 - _libgcc_mutex=0.1

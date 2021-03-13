@@ -31,9 +31,6 @@ log_level: 20
 
 # Top-Level Infrastructure Parameters
 infra:
-    # Local Rank -- for Distributed Training :: -1 refers to non-distributed training, 0-8 (16?) otherwise
-    rank: -1
-
     # GPUs assumed to be uniform *across* nodes
     nodes: 1
     gpus: 1

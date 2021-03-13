@@ -5,6 +5,7 @@ Cerberus schema used by Quinine for train.py.
 """
 from typing import Any, Dict
 
+import torch
 from quinine.common.cerberus import default, merge, nullable, required, stdict, tboolean, tfloat, tinteger, tstring
 
 
@@ -13,7 +14,7 @@ def get_schema() -> Dict[str, Any]:
 
     # Schema for Dataset
     data_schema = {
-        "name": merge(tstring, required),
+        "name": merge(tstring, nullable, default(None)),
         "id": merge(tstring, required),
         "num_proc": merge(tinteger, default(4)),
         "validation_ratio": merge(tfloat, default(0.01)),
@@ -58,14 +59,10 @@ def get_schema() -> Dict[str, Any]:
         "save_steps": merge(tinteger, default(1000)),
         "seed": merge(tinteger, default(42)),
         "fp16": merge(tboolean, default(True)),
+        "fp16_backend": merge(tstring, default("auto")),
         "local_rank": merge(tboolean, nullable, default(None)),
-    }
-
-    # Schema for Training Infrastructure
-    infra_schema = {
-        "rank": merge(tinteger, default(-1)),
-        "nodes": merge(tinteger, default(1)),
-        "gpus": merge(tinteger, default(1)),
+        "sharded_ddp": merge(tboolean, default(False)),
+        "deepspeed": merge(tstring, nullable, default(None)),
     }
 
     # Schema for Storing Training and Data Artifacts
@@ -81,14 +78,20 @@ def get_schema() -> Dict[str, Any]:
         "model": stdict(model_schema),
         "training_arguments": stdict(trainer_schema),
         "artifacts": stdict(artifacts_schema),
-        "infra": stdict(infra_schema),
         "bsz": merge(tinteger, default(2)),
         "resume": merge(tboolean, default(False)),
         "log_level": merge(tinteger, default(20)),
         "run_id": merge(tstring, nullable, default(None)),
         "wandb": merge(tstring, nullable, default(None)),
         "seed": merge(tinteger, default(42)),
-        "local_rank": merge(tinteger, nullable),
+        # Infra Params - Passed in from torch.distributed
+        "local_rank": merge(tinteger, default(-1)),
+        "nnodes": merge(tinteger, default(1)),
+        "nproc_per_node": merge(tinteger, default(torch.cuda.device_count())),
+        # Infra Params - Passed in from deepseed
+        "num_gpus": merge(tinteger, default(torch.cuda.device_count())),
+        "num_nodes": merge(tinteger, default(1)),
+        "world_size": merge(tinteger, default(1)),
     }
 
     return schema
