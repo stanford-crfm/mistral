@@ -21,7 +21,6 @@ Reference:
 =>> A Project Mercury Endeavor
 """
 import math
-import os
 import random
 from datetime import datetime
 
@@ -59,7 +58,7 @@ def train() -> None:
     paths = create_paths(run_id, quinfig.model.id, quinfig.artifacts.run_dir, quinfig.artifacts.cache_dir)
 
     # Overwatch :: Setup & Configure Console/File Logger --> Handle Process 0 vs. other Process Logging!
-    overwatch = get_overwatch(os.path.join(paths["runs"], f"{run_id}.log"), quinfig.log_level, rank=quinfig.infra.rank)
+    overwatch = get_overwatch(paths["runs"] / f"{run_id}.log", quinfig.log_level, rank=quinfig.infra.rank)
     overwatch.info(f"Starting Run: {run_id}...")
 
     # Set Randomness
