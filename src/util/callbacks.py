@@ -26,8 +26,10 @@ class CustomWandbCallback(WandbCallback):
     # TODO: Override the methods below to log useful things
     """
 
-    def __init__(self, project: str, energy_log: str, json_file: str):
+    def __init__(self, project: str, energy_log: str, json_file: str, resume: bool):
         super(CustomWandbCallback, self).__init__()
+
+        self.resume = resume
 
         # Set the project name
         if isinstance(project, str):
@@ -217,7 +219,7 @@ class CustomWandbCallback(WandbCallback):
         eval_dataloader=None,
         **kwargs,
     ):
-        super().on_train_begin(args, state, control, model, **kwargs)
+        super().on_train_begin(args, state, control, model, resume=self.resume, **kwargs)
         # Watch the model
         self._wandb.watch(model)
 

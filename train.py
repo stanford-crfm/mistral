@@ -154,7 +154,11 @@ def train() -> None:
         tokenizer=tokenizer,
         data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
         compute_metrics=compute_metrics,
-        callbacks=[CustomWandbCallback(quinfig.wandb, energy_log=paths["energy"], json_file=train_json_file)],
+        callbacks=[
+            CustomWandbCallback(
+                quinfig.wandb, energy_log=paths["energy"], json_file=train_json_file, resume=quinfig.resume
+            )
+        ],
     )
 
     # Training Time!
