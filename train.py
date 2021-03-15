@@ -130,7 +130,7 @@ def train() -> None:
     training_args = TrainingArguments(**quinfig.training_arguments)
 
     # Set training data json dump file
-    train_json_file = os.path.join(paths["runs"], "training_dump.json")
+    train_json_file = paths["runs"] / "training_dump.json"
 
     # Important - Note that by default if multiple GPUs available on node, HF.Trainer defaults to `torch.DataParallel`
     #   which is almost always worse in efficiency than the DDP equivalent. So basically, always run with DDP!
