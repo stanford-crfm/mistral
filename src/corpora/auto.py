@@ -5,7 +5,7 @@ Default Dataset/Corpus Utilities. Downloads (if necessary) from the Hugging Face
 de-facto training, validation, and testing tests. Performs additional tokenization and normalization as well.
 """
 import logging
-import os
+from pathlib import Path
 from typing import Dict, List
 
 import datasets
@@ -18,7 +18,7 @@ overwatch = logging.getLogger("mistral.corpora.auto")
 
 def get_auto_dataset(
     tokenizer: PreTrainedTokenizerBase,
-    paths: Dict[str, str],
+    paths: Dict[str, Path],
     dataset_id: str = "wikitext",
     validation_ratio: float = 0.01,
     seq_len: int = 1024,
@@ -29,7 +29,7 @@ def get_auto_dataset(
 
     if "validation" not in dataset:
         # Create Dataset Split Cache Files
-        train_fn, val_fn = [os.path.join(paths["dataset"], dataset_id, f"{k}-split.hf") for k in ["train", "val"]]
+        train_fn, val_fn = [str(paths["dataset"] / dataset_id / f"{k}-split.hf") for k in ["train", "val"]]
         dataset = dataset["train"].train_test_split(
             test_size=validation_ratio,
             train_indices_cache_file_name=train_fn,
@@ -49,9 +49,10 @@ def get_auto_dataset(
 
     # Create Post-Tokenization Cache Paths
     post_tokenization_cache_files = {
-        k: os.path.join(paths["preprocessed"], "preprocessing", "tokenization", f"{k}-tokenized.hf") for k in dataset
+        k: str(paths["preprocessed"] / "preprocessing" / "tokenization" / f"{k}-tokenized.hf") for k in dataset
     }
-    os.makedirs(os.path.join(paths["preprocessed"], "preprocessing", "tokenization"), exist_ok=True)
+    # Create Parent Path of Cache Files
+    (paths["preprocessed"] / "preprocessing" / "tokenization").mkdir(parents=True, exist_ok=True)
 
     tokenized_dataset = dataset.map(
         tokenize,
@@ -84,9 +85,10 @@ def get_auto_dataset(
 
     # Create Post-Chunking Cache Paths
     post_chunking_cache_files = {
-        k: os.path.join(paths["preprocessed"], "preprocessing", "chunking", f"{k}-chunked.hf") for k in dataset
+        k: str(paths["preprocessed"] / "preprocessing" / "chunking" / f"{k}-chunked.hf") for k in dataset
     }
-    os.makedirs(os.path.join(paths["preprocessed"], "preprocessing", "chunking"), exist_ok=True)
+    # Create Parent Path of Cache Files
+    (paths["preprocessed"] / "preprocessing" / "chunking").mkdir(parents=True, exist_ok=True)
 
     lm_dataset = tokenized_dataset.map(
         group,
