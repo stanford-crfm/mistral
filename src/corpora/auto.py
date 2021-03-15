@@ -20,6 +20,7 @@ def get_auto_dataset(
     tokenizer: PreTrainedTokenizerBase,
     paths: Dict[str, Path],
     dataset_id: str = "wikitext",
+    dataset_name: str = "wikitext-103-raw-v1",
     validation_ratio: float = 0.01,
     seq_len: int = 1024,
     preprocessing_num_proc: int = 8,
