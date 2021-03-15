@@ -21,12 +21,12 @@ Reference:
 =>> A Project Mercury Endeavor
 """
 import math
+import os
 import random
 from datetime import datetime
 
 import numpy as np
 import torch
-
 from experiment_impact_tracker.compute_tracker import ImpactTracker
 from quinine import QuinineArgumentParser
 from transformers import (
@@ -155,7 +155,15 @@ def train() -> None:
         tokenizer=tokenizer,
         data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
         compute_metrics=compute_metrics,
-        callbacks=[CustomWandbCallback(quinfig.wandb, energy_log=paths["energy"], json_file=train_json_file)],
+        callbacks=[
+            CustomWandbCallback(
+                quinfig.wandb,
+                energy_log=paths["energy"],
+                json_file=train_json_file,
+                resume_run_id=None,
+                wandb_dir=paths["wandb"],
+            )
+        ],
     )
 
     # Training Time!

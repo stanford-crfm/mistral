@@ -4,7 +4,7 @@ import math
 import os
 
 from experiment_impact_tracker.data_interface import DataInterface
-from transformers import PreTrainedModel, TrainerControl, TrainerState, TrainingArguments
+from transformers import PreTrainedModel, TrainerControl, TrainerState, TrainingArguments, is_torch_tpu_available
 from transformers.integrations import WandbCallback
 
 
@@ -26,7 +26,9 @@ class CustomWandbCallback(WandbCallback):
     # TODO: Override the methods below to log useful things
     """
 
-    def __init__(self, project: str, energy_log: str, json_file: str):
+    def __init__(
+        self, project: str, energy_log: str, json_file: str, resume_run_id: str = None, wandb_dir: str = None
+    ):
 
         super(CustomWandbCallback, self).__init__()
 
@@ -50,11 +52,73 @@ class CustomWandbCallback(WandbCallback):
             "global_step_info": [],
         }
 
+        # Wandb arguments
+        self.resume_run_id = resume_run_id
+        self.wandb_dir = wandb_dir
+
         self.write_to_json(self.json_schema, self.json_file)
 
     def write_to_json(self, data, file_name):
         with open(file_name, "w") as f:
             json.dump(data, f)
+
+    def setup(self, args, state, model, reinit, **kwargs):
+        """
+        Note: have to override this method in order to inject additional arguments into the wandb.init call. Currently,
+        HF provides no way to pass kwargs to that.
+
+        Setup the optional Weights & Biases (`wandb`) integration.
+
+        One can subclass and override this method to customize the setup if needed. Find more information `here
+        <https://docs.wandb.ai/integrations/huggingface>`__. You can also override the following environment variables:
+
+        Environment:
+            WANDB_LOG_MODEL (:obj:`bool`, `optional`, defaults to :obj:`False`):
+                Whether or not to log model as artifact at the end of training.
+            WANDB_WATCH (:obj:`str`, `optional` defaults to :obj:`"gradients"`):
+                Can be :obj:`"gradients"`, :obj:`"all"` or :obj:`"false"`. Set to :obj:`"false"` to disable gradient
+                logging or :obj:`"all"` to log gradients and parameters.
+            WANDB_PROJECT (:obj:`str`, `optional`, defaults to :obj:`"huggingface"`):
+                Set this to a custom string to store results in a different project.
+            WANDB_DISABLED (:obj:`bool`, `optional`, defaults to :obj:`False`):
+                Whether or not to disable wandb entirely. Set `WANDB_DISABLED=true` to disable.
+        """
+        if self._wandb is None:
+            return
+        self._initialized = True
+        if state.is_world_process_zero:
+            logger.info(
+                'Automatic Weights & Biases logging enabled, to disable set os.environ["WANDB_DISABLED"] = "true"'
+            )
+            combined_dict = {**args.to_sanitized_dict()}
+
+            if hasattr(model, "config") and model.config is not None:
+                model_config = model.config.to_dict()
+                combined_dict = {**model_config, **combined_dict}
+            trial_name = state.trial_name
+            init_args = {}
+            if trial_name is not None:
+                run_name = trial_name
+                init_args["group"] = args.run_name
+            else:
+                run_name = args.run_name
+
+            # Add additional kwargs into the init_args dict
+            init_args = {**init_args, **kwargs}
+
+            self._wandb.init(
+                project=os.getenv("WANDB_PROJECT", "huggingface"),
+                config=combined_dict,
+                name=run_name,
+                reinit=reinit,
+                **init_args,
+            )
+
+            # keep track of model topology and gradients, unsupported on TPU
+            if not is_torch_tpu_available() and os.getenv("WANDB_WATCH") != "false":
+                self._wandb.watch(
+                    model, log=os.getenv("WANDB_WATCH", "gradients"), log_freq=max(100, args.logging_steps)
+                )
 
     def on_init_end(
         self,
@@ -232,7 +296,10 @@ class CustomWandbCallback(WandbCallback):
         eval_dataloader=None,
         **kwargs,
     ):
-        super().on_train_begin(args, state, control, model, **kwargs)
+        """Calls wandb.init, we add additional arguments to that call using this method."""
+        # Pass in additional keyword arguments to the wandb.init call as kwargs
+        super().on_train_begin(args, state, control, model, dir=self.wandb_dir, id=self.resume_run_id, **kwargs)
+
         # Watch the model
         self._wandb.watch(model)
 
