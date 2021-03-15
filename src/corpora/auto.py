@@ -50,10 +50,11 @@ def get_auto_dataset(
 
     # Create Post-Tokenization Cache Paths
     post_tokenization_cache_files = {
-        k: str(paths["preprocessed"] / "preprocessing" / "tokenization" / f"{k}-tokenized.hf") for k in dataset
+        k: str(paths["preprocessed"] / dataset_id / "preprocessing" / "tokenization" / f"{k}-tokenized.hf")
+        for k in dataset
     }
     # Create Parent Path of Cache Files
-    (paths["preprocessed"] / "preprocessing" / "tokenization").mkdir(parents=True, exist_ok=True)
+    (paths["preprocessed"] / dataset_id / "preprocessing" / "tokenization").mkdir(parents=True, exist_ok=True)
 
     tokenized_dataset = dataset.map(
         tokenize,
@@ -86,10 +87,10 @@ def get_auto_dataset(
 
     # Create Post-Chunking Cache Paths
     post_chunking_cache_files = {
-        k: str(paths["preprocessed"] / "preprocessing" / "chunking" / f"{k}-chunked.hf") for k in dataset
+        k: str(paths["preprocessed"] / dataset_id / "preprocessing" / "chunking" / f"{k}-chunked.hf") for k in dataset
     }
     # Create Parent Path of Cache Files
-    (paths["preprocessed"] / "preprocessing" / "chunking").mkdir(parents=True, exist_ok=True)
+    (paths["preprocessed"] / dataset_id / "preprocessing" / "chunking").mkdir(parents=True, exist_ok=True)
 
     lm_dataset = tokenized_dataset.map(
         group,
