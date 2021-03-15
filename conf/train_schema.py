@@ -13,7 +13,7 @@ def get_schema() -> Dict[str, Any]:
 
     # Schema for Dataset
     data_schema = {
-        "name": merge(tstring, required),
+        "name": merge(tstring, nullable, default(None)),
         "id": merge(tstring, required),
         "num_proc": merge(tinteger, default(4)),
         "validation_ratio": merge(tfloat, default(0.01)),
