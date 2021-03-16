@@ -29,7 +29,13 @@ class CustomWandbCallback(WandbCallback):
     """
 
     def __init__(
-        self, project: str, energy_log: str, json_file: str, resume:bool = False, resume_run_id: str = None, wandb_dir: str = None
+        self,
+        project: str,
+        energy_log: str,
+        json_file: str,
+        resume: bool = False,
+        resume_run_id: str = None,
+        wandb_dir: str = None,
     ):
 
         super(CustomWandbCallback, self).__init__()
@@ -329,7 +335,9 @@ class CustomWandbCallback(WandbCallback):
     ):
         """Calls wandb.init, we add additional arguments to that call using this method."""
         # Pass in additional keyword arguments to the wandb.init call as kwargs
-        super().on_train_begin(args, state, control, model, resume=self.resume, dir=self.wandb_dir, id=self.resume_run_id, **kwargs)
+        super().on_train_begin(
+            args, state, control, model, resume=self.resume, dir=self.wandb_dir, id=self.resume_run_id, **kwargs
+        )
 
         # Watch the model
         self._wandb.watch(model)
