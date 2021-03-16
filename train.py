@@ -21,7 +21,6 @@ Reference:
 =>> A Project Mercury Endeavor
 """
 import math
-import os
 import random
 from datetime import datetime
 
@@ -125,13 +124,13 @@ def train() -> None:
     training_args.run_name = run_id
     training_args.output_dir = paths["runs"]
     training_args.logging_dir = paths["logs"]
-    training_args.energy_dir = paths["energy"]
+    # training_args.energy_dir = paths["energy"]
     training_args.seed = quinfig.seed
     training_args.local_rank = quinfig.infra.rank
     training_args = TrainingArguments(**quinfig.training_arguments)
 
     # Set training data json dump file
-    train_json_file = os.path.join(paths["runs"], "training_dump.json")
+    train_json_file = str(paths["runs"] / "training_dump.json")
 
     # Important - Note that by default if multiple GPUs available on node, HF.Trainer defaults to `torch.DataParallel`
     #   which is almost always worse in efficiency than the DDP equivalent. So basically, always run with DDP!

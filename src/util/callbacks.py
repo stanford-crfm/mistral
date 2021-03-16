@@ -1,8 +1,10 @@
-import json
 import logging
 import math
 import os
+import time
 
+import jsonlines
+import torch
 from experiment_impact_tracker.data_interface import DataInterface
 from transformers import PreTrainedModel, TrainerControl, TrainerState, TrainingArguments, is_torch_tpu_available
 from transformers.integrations import WandbCallback
@@ -45,22 +47,32 @@ class CustomWandbCallback(WandbCallback):
 
         # Set up json schema
         self.json_file = json_file
-
-        self.json_schema = {
-            "model_info": {},
-            "energy_metrics": [],
-            "global_step_info": [],
-        }
+        self.jsonl_writer = jsonlines.open(self.json_file, mode="w")
 
         # Wandb arguments
         self.resume_run_id = resume_run_id
         self.wandb_dir = wandb_dir
 
-        self.write_to_json(self.json_schema, self.json_file)
+        # Timers
+        self.within_time, self.between_time = None, None
 
-    def write_to_json(self, data, file_name):
-        with open(file_name, "w") as f:
-            json.dump(data, f)
+    def _append_jsonl(self, data):
+        with jsonlines.open(self.json_file, mode="a") as writer:
+            writer.write(data)
+
+    def _log_memory(self, state, prefix="train_info"):
+        """Simple method to log memory usage at the end of every training batch"""
+
+        if state.is_world_process_zero and torch.cuda.is_available():
+            memory_usage = {
+                f"{prefix}/memory_allocated": torch.cuda.memory_allocated() / 2 ** 20,
+                f"{prefix}/memory_max_allocated": torch.cuda.max_memory_allocated() / 2 ** 20,
+                f"{prefix}/memory_reserved": torch.cuda.memory_reserved() / 2 ** 20,
+                f"{prefix}/memory_max_reserved": torch.cuda.max_memory_reserved() / 2 ** 20,
+            }
+            # Log to _all_ loggers
+            self._wandb.log(memory_usage, step=state.global_step)
+            self._append_jsonl({"train_info": memory_usage, "step": state.global_step})
 
     def setup(self, args, state, model, reinit, **kwargs):
         """
@@ -165,19 +177,6 @@ class CustomWandbCallback(WandbCallback):
     ):
         super().on_epoch_end(args, state, control, **kwargs)
 
-        # Log energy information @ epoch
-        energy_data = DataInterface(args.energy_dir)
-        energy_metrics = {
-            "carbon_kg": energy_data.kg_carbon,
-            "total_power": energy_data.total_power,
-            "power_usage_effectiveness": energy_data.PUE,
-            "exp_len_hrs": energy_data.exp_len_hours,
-        }
-        self._wandb.log(
-            {"energy_metrics": energy_metrics},
-            step=state.epoch,
-        )
-
         try:
             # Log energy information @ epoch
             energy_data = DataInterface(self.energy_log)
@@ -192,8 +191,7 @@ class CustomWandbCallback(WandbCallback):
                 step=state.global_step,
             )
 
-            self.json_schema["energy_metrics"].append(energy_metrics)
-            self.write_to_json(self.json_schema, self.json_file)
+            self._append_jsonl({"energy_metrics": energy_metrics, "step": state.global_step})
         except ValueError:
             # In case the energy tracker raises "Unable to get either GPU or CPU metric."
             pass
@@ -213,6 +211,25 @@ class CustomWandbCallback(WandbCallback):
     ):
         super().on_step_begin(args, state, control, **kwargs)
 
+        if state.is_world_process_zero:
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
+
+            # Compute and Log "Between Time Taken"
+            between_time_taken = time.time() - self.between_time
+
+            # Log
+            self._wandb.log({"train_info/time_between_train_steps": between_time_taken}, step=state.global_step)
+            self._append_jsonl(
+                {
+                    "train_info/time_between_train_steps": between_time_taken,
+                    "step": state.global_step,
+                }
+            )
+
+            # Start the timer within a step
+            self.within_time = time.time()
+
     def on_step_end(
         self,
         args: TrainingArguments,
@@ -226,16 +243,28 @@ class CustomWandbCallback(WandbCallback):
         eval_dataloader=None,
         **kwargs,
     ):
-        # Log step information
-        self._wandb.log(
-            {
-                "info/global_step": state.global_step,
-            },
-            step=state.global_step,
-        )
+        if state.is_world_process_zero:
+            if torch.cuda.is_available():
+                torch.cuda.synchronize()
 
-        self.json_schema["global_step_info"].append(state.global_step)
-        self.write_to_json(self.json_schema, self.json_file)
+            # Get time taken in step
+            within_time_taken = time.time() - self.within_time
+
+            # Log step information
+            self._wandb.log(
+                {"info/global_step": state.global_step, "train_info/time_within_train_step": within_time_taken},
+                step=state.global_step,
+            )
+            self._append_jsonl(
+                {
+                    "info/global_step": state.global_step,
+                    "train_info/time_within_train_step": within_time_taken,
+                    "step": state.global_step,
+                }
+            )
+
+            # Start timer for measuring between-step time
+            self.between_time = time.time()
 
     def on_evaluate(
         self,
@@ -312,11 +341,16 @@ class CustomWandbCallback(WandbCallback):
             step=state.global_step,
         )
 
-        self.json_schema["model_info"] = {
-            "num_parameters": model.num_parameters(),
-            "trainable_parameters": model.num_parameters(only_trainable=True),
-        }
-        self.write_to_json(self.json_schema, self.json_file)
+        self._append_jsonl(
+            {
+                "num_parameters": model.num_parameters(),
+                "trainable_parameters": model.num_parameters(only_trainable=True),
+                "step": state.global_step,
+            }
+        )
+
+        # Initialize the timers
+        self.within_time, self.between_time = time.time(), time.time()
 
     def on_train_end(
         self,
@@ -350,4 +384,11 @@ class CustomWandbCallback(WandbCallback):
         # Log train perplexity
         if any([k == "loss" for k in logs]):
             logs["perplexity"] = math.exp(logs["loss"])
+
+        # Log memory usage
+        self._log_memory(state)
+
+        # Append to the log
+        self._append_jsonl({"logs": logs, "step": state.global_step})
+
         super().on_log(args, state, control, model, logs, **kwargs)
