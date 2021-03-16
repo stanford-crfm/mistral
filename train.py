@@ -23,6 +23,7 @@ Reference:
 import math
 import random
 from datetime import datetime
+import os
 
 import numpy as np
 import torch
@@ -76,8 +77,10 @@ def train() -> None:
     # TODO 6 -- Resume from Checkpoint Behavior!
     #   See: https://github.com/huggingface/transformers/blob/master/examples/language-modeling/run_clm.py#L166
     last_checkpoint = None
+    resume_run_id = None
     if quinfig.resume:
         last_checkpoint = get_last_checkpoint(paths["runs"])
+        resume_run_id = os.readlink(paths["runs"] / "wandb" / "latest-run").split("-")[-1]
         assert last_checkpoint is not None, "Cannot detect checkpoint in run dir. Resuming failed."
         overwatch.info(f"Checkpoint detected, resuming training at {last_checkpoint}.")
 
@@ -164,7 +167,7 @@ def train() -> None:
                 energy_log=str(paths["energy"]),
                 json_file=train_json_file,
                 resume=quinfig.resume,
-                resume_run_id=None,
+                resume_run_id=resume_run_id,
                 wandb_dir=paths["runs"],
             )
         ],
