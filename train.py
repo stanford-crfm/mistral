@@ -129,6 +129,8 @@ def train() -> None:
     # training_args.energy_dir = paths["energy"]
     training_args.seed = quinfig.seed
     training_args.local_rank = quinfig.infra.rank
+    # overwriting the default wandb callback
+    training_args.report_to = "none"
     training_args = TrainingArguments(**quinfig.training_arguments)
 
     # Set training data json dump file
