@@ -161,11 +161,11 @@ def train() -> None:
         callbacks=[
             CustomWandbCallback(
                 quinfig.wandb,
-                energy_log=paths["energy"],
+                energy_log=str(paths["energy"]),
                 json_file=train_json_file,
                 resume=quinfig.resume,
                 resume_run_id=None,
-                wandb_dir=paths["wandb"],
+                wandb_dir=paths["runs"],
             )
         ],
     )
