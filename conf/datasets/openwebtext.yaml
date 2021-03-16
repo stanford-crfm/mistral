@@ -7,4 +7,4 @@ dataset:
     validation_ratio: 0.01
 
     # Number of Preprocessing Workers
-    num_proc: 64
+    num_proc: 80

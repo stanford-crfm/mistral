@@ -125,10 +125,9 @@ def train() -> None:
     training_args.run_name = run_id
     training_args.output_dir = paths["runs"]
     training_args.logging_dir = paths["logs"]
-    # training_args.energy_dir = paths["energy"]
     training_args.seed = quinfig.seed
     training_args.local_rank = quinfig.infra.rank
-    # overwriting the default wandb callback
+    # Overwrite the default W&B Callback
     training_args.report_to = "none"
     training_args = TrainingArguments(**quinfig.training_arguments)
 
@@ -163,7 +162,7 @@ def train() -> None:
                 energy_log=str(paths["energy"]),
                 json_file=train_json_file,
                 resume_run_id=None,
-                wandb_dir=paths["runs"],
+                wandb_dir=str(paths["runs"]),
             )
         ],
     )
