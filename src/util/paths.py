@@ -13,7 +13,6 @@ from .registry import REGISTRY
 
 
 def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, energy_dir: str) -> Dict[str, Path]:
-
     """
     Create the necessary directories and sub-directories conditioned on the `run_id`, checkpoint directory, and cache
     directories.
@@ -22,6 +21,7 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, energy_d
     :param model: Huggingface.Transformers Model ID for specifying the desired configuration.
     :param run_dir: Path to run directory to save model checkpoints and run metrics.
     :param cache_dir: Path to artifacts/cache directory to store any intermediate values, configurations, etc.
+    :param energy_dir: Path to energy logging directory for writing energy usage for climate-responsible AI.
 
     :return: Dictionary mapping str ids --> paths on the filesystem.
     """
@@ -48,8 +48,7 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, energy_d
     return paths
 
 
-def set_permissions(paths: Dict[str, Path], keys=("configs", "tokenizer", "dataset", "preprocessed")) -> None:
+def set_permissions(paths: Dict[str, Path]) -> None:
     """ Recursively call `os.chmod(775) recursively for the given paths. """
-    for k in keys:
-        if k in paths:
-            os.system(f"chmod -R 775 {paths[k]}")
+    for p in paths:
+        os.system(f"chmod -R 775 {paths[p]}")
