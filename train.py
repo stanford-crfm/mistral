@@ -162,7 +162,7 @@ def train() -> None:
                 energy_log=paths["energy"],
                 json_file=train_json_file,
                 resume_run_id=None,
-                wandb_dir=paths["wandb"],
+                wandb_dir=paths["runs"],
             )
         ],
     )

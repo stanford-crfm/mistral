@@ -30,8 +30,6 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, energy_d
         "runs": Path(run_dir) / run_id,
         # Logging Directory (HF defaults to Tensorboard -- TODO 19 :: Remove Tensorboard and just use W&B and Custom?
         "logs": Path(run_dir) / run_id / "logs",
-        # WandB Save Directory
-        "wandb": Path(run_dir) / run_id / "wandb",
         # Energy Directory to save Carbon Metrics
         "energy": Path(energy_dir) / run_id / "energy",
         # Cache Directories for various components
