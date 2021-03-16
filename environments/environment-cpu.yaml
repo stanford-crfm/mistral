@@ -16,6 +16,7 @@ dependencies:
 - dbus=1.13.18
 - decorator=4.4.2
 - defusedxml=0.6.0
+- experiment-impact-tracker=0.1.8
 - entrypoints=0.3
 - expat=2.2.10
 - freetype=2.10.4
@@ -141,6 +142,7 @@ dependencies:
   - idna==2.10
   - isort==5.7.0
   - joblib==1.0.1
+  - jsonlines
   - kiwisolver==1.3.1
   - matplotlib==3.3.4
   - mccabe==0.6.1

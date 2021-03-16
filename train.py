@@ -58,6 +58,7 @@ def train() -> None:
             f"{quinfig.model.id}-d={quinfig.dataset.id}-n={quinfig.infra.nodes}-g={quinfig.infra.gpus}+"
             f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
         )
+
     paths = create_paths(
         run_id, quinfig.model.id, quinfig.artifacts.run_dir, quinfig.artifacts.cache_dir, quinfig.artifacts.energy_dir
     )
@@ -125,12 +126,13 @@ def train() -> None:
     training_args.run_name = run_id
     training_args.output_dir = paths["runs"]
     training_args.logging_dir = paths["logs"]
+    # training_args.energy_dir = paths["energy"]
     training_args.seed = quinfig.seed
     training_args.local_rank = quinfig.infra.rank
     training_args = TrainingArguments(**quinfig.training_arguments)
 
     # Set training data json dump file
-    train_json_file = paths["runs"] / "training_dump.json"
+    train_json_file = str(paths["runs"] / "training_dump.json")
 
     # Important - Note that by default if multiple GPUs available on node, HF.Trainer defaults to `torch.DataParallel`
     #   which is almost always worse in efficiency than the DDP equivalent. So basically, always run with DDP!
@@ -156,7 +158,12 @@ def train() -> None:
         compute_metrics=compute_metrics,
         callbacks=[
             CustomWandbCallback(
-                quinfig.wandb, energy_log=paths["energy"], json_file=train_json_file, resume=quinfig.resume
+                quinfig.wandb,
+                energy_log=paths["energy"],
+                json_file=train_json_file,
+                resume=quinfig.resume,
+                resume_run_id=None,
+                wandb_dir=paths["wandb"],
             )
         ],
     )

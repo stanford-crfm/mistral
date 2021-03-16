@@ -13,6 +13,7 @@ from .registry import REGISTRY
 
 
 def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, energy_dir: str) -> Dict[str, Path]:
+
     """
     Create the necessary directories and sub-directories conditioned on the `run_id`, checkpoint directory, and cache
     directories.
@@ -31,7 +32,8 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, energy_d
         "logs": Path(run_dir) / run_id / "logs",
         # WandB Save Directory
         "wandb": Path(run_dir) / run_id / "wandb",
-        "energy": Path(energy_dir) / run_id,
+        # Energy Directory to save Carbon Metrics
+        "energy": Path(energy_dir) / run_id / "energy",
         # Cache Directories for various components
         "configs": Path(cache_dir) / f"{REGISTRY[model]}-configs",
         "tokenizer": Path(cache_dir) / f"{REGISTRY[model]}-tokenizer",
