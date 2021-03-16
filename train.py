@@ -80,6 +80,7 @@ def train() -> None:
         raise NotImplementedError(err)
 
     # Set up Energy/Carbon Tracking
+    overwatch.info(f"Launching Experiment-Impact Tracker -- logs can be found at {paths['energy']}...")
     energy_tracker = ImpactTracker(paths["energy"])
     energy_tracker.launch_impact_monitor()
 
