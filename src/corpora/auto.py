@@ -26,7 +26,7 @@ def get_auto_dataset(
     preprocessing_num_proc: int = 8,
 ) -> datasets.Dataset:
     """ Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset. """
-    dataset = datasets.load_dataset(dataset_id, dataset_name, cache_dir=paths["dataset"], keep_in_memory=True)
+    dataset = datasets.load_dataset(dataset_id, dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True)
 
     if "validation" not in dataset:
         # Create Dataset Split Cache Files
@@ -74,7 +74,7 @@ def get_auto_dataset(
         # Drop the "very last" bit of the dataset that doesn't fit into block size...
         total_length = (total_length // seq_len) * seq_len
 
-        # Split by chunks of Maximum Length - TODO 17 :: I don't like the fact that we precompute splits once...
+        # Split by Chunks of Maximum Length
         result = {k: [t[i : i + seq_len] for i in range(0, total_length, seq_len)] for k, t in concatenated.items()}
         result["labels"] = result["input_ids"].copy()
         return result

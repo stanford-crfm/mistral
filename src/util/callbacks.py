@@ -5,12 +5,12 @@ import time
 
 import jsonlines
 import torch
-from experiment_impact_tracker.data_interface import DataInterface
 from transformers import PreTrainedModel, TrainerControl, TrainerState, TrainingArguments, is_torch_tpu_available
 from transformers.integrations import WandbCallback
 
 
-logger = logging.getLogger(__name__)
+# Nest Overwatch under root `mistral` logger, inheriting formatting!
+overwatch = logging.getLogger("mistral.util.callbacks")
 
 
 def compute_metrics(preds):
@@ -31,44 +31,37 @@ class CustomWandbCallback(WandbCallback):
     def __init__(
         self,
         project: str,
-        energy_log: str,
         json_file: str,
         resume: bool = False,
         resume_run_id: str = None,
         wandb_dir: str = None,
     ):
-
         super(CustomWandbCallback, self).__init__()
 
-        # Set the project name
+        # Set the Project Name
         if isinstance(project, str):
-            logger.info(f"Setting wandb project: {project}")
+            overwatch.info(f"Setting W&B Project: {project}")
             os.environ["WANDB_PROJECT"] = project
 
         # Set wandb.watch(model) to False, throws an error otherwise
         # Note: we manually watch the model in self.on_train_begin(..)
         os.environ["WANDB_WATCH"] = "false"
 
-        self.energy_log = energy_log
-
-        # Set up json schema
+        # Set up JSON Log File
         self.json_file = json_file
 
         # Wandb arguments
-        self.resume = resume
-        self.resume_run_id = resume_run_id
-        self.wandb_dir = wandb_dir
+        self.resume, self.resume_run_id, self.wandb_dir = resume, resume_run_id, wandb_dir
 
         # Timers
         self.within_time, self.between_time = None, None
 
-    def _append_jsonl(self, data):
+    def _append_jsonl(self, data) -> None:
         with jsonlines.open(self.json_file, mode="a") as writer:
             writer.write(data)
 
     def _log_memory(self, state, prefix="train_info"):
-        """Simple method to log memory usage at the end of every training batch"""
-
+        """ Simple method to log memory usage at the end of every training batch. """
         if state.is_world_process_zero and torch.cuda.is_available():
             memory_usage = {
                 f"{prefix}/memory_allocated": torch.cuda.memory_allocated() / 2 ** 20,
@@ -106,8 +99,10 @@ class CustomWandbCallback(WandbCallback):
         if self._wandb is None:
             return
         self._initialized = True
+
+        # Process Zero Barrier --> only Log on First Process!
         if state.is_world_process_zero:
-            logger.info(
+            overwatch.info(
                 'Automatic Weights & Biases logging enabled, to disable set os.environ["WANDB_DISABLED"] = "true"'
             )
             combined_dict = {**args.to_sanitized_dict()}
@@ -134,7 +129,7 @@ class CustomWandbCallback(WandbCallback):
                 **init_args,
             )
 
-            # keep track of model topology and gradients, unsupported on TPU
+            # Keep track of Model Topology and Gradients, Unsupported on TPU
             if not is_torch_tpu_available() and os.getenv("WANDB_WATCH") != "false":
                 self._wandb.watch(
                     model, log=os.getenv("WANDB_WATCH", "gradients"), log_freq=max(100, args.logging_steps)
@@ -194,26 +189,6 @@ class CustomWandbCallback(WandbCallback):
         **kwargs,
     ):
         super().on_epoch_end(args, state, control, **kwargs)
-
-        try:
-            # Log energy information @ epoch
-            energy_data = DataInterface(self.energy_log)
-            energy_metrics = {
-                "carbon_kg": energy_data.kg_carbon,
-                "total_power": energy_data.total_power,
-                "power_usage_effectiveness": energy_data.PUE,
-                "exp_len_hrs": energy_data.exp_len_hours,
-            }
-            self._wandb.log(
-                {"energy_metrics": energy_metrics},
-                step=state.global_step,
-            )
-
-            if state.global_step > self._last_log_step:
-                self._append_jsonl({"energy_metrics": energy_metrics, "step": state.global_step})
-        except ValueError:
-            # In case the energy tracker raises "Unable to get either GPU or CPU metric."
-            pass
 
     def on_step_begin(
         self,

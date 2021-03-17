@@ -9,18 +9,18 @@ training_arguments:
     output_dir: null
 
     # Generally sticks to order from HF.TrainingArguments() Docs, skipping over sane defaults/implicitly set args...
-    do_train: true
+    do_train: True
     evaluation_strategy: steps
 
     # Set these based on GPU RAM available...
     per_device_train_batch_size: 2
-    per_device_eval_batch_size: 4
+    per_device_eval_batch_size: 8
 
     # TODO 9 :: Set this dynamically?
     gradient_accumulation_steps: 4
 
-    # TODO 10 :: Unclear what a good value is here -- this is somewhat arbitrary...
-    eval_accumulation_steps: 8
+    # For Online Evaluation, only keep around the Losses
+    prediction_loss_only: True
 
     # Learning Rate & Optimization Parameters, assumes AdamW -- TODO 11 :: Check these and then double check them!
     learning_rate: 5.0e-5
