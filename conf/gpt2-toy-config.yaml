@@ -18,6 +18,7 @@ wandb: null
 artifacts:
     cache_dir: /u/scr/nlp/mercury/mistral/artifacts
     run_dir: /u/scr/nlp/mercury/mistral/runs
+    energy_dir: /u/scr/nlp/mercury/mistral/energy
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
 # TODO 8 :: Do we want to dynamically set gradient accumulation based on effective batch size?

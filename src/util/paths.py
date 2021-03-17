@@ -27,10 +27,6 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[
     paths = {
         # Top-Level Checkpoint Directory for Given Run
         "runs": Path(run_dir) / run_id,
-        # Logging Directory (HF defaults to Tensorboard -- TODO 19 :: Remove Tensorboard and just use W&B and Custom?
-        "logs": Path(run_dir) / run_id / "logs",
-        # WandB Save Directory
-        "wandb": Path(run_dir) / run_id / "wandb",
         # Cache Directories for various components
         "configs": Path(cache_dir) / f"{REGISTRY[model]}-configs",
         "tokenizer": Path(cache_dir) / f"{REGISTRY[model]}-tokenizer",
@@ -45,8 +41,7 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[
     return paths
 
 
-def set_permissions(paths: Dict[str, Path], keys=("configs", "tokenizer", "dataset", "preprocessed")) -> None:
+def set_permissions(paths: Dict[str, Path]) -> None:
     """ Recursively call `os.chmod(775) recursively for the given paths. """
-    for k in keys:
-        if k in paths:
-            os.system(f"chmod -R 775 {paths[k]}")
+    for p in paths:
+        os.system(f"chmod -R 775 {paths[p]}")

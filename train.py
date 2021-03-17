@@ -11,16 +11,15 @@ Supported Models:
 
 Supported Datasets:
     - WikiText-103
-    - OpenWebText [WIP]
+    - OpenWebText
 
 Provides additional scripting for logging, interfacing with Weights & Biases, and serializing/saving model checkpoints.
 
 Reference:
     - https://github.com/huggingface/transformers/blob/master/examples/language-modeling/run_clm.py
 
-=>> A Project Mercury Endeavor
+|=>> A Project Mercury Endeavor
 """
-import math
 import random
 from datetime import datetime
 
@@ -40,6 +39,7 @@ from conf.train_schema import get_schema
 from src.corpora import get_auto_dataset
 from src.overwatch import get_overwatch
 from src.util import REGISTRY, create_paths, set_permissions
+from src.util.callbacks import CustomWandbCallback, compute_metrics
 
 
 def train() -> None:
@@ -113,22 +113,21 @@ def train() -> None:
     training_args = quinfig.training_arguments
     training_args.run_name = run_id
     training_args.output_dir = paths["runs"]
-    training_args.logging_dir = paths["logs"]
     training_args.seed = quinfig.seed
     training_args.local_rank = quinfig.infra.rank
+    training_args.report_to = "none"
     training_args = TrainingArguments(**quinfig.training_arguments)
+
+    # Set training data json dump file
+    train_json_file = str(paths["runs"] / "training_dump.json")
 
     # Important - Note that by default if multiple GPUs available on node, HF.Trainer defaults to `torch.DataParallel`
     #   which is almost always worse in efficiency than the DDP equivalent. So basically, always run with DDP!
     # TODO 21 :: Set up DDP (Single-Node), DDP (Multi-Node) Training + Mixed Precision Training
     # TODO 22 :: Setup DeepSpeed Training
     # TODO 23 :: Setup FairScale Training
-    # TODO 24 :: Figure out best combination of DeepSpeed & FairScale (if they even can be combined well)
 
     # Initialize Trainer, with the relevant arguments
-    # TODO 29 :: Setup W&B using Environment Variables (Pass to Trainer)
-    # TODO 30 :: Setup Custom Logger (File/JSON Logger from `Tempest) Callback and add here!
-    # TODO 31 :: Add Environment/Climate Tracker from `Tempest`/Peter Henderson here as well
     # TODO 32 :: Make sure we're using the right opt/schedule... should be configured by `training_args` so check!
     # TODO 33 :: Pass in `compute_metrics` for correct evaluation metrics --> Perplexity! Do during train as well?
     overwatch.info("Initializing Model Trainer...")
@@ -139,30 +138,23 @@ def train() -> None:
         eval_dataset=lm_dataset["validation"],
         tokenizer=tokenizer,
         data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
+        compute_metrics=compute_metrics,
+        callbacks=[
+            CustomWandbCallback(
+                quinfig.wandb,
+                json_file=train_json_file,
+                resume_run_id=None,
+                wandb_dir=str(paths["runs"]),
+            )
+        ],
     )
 
     # Training Time!
     # TODO 6 -- Resume from Checkpoint Behavior!
     #   See: https://github.com/huggingface/transformers/blob/master/examples/language-modeling/run_clm.py#L369
     overwatch.info("Training...")
-    train_result = trainer.train()
+    trainer.train()
     trainer.save_model()
-
-    # Get and Log Metrics --> TODO 28 :: Is this necessary? Separately - we should write a Custom Simplified Logger!
-    metrics = train_result.metrics
-    trainer.log_metrics("train", metrics)
-    trainer.save_metrics("train", metrics)
-    trainer.save_state()  # No idea what this does...
-
-    # Evaluation Time
-    overwatch.info("Evaluating...")
-    eval_result = trainer.evaluate()
-
-    # Compute PPL and Log
-    perplexity = math.exp(eval_result["eval_loss"])
-    results = {"perplexity": perplexity}
-    trainer.log_metrics("eval", results)
-    trainer.save_metrics("eval", results)
 
     overwatch.info("...and that's all folks!")
 
