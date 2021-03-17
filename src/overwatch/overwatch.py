@@ -29,9 +29,12 @@ def get_overwatch(path: Path, level: int, rank: int = 0) -> logging.Logger:
     # Create Root Logger w/ Base Formatting
     logging.basicConfig(level=level, format=LOG_FORMAT, datefmt=DATE_FORMAT)
 
-    # Suppress Hugging Face Loggers
+    # Suppress Hugging Face Loggers --> propagate up to Root!
     transformers.logging.disable_default_handler()
     datasets.logging._get_library_root_logger().handlers = []
+
+    # Set Transformers Default Level
+    transformers.logging.set_verbosity(verbosity=level)
 
     # Create Default Logger & add File Handler
     logger = logging.getLogger()
@@ -39,8 +42,8 @@ def get_overwatch(path: Path, level: int, rank: int = 0) -> logging.Logger:
 
     # Only Log to File w/ Rank 0 on each Node
     if rank <= 0:
-        # Create File Handler --> Set mode to "w" to overwrite logs (ok, since each run will be uniquely named)
-        file_handler = logging.FileHandler(path, mode="w")
+        # Create File Handler --> Set mode to "a" to append to logs (ok, since each run will be uniquely named)
+        file_handler = logging.FileHandler(path, mode="a")
         file_handler.setFormatter(logging.Formatter(LOG_FORMAT, datefmt=DATE_FORMAT))
         logger.addHandler(file_handler)
 

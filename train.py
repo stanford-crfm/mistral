@@ -47,8 +47,8 @@ from src.util.callbacks import CustomWandbCallback, compute_metrics
 def train() -> None:
     # Parse Quinfig (via Quinine Argparse Binding)
     print("[*] Mercury :: Launching =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
+    print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)')
     quinfig = QuinineArgumentParser(schema=get_schema()).parse_quinfig()
-    print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)\n')
 
     # Create Unique Run Name (for Logging, Checkpointing, and W&B) :: Initialize all Directories
     run_id = quinfig.run_id
@@ -73,8 +73,8 @@ def train() -> None:
     if quinfig.resume:
         last_checkpoint = get_last_checkpoint(paths["runs"])
         resume_run_id = os.readlink(paths["runs"] / "wandb" / "latest-run").split("-")[-1]
-        assert last_checkpoint is not None, "Cannot detect checkpoint in run dir. Resuming failed."
-        overwatch.info(f"Checkpoint detected, resuming training at {last_checkpoint}.")
+        assert last_checkpoint is not None, "Cannot detect checkpoint in run_dir -- Resuming Failed!"
+        overwatch.info(f"Checkpoint detected, Resuming Training at `{last_checkpoint}`.")
 
     # Create Configuration
     # TODO 26 :: Make Model Creation & Processing Modular + Clean --> Relegate to `src.models.auto`
@@ -121,7 +121,7 @@ def train() -> None:
     training_args = TrainingArguments(**quinfig.training_arguments)
 
     # Set training data json dump file
-    train_json_file = str(paths["runs"] / "training_dump.json")
+    train_json_file = str(paths["runs"] / "metrics.json")
 
     # Important - Note that by default if multiple GPUs available on node, HF.Trainer defaults to `torch.DataParallel`
     #   which is almost always worse in efficiency than the DDP equivalent. So basically, always run with DDP!
@@ -147,7 +147,7 @@ def train() -> None:
                 json_file=train_json_file,
                 resume=quinfig.resume,
                 resume_run_id=resume_run_id,
-                wandb_dir=paths["runs"],
+                wandb_dir=str(paths["runs"]),
             )
         ],
     )

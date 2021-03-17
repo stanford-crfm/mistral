@@ -381,7 +381,7 @@ class CustomWandbCallback(WandbCallback):
         logs=None,
         **kwargs,
     ):
-        # Log train perplexity
+        # Log Train Perplexity
         if any([k == "loss" for k in logs]):
             logs["perplexity"] = math.exp(logs["loss"])
 
