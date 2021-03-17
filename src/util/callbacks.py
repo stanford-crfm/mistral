@@ -32,6 +32,7 @@ class CustomWandbCallback(WandbCallback):
         self,
         project: str,
         json_file: str,
+        resume: bool = False,
         resume_run_id: str = None,
         wandb_dir: str = None,
     ):
@@ -46,13 +47,11 @@ class CustomWandbCallback(WandbCallback):
         # Note: we manually watch the model in self.on_train_begin(..)
         os.environ["WANDB_WATCH"] = "false"
 
-        # Set up JSON Schema
+        # Set up JSON Log File
         self.json_file = json_file
-        self.jsonl_writer = jsonlines.open(self.json_file, mode="w")
 
         # Wandb arguments
-        self.resume_run_id = resume_run_id
-        self.wandb_dir = wandb_dir
+        self.resume, self.resume_run_id, self.wandb_dir = resume, resume_run_id, wandb_dir
 
         # Timers
         self.within_time, self.between_time = None, None
@@ -72,7 +71,9 @@ class CustomWandbCallback(WandbCallback):
             }
             # Log to _all_ loggers
             self._wandb.log(memory_usage, step=state.global_step)
-            self._append_jsonl({"train_info": memory_usage, "step": state.global_step})
+
+            if state.global_step > self._last_log_step:
+                self._append_jsonl({"train_info": memory_usage, "step": state.global_step})
 
     def setup(self, args, state, model, reinit, **kwargs):
         """
@@ -133,6 +134,16 @@ class CustomWandbCallback(WandbCallback):
                 self._wandb.watch(
                     model, log=os.getenv("WANDB_WATCH", "gradients"), log_freq=max(100, args.logging_steps)
                 )
+
+            if self.resume:
+                resume_reader = jsonlines.open(self.json_file, mode="r")
+                for last_log in resume_reader:
+                    pass
+                self._last_log_step = last_log["step"]
+                resume_reader.close()
+            else:
+                self._last_log_step = -1
+            self.jsonl_writer = jsonlines.open(self.json_file, mode="w" if not self.resume else "a")
 
     def on_init_end(
         self,
@@ -203,12 +214,13 @@ class CustomWandbCallback(WandbCallback):
 
             # Log
             self._wandb.log({"train_info/time_between_train_steps": between_time_taken}, step=state.global_step)
-            self._append_jsonl(
-                {
-                    "train_info/time_between_train_steps": between_time_taken,
-                    "step": state.global_step,
-                }
-            )
+            if state.global_step > self._last_log_step:
+                self._append_jsonl(
+                    {
+                        "train_info/time_between_train_steps": between_time_taken,
+                        "step": state.global_step,
+                    }
+                )
 
             # Start the timer within a step
             self.within_time = time.time()
@@ -238,13 +250,15 @@ class CustomWandbCallback(WandbCallback):
                 {"info/global_step": state.global_step, "train_info/time_within_train_step": within_time_taken},
                 step=state.global_step,
             )
-            self._append_jsonl(
-                {
-                    "info/global_step": state.global_step,
-                    "train_info/time_within_train_step": within_time_taken,
-                    "step": state.global_step,
-                }
-            )
+
+            if state.global_step > self._last_log_step:
+                self._append_jsonl(
+                    {
+                        "info/global_step": state.global_step,
+                        "train_info/time_within_train_step": within_time_taken,
+                        "step": state.global_step,
+                    }
+                )
 
             # Start timer for measuring between-step time
             self.between_time = time.time()
@@ -310,7 +324,9 @@ class CustomWandbCallback(WandbCallback):
     ):
         """Calls wandb.init, we add additional arguments to that call using this method."""
         # Pass in additional keyword arguments to the wandb.init call as kwargs
-        super().on_train_begin(args, state, control, model, dir=self.wandb_dir, id=self.resume_run_id, **kwargs)
+        super().on_train_begin(
+            args, state, control, model, resume=self.resume, dir=self.wandb_dir, id=self.resume_run_id, **kwargs
+        )
 
         # Watch the model
         self._wandb.watch(model)
@@ -324,13 +340,14 @@ class CustomWandbCallback(WandbCallback):
             step=state.global_step,
         )
 
-        self._append_jsonl(
-            {
-                "num_parameters": model.num_parameters(),
-                "trainable_parameters": model.num_parameters(only_trainable=True),
-                "step": state.global_step,
-            }
-        )
+        if state.global_step > self._last_log_step:
+            self._append_jsonl(
+                {
+                    "num_parameters": model.num_parameters(),
+                    "trainable_parameters": model.num_parameters(only_trainable=True),
+                    "step": state.global_step,
+                }
+            )
 
         # Initialize the timers
         self.within_time, self.between_time = time.time(), time.time()
@@ -364,7 +381,7 @@ class CustomWandbCallback(WandbCallback):
         logs=None,
         **kwargs,
     ):
-        # Log train perplexity
+        # Log Train Perplexity
         if any([k == "loss" for k in logs]):
             logs["perplexity"] = math.exp(logs["loss"])
 
@@ -372,6 +389,7 @@ class CustomWandbCallback(WandbCallback):
         self._log_memory(state)
 
         # Append to the log
-        self._append_jsonl({"logs": logs, "step": state.global_step})
+        if state.global_step > self._last_log_step:
+            self._append_jsonl({"logs": logs, "step": state.global_step})
 
         super().on_log(args, state, control, model, logs, **kwargs)

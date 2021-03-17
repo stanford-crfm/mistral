@@ -8,4 +8,4 @@ model:
     seq_len: 1024
 
     # Boolean whether to use the pre-existing Hugging Face AutoTokenizer (or train a new one from scratch)
-    pretrained_tokenizer: True
+    pretrained_tokenizer: true
