@@ -5,7 +5,6 @@ import time
 
 import jsonlines
 import torch
-from experiment_impact_tracker.data_interface import DataInterface
 from transformers import PreTrainedModel, TrainerControl, TrainerState, TrainingArguments, is_torch_tpu_available
 from transformers.integrations import WandbCallback
 
@@ -32,7 +31,6 @@ class CustomWandbCallback(WandbCallback):
     def __init__(
         self,
         project: str,
-        energy_log: str,
         json_file: str,
         resume_run_id: str = None,
         wandb_dir: str = None,
@@ -47,9 +45,6 @@ class CustomWandbCallback(WandbCallback):
         # Set wandb.watch(model) to False, throws an error otherwise
         # Note: we manually watch the model in self.on_train_begin(..)
         os.environ["WANDB_WATCH"] = "false"
-
-        # Set up Energy Log Directory
-        self.energy_log = energy_log
 
         # Set up JSON Schema
         self.json_file = json_file
@@ -183,26 +178,6 @@ class CustomWandbCallback(WandbCallback):
         **kwargs,
     ):
         super().on_epoch_end(args, state, control, **kwargs)
-
-        try:
-            # Log Energy Information @ Epoch
-            energy_data = DataInterface(self.energy_log)
-            energy_metrics = {
-                "carbon_kg": energy_data.kg_carbon,
-                "total_power": energy_data.total_power,
-                "power_usage_effectiveness": energy_data.PUE,
-                "exp_len_hrs": energy_data.exp_len_hours,
-            }
-            self._wandb.log(
-                {"energy_metrics": energy_metrics},
-                step=state.global_step,
-            )
-
-            self._append_jsonl({"energy_metrics": energy_metrics, "step": state.global_step})
-
-        except ValueError:
-            # In Case the Energy Tracker raises "Unable to get either GPU or CPU metric."
-            pass
 
     def on_step_begin(
         self,

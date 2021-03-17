@@ -16,7 +16,7 @@ def get_schema() -> Dict[str, Any]:
         "name": merge(tstring, nullable, default(None)),
         "id": merge(tstring, required),
         "num_proc": merge(tinteger, default(4)),
-        "validation_ratio": merge(tfloat, default(0.01)),
+        "validation_ratio": merge(tfloat, default(0.0005)),
     }
 
     # Schema for Model
@@ -40,7 +40,7 @@ def get_schema() -> Dict[str, Any]:
         "per_device_train_batch_size": merge(tinteger, default(32)),
         "per_device_eval_batch_size": merge(tinteger, default(32)),
         "gradient_accumulation_steps": merge(tinteger, default(1)),
-        "eval_accumulation_steps": merge(tinteger, default(8)),
+        "prediction_loss_only": merge(tboolean, default(True)),
         "learning_rate": merge(tfloat, default(2.0e-5)),
         "weight_decay": merge(tfloat, default(0.01)),
         "adam_epsilon": merge(tfloat, default(1.0e-8)),
@@ -72,7 +72,6 @@ def get_schema() -> Dict[str, Any]:
     artifacts_schema = {
         "cache_dir": merge(tstring, default("/u/scr/nlp/mercury/mistral/artifacts")),
         "run_dir": merge(tstring, default("/u/scr/nlp/mercury/mistral/runs")),
-        "energy_dir": merge(tstring, default("/u/scr/nlp/mercury/mistral/energy")),
     }
 
     # Combined Schema for `train.py`
@@ -88,7 +87,7 @@ def get_schema() -> Dict[str, Any]:
         "log_level": merge(tinteger, default(20)),
         "run_id": merge(tstring, nullable, default(None)),
         "wandb": merge(tstring, nullable, default(None)),
-        "seed": merge(tinteger, default(42)),
+        "seed": merge(tinteger, default(21)),
         "local_rank": merge(tinteger, nullable),
     }
 

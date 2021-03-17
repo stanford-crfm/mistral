@@ -4,7 +4,7 @@
 dataset:
     id: openwebtext
     name: null
-    validation_ratio: 0.01
+    validation_ratio: 0.0005
 
     # Number of Preprocessing Workers
-    num_proc: 80
+    num_proc: 64

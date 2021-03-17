@@ -12,7 +12,7 @@ from typing import Dict
 from .registry import REGISTRY
 
 
-def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, energy_dir: str) -> Dict[str, Path]:
+def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[str, Path]:
     """
     Create the necessary directories and sub-directories conditioned on the `run_id`, checkpoint directory, and cache
     directories.
@@ -21,17 +21,12 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str, energy_d
     :param model: Huggingface.Transformers Model ID for specifying the desired configuration.
     :param run_dir: Path to run directory to save model checkpoints and run metrics.
     :param cache_dir: Path to artifacts/cache directory to store any intermediate values, configurations, etc.
-    :param energy_dir: Path to energy logging directory for writing energy usage for climate-responsible AI.
 
     :return: Dictionary mapping str ids --> paths on the filesystem.
     """
     paths = {
         # Top-Level Checkpoint Directory for Given Run
         "runs": Path(run_dir) / run_id,
-        # Logging Directory (HF defaults to Tensorboard -- TODO 19 :: Remove Tensorboard and just use W&B and Custom?
-        "logs": Path(run_dir) / run_id / "logs",
-        # Energy Directory to save Carbon Metrics
-        "energy": Path(energy_dir) / run_id / "energy",
         # Cache Directories for various components
         "configs": Path(cache_dir) / f"{REGISTRY[model]}-configs",
         "tokenizer": Path(cache_dir) / f"{REGISTRY[model]}-tokenizer",
