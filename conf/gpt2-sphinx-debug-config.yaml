@@ -4,24 +4,23 @@
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
-    - datasets/openwebtext.yaml
+    - datasets/wikitext103.yaml
     - models/gpt2-small.yaml
     - trainers/toy.yaml
 
 # Run ID -- defaults to `null`; override as you like!
 run_id: null
 
-# Weights & Biases (Set os.environ["WANDB_PROJECT"])
-wandb: null
+# Weights & Biases
+wandb: mistral-debugging
 
 # Artifacts & Caching
 artifacts:
     cache_dir: /scr-ssd/mercury/mistral/artifacts
-    run_dir: /scr-ssd/mercury/mistral/runs
+    run_dir: /scr-ssd/mercury/mistral/runs-laurel
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
-# TODO 8 :: Do we want to dynamically set gradient accumulation based on effective batch size?
-bsz: 2
+effective_bsz: 16
 
 # Resume from Checkpoint
 resume: False
@@ -36,7 +35,7 @@ infra:
 
     # GPUs assumed to be uniform *across* nodes
     nodes: 1
-    gpus: 1
+    gpus: 8
 
 # Random Seed
 seed: 21

@@ -5,40 +5,11 @@ Handle detokenization for different dataset for zero-shot LM evaluation.
 """
 import logging
 import re
-from pathlib import Path
 from typing import Dict
 
-import datasets
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
-from src.util.registry import DATASET_TOKENIZATION_STRATEGY
-
-
 overwatch = logging.getLogger("mistral.corpora.auto")
-
-
-def auto_detokenize(
-    dataset_id: str, dataset: datasets.DatasetDict, preprocess_path: Path, preprocessing_num_proc: int = 8
-) -> datasets.DatasetDict:
-    if dataset_id in DATASET_TOKENIZATION_STRATEGY:
-        overwatch.info(f"Detokenizing Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
-        # Create Post-Detokenization Cache Paths
-        post_detokenization_cache_files = {
-            k: str(preprocess_path / dataset_id / "preprocessing" / "detokenization" / f"{k}-detokenized.hf")
-            for k in dataset
-        }
-        # Create Parent Path of Cache Files
-        (preprocess_path / dataset_id / "preprocessing" / "detokenization").mkdir(parents=True, exist_ok=True)
-
-        detokenized_dataset = dataset.map(
-            DATASET_TOKENIZATION_STRATEGY[dataset_id],
-            num_proc=preprocessing_num_proc,
-            cache_file_names=post_detokenization_cache_files,
-            load_from_cache_file=True,
-        )
-    else:
-        detokenized_dataset = dataset
-    return detokenized_dataset
 
 
 def wikitext_detokenize(example: Dict[str, str]) -> Dict[str, str]:

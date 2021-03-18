@@ -8,6 +8,7 @@ import logging
 import time
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
+import numpy as np
 import torch
 from torch.utils.data import Dataset
 from transformers import (
@@ -39,7 +40,7 @@ class OnlineBenchmarkTrainer(Trainer):
         callbacks: Optional[List[TrainerCallback]] = None,
         optimizers: Tuple[torch.optim.Optimizer, torch.optim.lr_scheduler.LambdaLR] = (None, None),
     ):
-        super(OnlineBenchmarkTrainer, self).init(
+        super(OnlineBenchmarkTrainer, self).__init__(
             model=model,
             args=args,
             data_collator=data_collator,
@@ -71,18 +72,19 @@ class OnlineBenchmarkTrainer(Trainer):
             custom_metric_key_prefix = f"{metric_key_prefix}_{custom_dataset_name}"
             eval_dataloader = self.get_eval_dataloader(custom_eval_dataset)
             start_time = time.time()
-
             output = self.prediction_loop(
                 eval_dataloader,
                 description=f"Evaluation {custom_dataset_name}",
-                prediction_loss_only=False,
+                prediction_loss_only=True,
                 metric_key_prefix=custom_metric_key_prefix,
             )
-            ppl = torch.exp(output.loss)
-            metrics.update({f"{custom_metric_key_prefix}_ppl": ppl})
             n_samples = len(custom_eval_dataset)
             output.metrics.update(speed_metrics(custom_metric_key_prefix, start_time, n_samples))
             self.log(output.metrics)
 
-        self._memory_tracker.stop_and_update_metrics(output.metrics)
+            ppl = np.exp(output.metrics[f"{custom_metric_key_prefix}_loss"])
+            metrics.update({f"{custom_metric_key_prefix}_ppl": ppl})
+            metrics.update(output.metrics)
+
+        self._memory_tracker.stop_and_update_metrics(metrics)
         return metrics

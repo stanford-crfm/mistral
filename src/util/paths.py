@@ -44,4 +44,4 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[
 def set_permissions(paths: Dict[str, Path]) -> None:
     """ Recursively call `os.chmod(775) recursively for the given paths. """
     for p in paths:
-        os.system(f"chmod -R 775 {paths[p]}")
+        os.system(f"chmod -R 775 {paths[p]} >/dev/null 2>&1")

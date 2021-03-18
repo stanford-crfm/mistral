@@ -9,23 +9,23 @@ from pathlib import Path
 from typing import Dict, List
 
 import datasets
-from transformers import BatchEncoding, PreTrainedTokenizerBase
-
-from .detokenization import auto_detokenize
-
+from transformers import BatchEncoding, PreTrainedTokenizer
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
+from ..util.registry import DATASET_TOKENIZATION_STRATEGY
+
+
 overwatch = logging.getLogger("mistral.corpora.auto")
 
 
 def get_auto_dataset(
-    tokenizer: PreTrainedTokenizerBase,
+    tokenizer: PreTrainedTokenizer,
     paths: Dict[str, Path],
     dataset_id: str = "wikitext",
     dataset_name: str = "wikitext-103-raw-v1",
-    validation_ratio: float = 0.01,
+    validation_ratio: float = 0.0005,
     seq_len: int = 1024,
-    preprocessing_num_proc: int = 8,
+    preprocessing_num_proc: int = 64,
     stride: int = -1,
     ignore_train: bool = False,
 ) -> datasets.Dataset:
@@ -37,6 +37,7 @@ def get_auto_dataset(
     dataset = datasets.load_dataset(dataset_id, dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True)
 
     if "validation" not in dataset:
+        assert "train" in dataset, "You must have train in dataset to make a validation dataset"
         # Create Dataset Split Cache Files
         train_fn, val_fn = [str(paths["dataset"] / dataset_id / f"{k}-split.hf") for k in ["train", "val"]]
         dataset = dataset["train"].train_test_split(
@@ -51,8 +52,9 @@ def get_auto_dataset(
     assert "train" in dataset, "Field `train` not in Dataset!"
     if ignore_train:
         del dataset["train"]
+        assert len(dataset) > 0, "You can't set ignore_train = True when there is only train data"
 
-    # First, Normalize Text if Necessary. Tokenization Strategies are in registry.py.
+    # First, Normalize Text if Necessary. Tokenization Strategies are in dekoneizatoin.py.
     dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
 
     # Second, run straight-up tokenization
@@ -73,7 +75,7 @@ def get_auto_dataset(
         tokenize,
         batched=True,
         num_proc=preprocessing_num_proc,
-        remove_columns=dataset["train"].column_names,
+        remove_columns=next(iter(dataset.values())).column_names,
         cache_file_names=post_tokenization_cache_files,
         load_from_cache_file=True,
     )
@@ -115,3 +117,27 @@ def get_auto_dataset(
     )
 
     return lm_dataset
+
+
+def auto_detokenize(
+    dataset_id: str, dataset: datasets.DatasetDict, preprocess_path: Path, preprocessing_num_proc: int = 8
+) -> datasets.DatasetDict:
+    if dataset_id in DATASET_TOKENIZATION_STRATEGY:
+        overwatch.info(f"Detokenizing Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
+        # Create Post-Detokenization Cache Paths
+        post_detokenization_cache_files = {
+            k: str(preprocess_path / dataset_id / "preprocessing" / "detokenization" / f"{k}-detokenized.hf")
+            for k in dataset
+        }
+        # Create Parent Path of Cache Files
+        (preprocess_path / dataset_id / "preprocessing" / "detokenization").mkdir(parents=True, exist_ok=True)
+
+        detokenized_dataset = dataset.map(
+            DATASET_TOKENIZATION_STRATEGY[dataset_id],
+            num_proc=preprocessing_num_proc,
+            cache_file_names=post_detokenization_cache_files,
+            load_from_cache_file=True,
+        )
+    else:
+        detokenized_dataset = dataset
+    return detokenized_dataset

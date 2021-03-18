@@ -27,13 +27,15 @@ from datetime import datetime
 import numpy as np
 import torch
 from quinine import QuinineArgumentParser
-from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, TrainingArguments, default_data_collator
+from transformers import default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
 
 from conf.train_schema import get_schema
+from src.args import get_training_arguments
 from src.corpora import get_auto_dataset
+from src.models import get_auto_clm_tokenizer
 from src.overwatch import get_overwatch
-from src.util import REGISTRY, create_paths, set_permissions
+from src.util import create_paths, set_permissions
 from src.util.callbacks import CustomWandbCallback, compute_metrics
 from src.util.registry import ONLINE_EVAL_DATA_REGISTRY
 from src.util.trainer import OnlineBenchmarkTrainer
@@ -41,7 +43,7 @@ from src.util.trainer import OnlineBenchmarkTrainer
 
 def train() -> None:
     # Parse Quinfig (via Quinine Argparse Binding)
-    print("[*] Mercury :: Launching =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
+    print("[*] Mercury :: Launching the Bastard =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
     print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)')
     quinfig = QuinineArgumentParser(schema=get_schema()).parse_quinfig()
 
@@ -71,22 +73,16 @@ def train() -> None:
         assert last_checkpoint is not None, "Cannot detect checkpoint in run_dir -- Resuming Failed!"
         overwatch.info(f"Checkpoint detected, Resuming Training at `{last_checkpoint}`.")
 
-    # Create Configuration
-    # TODO 26 :: Make Model Creation & Processing Modular + Clean --> Relegate to `src.models.auto`
-    overwatch.info(f"Fetching Hugging Face AutoConfig for Model: `{REGISTRY[quinfig.model.id]}`...")
-    config = AutoConfig.from_pretrained(REGISTRY[quinfig.model.id], cache_dir=paths["configs"])
+    # Instantiate Pretrained Tokenizer and Initialize AutoModel (GPT-2) from Arguments
+    overwatch.info(f"Building Tokenize and Initializing `{quinfig.model.id}` via AutoModel/AutoConfig...")
+    model, tokenizer = get_auto_clm_tokenizer(
+        quinfig.model.id,
+        paths,
+        gradient_checkpointing=quinfig.model.gradient_checkpointing,
+        use_pretrained_tokenizer=quinfig.model.pretrained_tokenizer,
+    )
 
-    # Create Tokenizer
-    overwatch.info(f"Fetching Hugging Face [Fast] AutoTokenizer for Model: `{REGISTRY[quinfig.model.id]}`...")
-    if quinfig.model.pretrained_tokenizer:
-        tokenizer = AutoTokenizer.from_pretrained(
-            REGISTRY[quinfig.model.id], config=config, cache_dir=paths["tokenizer"]
-        )
-    else:
-        overwatch.error("Tokenizer Training/Initialization (from Scratch) not yet implemented!")
-        raise NotImplementedError()
-
-    # Load Dataset w/ Preprocessing, Batching, and Collating --> Fix Permissions immediately afterwards
+    # Load Dataset w/ Preprocessing, Batching, and Collating
     overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
     lm_dataset = get_auto_dataset(
         tokenizer,
@@ -97,43 +93,39 @@ def train() -> None:
         seq_len=quinfig.model.seq_len,
         preprocessing_num_proc=quinfig.dataset.num_proc,
     )
-    set_permissions(paths)
 
     # Load Online Eval Datasets
     custom_eval_datasets = dict()
     for eval_dataset_arg in list(filter(lambda x: x.startswith("do_"), quinfig.online_eval.keys())):
         if getattr(quinfig.online_eval, eval_dataset_arg):
-            dataset_name = eval_dataset_arg.rstrip("do_")
+            dataset_name = eval_dataset_arg.lstrip("do_")
             overwatch.info(f"Downloading and Preprocessing Online Eval Datset {dataset_name}")
             custom_eval_datasets[dataset_name] = get_auto_dataset(
                 tokenizer,
                 paths,
-                dataset_id=ONLINE_EVAL_DATA_REGISTRY[dataset_name],
-                dataset_name=ONLINE_EVAL_DATA_REGISTRY[dataset_name],
+                dataset_id=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["id"],
+                dataset_name=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["name"],
                 validation_ratio=quinfig.dataset.validation_ratio,
                 seq_len=quinfig.model.seq_len,
+                stride=quinfig.online_eval.stride,
                 preprocessing_num_proc=quinfig.dataset.num_proc,
                 ignore_train=True,
-            )
-
-    # Initialize Model
-    # TODO 27 :: Make sure weight initialization follows GPT-2 Paper & Best Practices [it does not currently]
-    overwatch.info(f"Initializing Tabula Rasa Model from Configuration: `{REGISTRY[quinfig.model.id]}`...")
-    model = AutoModelForCausalLM.from_config(config)
-    model.resize_token_embeddings(len(tokenizer))
+            )["validation"]
+    # Fix All Dataset Permissions
+    set_permissions(paths)
 
     # Initialize Training Arguments from Quinfig
-    # TODO 20 :: Clean this up in a neat way -- probably overwrite in grand-child config itself... but path injection?
-    training_args = quinfig.training_arguments
-    training_args.run_name = run_id
-    training_args.output_dir = paths["runs"]
-    training_args.seed = quinfig.seed
-    training_args.local_rank = quinfig.infra.rank
-    training_args.report_to = "none"
-    training_args = TrainingArguments(**quinfig.training_arguments)
-
-    # Set training data json dump file
-    train_json_file = str(paths["runs"] / "metrics.json")
+    overwatch.info("Setting Training Arguments from Quinfig...")
+    training_args = get_training_arguments(
+        quinfig.training_arguments,
+        run_name=run_id,
+        output_dir=paths["runs"],
+        seed=quinfig.seed,
+        local_rank=quinfig.infra.rank,
+        effective_bsz=quinfig.effective_bsz,
+        nodes=quinfig.infra.nodes,
+        gpus_per_node=quinfig.infra.gpus,
+    )
 
     # Important - Note that by default if multiple GPUs available on node, HF.Trainer defaults to `torch.DataParallel`
     #   which is almost always worse in efficiency than the DDP equivalent. So basically, always run with DDP!
@@ -157,7 +149,7 @@ def train() -> None:
         callbacks=[
             CustomWandbCallback(
                 quinfig.wandb,
-                json_file=train_json_file,
+                json_file=str(paths["runs"] / "metrics.json"),
                 resume=quinfig.resume,
                 resume_run_id=resume_run_id,
                 wandb_dir=str(paths["runs"]),
