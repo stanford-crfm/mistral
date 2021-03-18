@@ -12,17 +12,15 @@ inherit:
 run_id: null
 
 # Weights & Biases (Set os.environ["WANDB_PROJECT"])
-wandb: null
+wandb: mistral-debugging
 
 # Artifacts & Caching
 artifacts:
     cache_dir: /u/scr/nlp/mercury/mistral/artifacts
     run_dir: /u/scr/nlp/mercury/mistral/runs
-    energy_dir: /u/scr/nlp/mercury/mistral/energy
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
-# TODO 8 :: Do we want to dynamically set gradient accumulation based on effective batch size?
-bsz: 2
+bsz: 8
 
 # Resume from Checkpoint
 resume: false
