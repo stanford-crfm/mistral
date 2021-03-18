@@ -142,6 +142,7 @@ dependencies:
   - distlib==0.3.1
   - docker-pycreds==0.4.0
   - git+https://github.com/Breakend/experiment-impact-tracker
+  - fairscale==0.3.1
   - filelock==3.0.12
   - flake8==3.8.4
   - fsspec==0.8.7

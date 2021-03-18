@@ -14,7 +14,7 @@ training_arguments:
 
     # Set these based on GPU RAM available...
     per_device_train_batch_size: 2
-    per_device_eval_batch_size: 8
+    per_device_eval_batch_size: 2
 
     # We set this dynamically based on DDP Computation [steps = effective_batch / (per_gpu_batch * gpus * nodes)]
     gradient_accumulation_steps: null
@@ -36,7 +36,7 @@ training_arguments:
     max_steps: 50
 
     # LR Scheduling Parameters -- TODO 13 :: Check these and then double check them!
-    lr_scheduler_type: cosine
+    lr_scheduler_type: linear
     warmup_steps: 10
 
     # Logging Parameters -- Logging Directory (Tensorboard - is this necessary?) should be Overwritten at Runtime!
@@ -47,13 +47,15 @@ training_arguments:
 
     # Saving and Evaluation Steps
     eval_steps: 10
-    save_steps: 10
+    save_steps: 30
 
     # Seeds -- Should be Overwritten at Runtime!
     seed: null
 
     ### Optimization -- Precision, DeepSpeed, and FairScale Parameters -- all off for `simple` config
-    fp16: false
+    fp16: true
+    sharded_ddp: null
+    deepspeed: null
 
     # Should be overwritten from the Top-Level Config or CLI!
     local_rank: null

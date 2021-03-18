@@ -26,7 +26,7 @@ def get_auto_dataset(
     preprocessing_num_proc: int = 64,
 ) -> datasets.Dataset:
     """ Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset. """
-    dataset = datasets.load_dataset(dataset_id, dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True)
+    dataset = datasets.load_dataset(dataset_id, name=dataset_name, cache_dir=paths["dataset"], keep_in_memory=True)
 
     if "validation" not in dataset:
         # Create Dataset Split Cache Files

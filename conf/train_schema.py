@@ -51,16 +51,12 @@ def get_schema() -> Dict[str, Any]:
         "logging_steps": merge(tinteger, default(100)),
         "eval_steps": merge(tinteger, default(1000)),
         "save_steps": merge(tinteger, default(1000)),
-        "seed": merge(tinteger, default(21)),
-        "fp16": merge(tboolean, default(False)),
-        "local_rank": merge(tboolean, nullable, default(None)),
-    }
-
-    # Schema for Training Infrastructure
-    infra_schema = {
-        "rank": merge(tinteger, default(-1)),
-        "nodes": merge(tinteger, default(1)),
-        "gpus": merge(tinteger, default(8)),
+        "seed": merge(tinteger, default(42)),
+        "fp16": merge(tboolean, default(True)),
+        "fp16_backend": merge(tstring, default("auto")),
+        "local_rank": merge(tinteger, nullable, default(None)),
+        "sharded_ddp": merge(tstring, nullable, default(None)),
+        "deepspeed": merge(tstring, nullable, default(None)),
     }
 
     # Schema for Storing Training and Data Artifacts
@@ -75,14 +71,20 @@ def get_schema() -> Dict[str, Any]:
         "model": stdict(model_schema),
         "training_arguments": stdict(trainer_schema),
         "artifacts": stdict(artifacts_schema),
-        "infra": stdict(infra_schema),
         "effective_bsz": merge(tinteger, default(512)),
         "resume": merge(tboolean, default(False)),
         "log_level": merge(tinteger, default(20)),
         "run_id": merge(tstring, nullable, default(None)),
         "wandb": merge(tstring, nullable, default(None)),
-        "seed": merge(tinteger, default(21)),
-        "local_rank": merge(tinteger, nullable),
+        "seed": merge(tinteger, default(42)),
+        # Infra Params - Passed in from `torch.distributed`
+        "local_rank": merge(tinteger, default(-1)),
+        "nnodes": merge(tinteger, default(-1)),
+        "nproc_per_node": merge(tinteger, default(-1)),
+        # Infra Params - Passed in from DeepSpeed
+        "num_gpus": merge(tinteger, default(-1)),
+        "num_nodes": merge(tinteger, default(-1)),
+        "world_size": merge(tinteger, default(-1)),
     }
 
     return schema

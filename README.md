@@ -21,7 +21,7 @@ sure to set up your dev environment and pre-commit install (`pre-commit install`
   via the following command (note that you need to separately create the `environment-cpu.yaml` file by exporting from
   your local development environment!):
 
-  `make serialize-env --arch=<cpu | gpu>`
+  `make serialize-env arch=<cpu | gpu>`
 
 ---
 
