@@ -21,10 +21,14 @@ CONFIG_ARGS="--config conf/gpt2-sphinx-debug-config.yaml --nproc_per_node $GPUS_
 
 # DeepSpeed Configurations
 DEEPSPEED_Z1="--training_arguments.deepspeed scripts/deepspeed/z1-conf.json"
+DEEPSPEED_Z2="--training_arguments.deepspeed scripts/deepspeed/z2-conf.json"
 
 # export NCCL_DEBUG=INFO; \
 # =>> ZeRO-1
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z1
+# deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z1
+
+# =>> ZeRO-2
+deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z2
 
 # Kill running processing
 pkill -f "train.py"
