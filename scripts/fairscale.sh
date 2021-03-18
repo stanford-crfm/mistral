@@ -21,10 +21,14 @@ CONFIG_ARGS="--config conf/gpt2-sphinx-debug-config.yaml --nproc_per_node $GPUS_
 
 # FairScale Parameters
 FAIRSCALE_Z1="--training_arguments.sharded_ddp simple"
+FAIRSCALE_Z2="--training_arguments.sharded_ddp zero_dp_2+auto_wrap"
 
 # export NCCL_DEBUG=INFO; \
-# ZeRO-1 (Simple)
-python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $FAIRSCALE_Z1
+# =>> ZeRO-1 (Simple)
+# python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $FAIRSCALE_Z1
+
+# ==> ZeRO-2
+python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $FAIRSCALE_Z2
 
 # Kill Running Processes (Because `torch.distributed.launch` doesn't like to clean up after itself...)
 pkill -f "train.py"

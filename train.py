@@ -122,7 +122,7 @@ def train() -> None:
     # TODO C :: Pass in `compute_metrics` for correct evaluation metrics --> Perplexity! Do during train as well?
     overwatch.info("Initializing Model Trainer...")
     if quinfig.local_rank <= 0:
-        print("DEBUG", training_args)
+        overwatch.info(f"Training Arguments: {training_args}")
 
     trainer = Trainer(
         model=model,
