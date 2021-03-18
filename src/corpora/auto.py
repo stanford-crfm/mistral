@@ -27,6 +27,7 @@ def get_auto_dataset(
     seq_len: int = 1024,
     preprocessing_num_proc: int = 8,
     stride: int = -1,
+    ignore_train: bool = False,
 ) -> datasets.Dataset:
     """ Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset. """
     # Sanity check on input args
@@ -48,6 +49,8 @@ def get_auto_dataset(
 
     # Preprocess Dataset in a Streaming Fashion
     assert "train" in dataset, "Field `train` not in Dataset!"
+    if ignore_train:
+        del dataset["train"]
 
     # First, normalize texet if necessary
     dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
