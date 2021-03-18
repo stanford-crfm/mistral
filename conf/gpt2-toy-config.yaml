@@ -12,7 +12,7 @@ inherit:
 run_id: null
 
 # Weights & Biases (Set os.environ["WANDB_PROJECT"])
-wandb: null
+wandb: mistral-debugging
 
 # Artifacts & Caching
 artifacts:

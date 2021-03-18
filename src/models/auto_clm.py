@@ -51,6 +51,9 @@ def get_auto_clm_tokenizer(
     overwatch.info(f"Fetching Hugging Face AutoConfig for Model: `{REGISTRY[model_id]}`...")
     config = AutoConfig.from_pretrained(REGISTRY[model_id], cache_dir=paths["configs"])
 
+    # IMPORTANT :: Set `use_cache` to False -- we don't need it ever and it conflicts with gradient checkpointing!
+    config.use_cache = False
+
     # Overwrite Config based on Gradient Checkpointing (Defaults to False)
     if gradient_checkpointing:
         config.gradient_checkpointing = True

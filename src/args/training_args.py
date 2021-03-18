@@ -44,8 +44,8 @@ def get_training_arguments(
         quinfig_args.per_device_train_batch_size * gpus_per_node * nodes
     )
     overwatch.info(
-        f"Setting Gradient Accumulation Steps = `{training_args.gradient_accumulation_steps}` ({nodes} "
-        f"Nodes - {gpus_per_node} GPUs - {quinfig_args.per_device_train_batch_size}"
+        f"Setting Gradient Accumulation Steps = `{training_args.gradient_accumulation_steps}` [Node(s): {nodes} - "
+        f"GPU(s): {gpus_per_node} - Device BSZ: {quinfig_args.per_device_train_batch_size}]"
     )
 
     return TrainingArguments(**training_args)
