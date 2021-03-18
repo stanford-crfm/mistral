@@ -55,7 +55,7 @@ def get_schema() -> Dict[str, Any]:
         "fp16": merge(tboolean, default(True)),
         "fp16_backend": merge(tstring, default("auto")),
         "local_rank": merge(tinteger, nullable, default(None)),
-        "sharded_ddp": merge(tboolean, default(False)),
+        "sharded_ddp": merge(tstring, tboolean, default(False)),
         "deepspeed": merge(tstring, nullable, default(None)),
     }
 

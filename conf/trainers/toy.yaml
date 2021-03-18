@@ -53,7 +53,7 @@ training_arguments:
     seed: null
 
     ### Optimization -- Precision, DeepSpeed, and FairScale Parameters -- all off for `simple` config
-    fp16: false
+    fp16: true
     sharded_ddp: false
 
     # Should be overwritten from the Top-Level Config or CLI!

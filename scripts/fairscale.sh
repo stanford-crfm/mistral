@@ -19,7 +19,10 @@ DISTRIBUTED_ARGS="--nproc_per_node $GPUS_PER_NODE --nnodes ${nnodes} --node_rank
 # Default `train.py` config arguments
 CONFIG_ARGS="--config conf/gpt2-sphinx-debug-config.yaml --nproc_per_node $GPUS_PER_NODE --nnodes ${nnodes}"
 
+# FairScale Parameters
+
 # export NCCL_DEBUG=INFO; \
+# ZeRO-1 (Simple)
 python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py $CONFIG_ARGS
 
 # Kill Running Processes (Because `torch.distributed.launch` doesn't like to clean up after itself...)
