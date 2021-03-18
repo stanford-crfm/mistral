@@ -6,17 +6,25 @@ nnodes=${1:-1}
 node_rank=${2:-0}
 
 # Default Configuration of GPUs on the Sphinx Machines
-GPUS_PER_NODE=8
+GPUS_PER=8
 
 # Assumes `sphinx1` is the main node - node rank must be 0 on sphinx1!
 MASTER_ADDR=sphinx1.stanford.edu
 MASTER_PORT=7000
 WORLD_SIZE=$((${nnodes}*${node_rank}))
 
-DISTRIBUTED_ARGS="--num_gpus $GPUS_PER_NODE --num_nodes ${nnodes} --master_addr $MASTER_ADDR"
+# DeepSpeed Launch Parameters
+DISTRIBUTED_ARGS="--num_gpus $GPUS_PER --num_nodes ${nnodes} --master_addr $MASTER_ADDR"
+
+# Default `train.py` config arguments
+CONFIG_ARGS="--config conf/gpt2-sphinx-debug-config.yaml --nproc_per_node $GPUS_PER --nnodes ${nnodes}"
+
+# DeepSpeed Configurations
+DEEPSPEED_Z1="--training_arguments.deepspeed scripts/deepspeed/z1-conf.json"
 
 # export NCCL_DEBUG=INFO; \
-deepspeed "$DISTRIBUTED_ARGS" train.py --config conf/gpt2-sphinx-debug-config.yaml --training_arguments.deepspeed conf/deepspeed/ds_conf.json
+# =>> ZeRO-1
+deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z1
 
 # Kill running processing
 pkill -f "train.py"

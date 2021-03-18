@@ -33,4 +33,14 @@ conda activate mistral
 
 # Install `fairscale` -- note that Fairscale is changing rapidly, so may need to update repeatedly.
 pip install fairscale
+
+# Install `deepspeed` -- note that DeepSpeed is also changing rapidly (but is more stable and better documented than
+#   Fairscale). Usually, try to prefer DeepSpeed.
+pip install deepspeed
+
+# Verify DeepSpeed Install --> should not crash, will print stuff about JIT-compiled OPs that you can ignore.
+ds_report
+
+# Copy hostfile to /job/hostfile on Sphinxes (Unclear if we need this, but let's suppress the warning...)
+cp scripts/deepspeed/hostfile /job/hostfile
 ```

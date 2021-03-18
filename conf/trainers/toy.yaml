@@ -55,6 +55,7 @@ training_arguments:
     ### Optimization -- Precision, DeepSpeed, and FairScale Parameters -- all off for `simple` config
     fp16: true
     sharded_ddp: null
+    deepspeed: null
 
     # Should be overwritten from the Top-Level Config or CLI!
     local_rank: null
