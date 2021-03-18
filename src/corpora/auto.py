@@ -52,7 +52,7 @@ def get_auto_dataset(
     if ignore_train:
         del dataset["train"]
 
-    # First, normalize texet if necessary
+    # First, Normalize Text if Necessary. Tokenization Strategies are in registry.py.
     dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
 
     # Second, run straight-up tokenization

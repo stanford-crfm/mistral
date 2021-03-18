@@ -113,6 +113,7 @@ def train() -> None:
                 validation_ratio=quinfig.dataset.validation_ratio,
                 seq_len=quinfig.model.seq_len,
                 preprocessing_num_proc=quinfig.dataset.num_proc,
+                ignore_train=True,
             )
 
     # Initialize Model
