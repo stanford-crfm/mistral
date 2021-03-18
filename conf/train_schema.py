@@ -5,7 +5,6 @@ Cerberus schema used by Quinine for train.py.
 """
 from typing import Any, Dict
 
-import torch
 from quinine.common.cerberus import default, merge, nullable, required, stdict, tboolean, tfloat, tinteger, tstring
 
 
@@ -55,7 +54,7 @@ def get_schema() -> Dict[str, Any]:
         "seed": merge(tinteger, default(42)),
         "fp16": merge(tboolean, default(True)),
         "fp16_backend": merge(tstring, default("auto")),
-        "local_rank": merge(tboolean, nullable, default(None)),
+        "local_rank": merge(tinteger, nullable, default(None)),
         "sharded_ddp": merge(tboolean, default(False)),
         "deepspeed": merge(tstring, nullable, default(None)),
     }
@@ -80,12 +79,12 @@ def get_schema() -> Dict[str, Any]:
         "seed": merge(tinteger, default(42)),
         # Infra Params - Passed in from `torch.distributed`
         "local_rank": merge(tinteger, default(-1)),
-        "nodes": merge(tinteger, default(1)),
-        "gpus_per_node": merge(tinteger, default(torch.cuda.device_count())),
+        "nnodes": merge(tinteger, default(-1)),
+        "nproc_per_node": merge(tinteger, default(-1)),
         # Infra Params - Passed in from DeepSpeed
-        "num_gpus": merge(tinteger, default(torch.cuda.device_count())),
-        "num_nodes": merge(tinteger, default(1)),
-        "world_size": merge(tinteger, default(1)),
+        "num_gpus": merge(tinteger, default(-1)),
+        "num_nodes": merge(tinteger, default(-1)),
+        "world_size": merge(tinteger, default(-1)),
     }
 
     return schema

@@ -14,9 +14,10 @@ MASTER_PORT=7000
 WORLD_SIZE=$((${nnodes}*${node_rank}))
 
 DISTRIBUTED_ARGS="--nproc_per_node $GPUS_PER_NODE --nnodes ${nnodes} --node_rank ${node_rank} --master_addr $MASTER_ADDR"
+CONFIG_ARGS="--nproc_per_node $GPUS_PER_NODE --nnodes ${nnodes}"
 
 # export NCCL_DEBUG=INFO; \
-python3 -m torch.distributed.launch $DISTRIBUTED_ARGS /juice/scr/lorr1/mistral/train.py -config /juice/scr/lorr1/mistral/conf/gpt2-sphinx-debug-config.yaml
+python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py --config conf/gpt2-sphinx-debug-config.yaml $CONFIG_ARGS
 
 # Kill Running Processes (Because `torch.distributed.launch` doesn't like to clean up after itself...)
-pkill -f "mistral/train.py"
+pkill -f "train.py"
