@@ -67,7 +67,6 @@ dependencies:
 - nbformat=5.1.2
 - ncurses=6.2
 - nest-asyncio=1.5.1
-- ninja=1.10.2
 - notebook=6.2.0
 - numpy=1.19.2
 - numpy-base=1.19.2
@@ -138,6 +137,7 @@ dependencies:
   - cytoolz==0.11.0
   - datasets==1.4.0
   - deepdiff==5.2.3
+  - deepspeed==0.3.13
   - dill==0.3.3
   - distlib==0.3.1
   - docker-pycreds==0.4.0
@@ -167,6 +167,7 @@ dependencies:
   - multiprocess==0.70.11.1
   - munch==2.5.0
   - mypy-extensions==0.4.3
+  - ninja==1.10.0.post2
   - nodeenv==1.5.0
   - ordered-set==4.0.2
   - pandas==1.2.3
@@ -197,6 +198,7 @@ dependencies:
   - smmap==3.0.5
   - soupsieve==2.2
   - subprocess32==3.5.4
+  - tensorboardx==1.8
   - tokenizers==0.10.1
   - toml==0.10.2
   - toolz==0.11.1

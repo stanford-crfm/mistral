@@ -111,12 +111,6 @@ def train() -> None:
         gpus_per_node=quinfig.nproc_per_node,
     )
 
-    # Important - Note that by default if multiple GPUs available on node, HF.Trainer defaults to `torch.DataParallel`
-    #   which is almost always worse in efficiency than the DDP equivalent. So basically, always run with DDP!
-    # TODO 21 :: Set up DDP (Single-Node), DDP (Multi-Node) Training + Mixed Precision Training
-    # TODO 22 :: Setup DeepSpeed Training
-    # TODO 23 :: Setup FairScale Training
-
     # Initialize Trainer, with the relevant arguments
     # TODO B :: Make sure we're using the right opt/schedule... should be configured by `training_args` so check!
     # TODO C :: Pass in `compute_metrics` for correct evaluation metrics --> Perplexity! Do during train as well?

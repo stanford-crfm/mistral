@@ -1,18 +1,19 @@
-# gpt-sphinx-debug-config.yaml
-#   Debugging GPT-2 Config, currently working with the OpenWebText Dataset, GPT-2 Small Architecture, and Single-Node
-#   Trainer. Inheritance and core paths can all be overridden from the command line or by re-writing these files.
+# gpt-benchmark-config.yaml
+#   Benchmarking GPT-2 Config, currently working with the OpenWebText Dataset, GPT-2 Small Architecture, and
+#   full batch size (512). Support for Single-Node, Multi-Node, Mixed Precision, DDP, FairScale, and DeepSpeed.
+#   Inheritance and core paths can all be overridden from the command line or by re-writing these files.
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
     - datasets/openwebtext.yaml
     - models/gpt2-small.yaml
-    - trainers/toy.yaml
+    - trainers/benchmark.yaml
 
 # Run ID -- defaults to `null`; override as you like!
 run_id: null
 
 # Weights & Biases
-wandb: mistral-debugging
+wandb: mistral-benchmarking
 
 # Artifacts & Caching
 artifacts:
@@ -20,7 +21,7 @@ artifacts:
     run_dir: /scr-ssd/mercury/mistral/runs
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
-effective_bsz: 32
+effective_bsz: 512
 
 # Resume from Checkpoint
 resume: false

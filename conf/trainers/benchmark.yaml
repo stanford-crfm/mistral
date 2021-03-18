@@ -1,0 +1,61 @@
+# benchmark.yaml
+#   Trainer config for Benchmarking, with the full fixed batch size of 512 (with gradient accumulation).
+#   This contract exactly follows that of HF.TrainingArguments so we can pass as a simple **kwargs -- make sure this
+#   continues to stay valid!
+#       Reference: https://huggingface.co/transformers/main_classes/trainer.html#trainingarguments
+---
+training_arguments:
+    # Overwrite from Top-Level Config
+    output_dir: null
+
+    # Generally sticks to order from HF.TrainingArguments() Docs, skipping over sane defaults/implicitly set args...
+    do_train: true
+    evaluation_strategy: steps
+
+    # Set these based on GPU RAM available...
+    per_device_train_batch_size: 2
+    per_device_eval_batch_size: 2
+
+    # We set this dynamically based on DDP Computation [steps = effective_batch / (per_gpu_batch * gpus * nodes)]
+    gradient_accumulation_steps: null
+
+    # For Online Evaluation, only keep around the Losses
+    prediction_loss_only: true
+
+    # Learning Rate & Optimization Parameters, assumes AdamW -- TODO 11 :: Check these and then double check them!
+    learning_rate: 5.0e-5
+    weight_decay: 0.01
+    adam_beta1: 0.9
+    adam_beta2: 0.999
+    adam_epsilon: 1.0e-8
+
+    # Gradient Norm
+    max_grad_norm: 1.0
+
+    # Maximum Training Steps (Overrides epochs!) -- TODO 12 :: Check this!
+    max_steps: 10
+
+    # LR Scheduling Parameters -- TODO 13 :: Check these and then double check them!
+    lr_scheduler_type: linear
+    warmup_steps: 2
+
+    # Logging Parameters -- Logging Directory (Tensorboard - is this necessary?) should be Overwritten at Runtime!
+    run_name: null
+    logging_dir: null
+    logging_first_step: true
+    logging_steps: 2
+
+    # Saving and Evaluation Steps (only at the end)
+    eval_steps: 10
+    save_steps: 10
+
+    # Seeds -- Should be Overwritten at Runtime!
+    seed: null
+
+    ### Optimization -- Precision, DeepSpeed, and FairScale Parameters -- all off for `simple` config
+    fp16: false
+    sharded_ddp: null
+    deepspeed: null
+
+    # Should be overwritten from the Top-Level Config or CLI!
+    local_rank: null
