@@ -24,6 +24,7 @@ FAIRSCALE_Z1="--training_arguments.sharded_ddp simple"
 FAIRSCALE_Z2="--training_arguments.sharded_ddp zero_dp_2+auto_wrap"
 FAIRSCALE_Z3="--training_arguments.sharded_ddp zero_dp_3+auto_wrap"
 FAIRSCALE_Z2_OFF="--training_arguments.sharded_ddp zero_dp_2+auto_wrap+offload"
+FAIRSCALE_Z3_OFF="--training_arguments.sharded_ddp zero_dp_3+auto_wrap+offload"
 
 # export NCCL_DEBUG=INFO; \
 # =>> ZeRO-1 (Simple)
@@ -34,6 +35,13 @@ FAIRSCALE_Z2_OFF="--training_arguments.sharded_ddp zero_dp_2+auto_wrap+offload"
 
 # =>> ZeRO-3
 python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $FAIRSCALE_Z3
+
+# TODO D :: Offloading Doesn't Work Yet?
+# =>> ZeRO-2 Offload
+# python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $FAIRSCALE_Z2_OFF
+
+# =>> ZeRO-3 Offload
+# python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $FAIRSCALE_Z3_OFF
 
 # Kill Running Processes (Because `torch.distributed.launch` doesn't like to clean up after itself...)
 pkill -f "train.py"
