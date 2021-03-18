@@ -15,7 +15,7 @@ def get_schema() -> Dict[str, Any]:
     data_schema = {
         "name": merge(tstring, nullable, default(None)),
         "id": merge(tstring, required),
-        "num_proc": merge(tinteger, default(4)),
+        "num_proc": merge(tinteger, default(64)),
         "validation_ratio": merge(tfloat, default(0.0005)),
     }
 
@@ -26,19 +26,13 @@ def get_schema() -> Dict[str, Any]:
         "seq_len": merge(tinteger, default(1024)),
     }
 
-    # Schema for Run Information
-    run_schema = {
-        "seed": merge(tinteger, default(1234)),
-        "log_level": merge(tstring, default("INFO")),
-    }
-
     # Schema for Huggingface Trainer and Training Arguments
     trainer_schema = {
         "output_dir": merge(tstring, nullable, default(None)),
         "do_train": merge(tboolean, default(True)),
         "evaluation_strategy": merge(tstring, default("steps")),
-        "per_device_train_batch_size": merge(tinteger, default(32)),
-        "per_device_eval_batch_size": merge(tinteger, default(32)),
+        "per_device_train_batch_size": merge(tinteger, default(2)),
+        "per_device_eval_batch_size": merge(tinteger, default(2)),
         "gradient_accumulation_steps": merge(tinteger, default(1)),
         "prediction_loss_only": merge(tboolean, default(True)),
         "learning_rate": merge(tfloat, default(2.0e-5)),
@@ -56,7 +50,7 @@ def get_schema() -> Dict[str, Any]:
         "logging_steps": merge(tinteger, default(100)),
         "eval_steps": merge(tinteger, default(1000)),
         "save_steps": merge(tinteger, default(1000)),
-        "seed": merge(tinteger, default(42)),
+        "seed": merge(tinteger, default(21)),
         "fp16": merge(tboolean, default(True)),
         "local_rank": merge(tboolean, nullable, default(None)),
     }
@@ -77,7 +71,6 @@ def get_schema() -> Dict[str, Any]:
     # Combined Schema for `train.py`
     schema = {
         "dataset": stdict(data_schema),
-        "run": stdict(run_schema),
         "model": stdict(model_schema),
         "training_arguments": stdict(trainer_schema),
         "artifacts": stdict(artifacts_schema),
