@@ -7,6 +7,7 @@ de-facto training, validation, and testing tests. Performs additional tokenizati
 import logging
 from pathlib import Path
 from typing import Dict, List
+from copy import deepcopy
 
 import datasets
 from transformers import BatchEncoding, PreTrainedTokenizer
@@ -91,7 +92,7 @@ def get_auto_dataset(
 
         # Split by Chunks of Maximum Length
         result = {k: [t[i : i + seq_len] for i in range(0, total_length, stride)] for k, t in concatenated.items()}
-        result["labels"] = result["input_ids"].copy()
+        result["labels"] = deepcopy(result["input_ids"])
 
         # Mask out losses in overlapping regions
         for i, labels in enumerate(result["labels"]):
