@@ -92,6 +92,14 @@ def get_auto_dataset(
         # Split by Chunks of Maximum Length
         result = {k: [t[i : i + seq_len] for i in range(0, total_length, stride)] for k, t in concatenated.items()}
         result["labels"] = result["input_ids"].copy()
+
+        # Mask out losses in overlapping regions
+        for i, labels in enumerate(result["labels"]):
+            if i == 0:
+                continue
+            for j in range(len(labels) - stride):
+                labels[j] = -100
+            result["labels"][i] = labels
         return result
 
     # From HF.Examples :: Note that with `batched=True`, this map processes 1,000 texts together, so group_texts throws
