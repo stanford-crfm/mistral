@@ -80,10 +80,10 @@ class OnlineBenchmarkTrainer(Trainer):
             )
             n_samples = len(custom_eval_dataset)
             output.metrics.update(speed_metrics(custom_metric_key_prefix, start_time, n_samples))
-            self.log(output.metrics)
 
             ppl = np.exp(output.metrics[f"{custom_metric_key_prefix}_loss"])
-            metrics.update({f"{custom_metric_key_prefix}_ppl": ppl})
+            output.metrics.update({f"{custom_metric_key_prefix}_ppl": ppl})
+            self.log(output.metrics)
             metrics.update(output.metrics)
 
         self._memory_tracker.stop_and_update_metrics(metrics)
