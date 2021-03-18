@@ -11,8 +11,8 @@ inherit:
 # Run ID -- defaults to `null`; override as you like!
 run_id: null
 
-# Weights & Biases (Set os.environ["WANDB_PROJECT"])
-wandb: null
+# Weights & Biases
+wandb: mistral-debugging
 
 # Artifacts & Caching
 artifacts:
@@ -20,11 +20,20 @@ artifacts:
     run_dir: /scr-ssd/mercury/mistral/runs
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
-# TODO 8 :: Do we want to dynamically set gradient accumulation based on effective batch size?
-bsz: 2
+effective_bsz: 32
 
 # Resume from Checkpoint
 resume: false
+
+# `torch.distributed` Default Infra Parameters -- to be overwritten by call to `torch.distributed.launch`
+local_rank: -1
+nodes: 1
+gpus_per_node: 8
+
+# DeepSpeed Default Infra Parameters -- to be overwritten by call to `DeepSpeed`
+num_gpus: 8
+num_nodes: 1
+world_size: 8
 
 # Logging Parameters -- 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL
 log_level: 20

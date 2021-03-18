@@ -11,16 +11,15 @@ Supported Models:
 
 Supported Datasets:
     - WikiText-103
-    - OpenWebText [WIP]
+    - OpenWebText
 
 Provides additional scripting for logging, interfacing with Weights & Biases, and serializing/saving model checkpoints.
 
 Reference:
     - https://github.com/huggingface/transformers/blob/master/examples/language-modeling/run_clm.py
 
-=>> A Project Mercury Endeavor
+|=>> A Project Mercury Endeavor
 """
-import math
 import os
 import random
 from datetime import datetime
@@ -28,26 +27,23 @@ from datetime import datetime
 import numpy as np
 import torch
 from quinine import QuinineArgumentParser
-from transformers import (
-    AutoConfig,
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    Trainer,
-    TrainingArguments,
-    default_data_collator,
-)
+from transformers import Trainer, default_data_collator
+from transformers.trainer_utils import get_last_checkpoint
 
 from conf.train_schema import get_schema
+from src.args import get_training_arguments
 from src.corpora import get_auto_dataset
+from src.models import get_auto_clm_tokenizer
 from src.overwatch import get_overwatch
-from src.util import REGISTRY, create_paths
+from src.util import create_paths, set_permissions
+from src.util.callbacks import CustomWandbCallback, compute_metrics
 
 
 def train() -> None:
     # Parse Quinfig (via Quinine Argparse Binding)
     print("[*] Mercury :: Launching =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
+    print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)')
     quinfig = QuinineArgumentParser(schema=get_schema()).parse_quinfig()
-    print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)\n')
 
     # Set Infra Args
     quinfig.world_size = int(os.getenv("WORLD_SIZE", quinfig.nproc_per_node))
@@ -71,27 +67,21 @@ def train() -> None:
     np.random.seed(quinfig.seed)
     torch.manual_seed(quinfig.seed)
 
-    # TODO 6 -- Resume from Checkpoint Behavior!
-    #   See: https://github.com/huggingface/transformers/blob/master/examples/language-modeling/run_clm.py#L166
+    last_checkpoint, resume_run_id = None, None
     if quinfig.resume:
-        err = "Resume behavior is not yet implemented!"
-        overwatch.error(err)
-        raise NotImplementedError(err)
+        last_checkpoint = get_last_checkpoint(paths["runs"])
+        resume_run_id = os.readlink(paths["runs"] / "wandb" / "latest-run").split("-")[-1]
+        assert last_checkpoint is not None, "Cannot detect checkpoint in run_dir -- Resuming Failed!"
+        overwatch.info(f"Checkpoint detected, Resuming Training at `{last_checkpoint}`.")
 
-    # Create Configuration
-    # TODO 26 :: Make Model Creation & Processing Modular + Clean --> Relegate to `src.models.auto`
-    overwatch.info(f"Fetching Hugging Face AutoConfig for Model: `{REGISTRY[quinfig.model.id]}`...")
-    config = AutoConfig.from_pretrained(REGISTRY[quinfig.model.id], cache_dir=paths["configs"])
-
-    # Create Tokenizer
-    overwatch.info(f"Fetching Hugging Face [Fast] AutoTokenizer for Model: `{REGISTRY[quinfig.model.id]}`...")
-    if quinfig.model.pretrained_tokenizer:
-        tokenizer = AutoTokenizer.from_pretrained(
-            REGISTRY[quinfig.model.id], config=config, cache_dir=paths["tokenizer"]
-        )
-    else:
-        overwatch.error("Tokenizer Training/Initialization (from Scratch) not yet implemented!")
-        raise NotImplementedError()
+    # Instantiate Pretrained Tokenizer and Initialize AutoModel (GPT-2) from Arguments
+    overwatch.info(f"Building Tokenize and Initializing `{quinfig.model.id}` via AutoModel/AutoConfig...")
+    model, tokenizer = get_auto_clm_tokenizer(
+        quinfig.model.id,
+        paths,
+        gradient_checkpointing=quinfig.model.gradient_checkpointing,
+        use_pretrained_tokenizer=quinfig.model.pretrained_tokenizer,
+    )
 
     # Load Dataset w/ Preprocessing, Batching, and Collating --> Fix Permissions immediately afterwards
     overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
@@ -104,42 +94,34 @@ def train() -> None:
         seq_len=quinfig.model.seq_len,
         preprocessing_num_proc=quinfig.dataset.num_proc,
     )
-    # TODO: set permissions is broken with multi-node training
-    # if quinfig.local_rank == -1:
-    #     set_permissions(paths)
-
-    # Initialize Model
-    # TODO 27 :: Make sure weight initialization follows GPT-2 Paper & Best Practices [it does not currently]
-    overwatch.info(f"Initializing Tabula Rasa Model from Configuration: `{REGISTRY[quinfig.model.id]}`...")
-    model = AutoModelForCausalLM.from_config(config)
-    model.resize_token_embeddings(len(tokenizer))
+    set_permissions(paths)
 
     # Initialize Training Arguments from Quinfig
-    # TODO 20 :: Clean this up in a neat way -- probably overwrite in grand-child config itself... but path injection?
-    training_args = quinfig.training_arguments
-    training_args.run_name = run_id
-    training_args.output_dir = str(paths["runs"])
-    training_args.logging_dir = str(paths["logs"])
-    training_args.seed = quinfig.seed
-    training_args.local_rank = quinfig.local_rank
-    training_args = TrainingArguments(**quinfig.training_arguments)
+    overwatch.info("Setting Training Arguments from Quinfig...")
+    training_args = get_training_arguments(
+        quinfig.training_arguments,
+        run_name=run_id,
+        output_dir=paths["runs"],
+        seed=quinfig.seed,
+        local_rank=quinfig.infra.rank,
+        effective_bsz=quinfig.effective_bsz,
+        nodes=quinfig.infra.nodes,
+        gpus_per_node=quinfig.infra.gpus,
+    )
 
     # Important - Note that by default if multiple GPUs available on node, HF.Trainer defaults to `torch.DataParallel`
     #   which is almost always worse in efficiency than the DDP equivalent. So basically, always run with DDP!
     # TODO 21 :: Set up DDP (Single-Node), DDP (Multi-Node) Training + Mixed Precision Training
     # TODO 22 :: Setup DeepSpeed Training
     # TODO 23 :: Setup FairScale Training
-    # TODO 24 :: Figure out best combination of DeepSpeed & FairScale (if they even can be combined well)
 
     # Initialize Trainer, with the relevant arguments
-    # TODO 29 :: Setup W&B using Environment Variables (Pass to Trainer)
-    # TODO 30 :: Setup Custom Logger (File/JSON Logger from `Tempest) Callback and add here!
-    # TODO 31 :: Add Environment/Climate Tracker from `Tempest`/Peter Henderson here as well
     # TODO 32 :: Make sure we're using the right opt/schedule... should be configured by `training_args` so check!
     # TODO 33 :: Pass in `compute_metrics` for correct evaluation metrics --> Perplexity! Do during train as well?
     overwatch.info("Initializing Model Trainer...")
     if quinfig.local_rank <= 0:
         print("DEBUG", training_args)
+
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -147,32 +129,23 @@ def train() -> None:
         eval_dataset=lm_dataset["validation"],
         tokenizer=tokenizer,
         data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
+        compute_metrics=compute_metrics,
+        callbacks=[
+            CustomWandbCallback(
+                quinfig.wandb,
+                json_file=str(paths["runs"] / "metrics.json"),
+                resume=quinfig.resume,
+                resume_run_id=resume_run_id,
+                wandb_dir=str(paths["runs"]),
+            )
+        ],
     )
 
     # Training Time!
-    # TODO 6 -- Resume from Checkpoint Behavior!
-    #   See: https://github.com/huggingface/transformers/blob/master/examples/language-modeling/run_clm.py#L369
     overwatch.info("Training...")
-    train_result = trainer.train()
+    trainer.train(resume_from_checkpoint=last_checkpoint)
     if quinfig.local_rank <= 0:
         trainer.save_model()
-        print("SAVED THE BASTARD SOMEWHERE")
-        # Get and Log Metrics --> TODO 28 :: Is this necessary? Separately - we should write a Custom Simplified Logger!
-        metrics = train_result.metrics
-        trainer.log_metrics("train", metrics)
-        trainer.save_metrics("train", metrics)
-        trainer.save_state()  # No idea what this does...
-
-    # Evaluation Time
-    overwatch.info("Evaluating...")
-    eval_result = trainer.evaluate()
-    if quinfig.local_rank <= 0:
-        # Compute PPL and Log
-        perplexity = math.exp(eval_result["eval_loss"])
-        results = {"perplexity": perplexity}
-        trainer.log_metrics("eval", results)
-        trainer.save_metrics("eval", results)
-    overwatch.info(f"Model saved potentially to {paths['runs']} or somewhere else...")
     overwatch.info("...and that's all folks!")
 
 

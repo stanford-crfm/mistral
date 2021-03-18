@@ -13,14 +13,14 @@ training_arguments:
     evaluation_strategy: steps
 
     # Set these based on GPU RAM available...
-    per_device_train_batch_size: 4
+    per_device_train_batch_size: 2
     per_device_eval_batch_size: 8
 
-    # TODO 9 :: Set this dynamically?
-    gradient_accumulation_steps: 4
+    # We set this dynamically based on DDP Computation [steps = effective_batch / (per_gpu_batch * gpus * nodes)]
+    gradient_accumulation_steps: null
 
-    # TODO 10 :: Unclear what a good value is here -- this is somewhat arbitrary...
-    eval_accumulation_steps: 8
+    # For Online Evaluation, only keep around the Losses
+    prediction_loss_only: true
 
     # Learning Rate & Optimization Parameters, assumes AdamW -- TODO 11 :: Check these and then double check them!
     learning_rate: 5.0e-5
@@ -36,13 +36,13 @@ training_arguments:
     max_steps: 50
 
     # LR Scheduling Parameters -- TODO 13 :: Check these and then double check them!
-    lr_scheduler_type: cosine
+    lr_scheduler_type: linear
     warmup_steps: 10
 
     # Logging Parameters -- Logging Directory (Tensorboard - is this necessary?) should be Overwritten at Runtime!
     run_name: null
     logging_dir: null
-    logging_first_step: True
+    logging_first_step: true
     logging_steps: 10
 
     # Saving and Evaluation Steps
@@ -53,8 +53,8 @@ training_arguments:
     seed: null
 
     ### Optimization -- Precision, DeepSpeed, and FairScale Parameters -- all off for `simple` config
-    fp16: True
-    sharded_ddp: False
+    fp16: false
+    sharded_ddp: false
 
     # Should be overwritten from the Top-Level Config or CLI!
     local_rank: null

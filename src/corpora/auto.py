@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Dict, List
 
 import datasets
-from transformers import BatchEncoding, PreTrainedTokenizerBase
+from transformers import BatchEncoding, PreTrainedTokenizer
 
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
@@ -17,13 +17,13 @@ overwatch = logging.getLogger("mistral.corpora.auto")
 
 
 def get_auto_dataset(
-    tokenizer: PreTrainedTokenizerBase,
+    tokenizer: PreTrainedTokenizer,
     paths: Dict[str, Path],
     dataset_id: str = "wikitext",
     dataset_name: str = "wikitext-103-raw-v1",
-    validation_ratio: float = 0.01,
+    validation_ratio: float = 0.0005,
     seq_len: int = 1024,
-    preprocessing_num_proc: int = 8,
+    preprocessing_num_proc: int = 64,
 ) -> datasets.Dataset:
     """ Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset. """
     dataset = datasets.load_dataset(dataset_id, name=dataset_name, cache_dir=paths["dataset"], keep_in_memory=True)
@@ -74,7 +74,7 @@ def get_auto_dataset(
         # Drop the "very last" bit of the dataset that doesn't fit into block size...
         total_length = (total_length // seq_len) * seq_len
 
-        # Split by chunks of Maximum Length - TODO 17 :: I don't like the fact that we precompute splits once...
+        # Split by Chunks of Maximum Length
         result = {k: [t[i : i + seq_len] for i in range(0, total_length, seq_len)] for k, t in concatenated.items()}
         result["labels"] = result["input_ids"].copy()
         return result
