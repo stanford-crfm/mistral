@@ -11,6 +11,8 @@ from typing import Dict, List
 import datasets
 from transformers import BatchEncoding, PreTrainedTokenizerBase
 
+from .detokenization import auto_detokenize
+
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
 overwatch = logging.getLogger("mistral.corpora.auto")
@@ -24,8 +26,14 @@ def get_auto_dataset(
     validation_ratio: float = 0.01,
     seq_len: int = 1024,
     preprocessing_num_proc: int = 8,
+    stride: int = -1,
+    ignore_train: bool = False,
 ) -> datasets.Dataset:
     """ Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset. """
+    # Sanity check on input args
+    stride = seq_len if stride < 0 else stride
+    assert stride <= seq_len, "Data grouping stride is smaller than sequence length: we are losing data."
+
     dataset = datasets.load_dataset(dataset_id, dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True)
 
     if "validation" not in dataset:
@@ -41,8 +49,13 @@ def get_auto_dataset(
 
     # Preprocess Dataset in a Streaming Fashion
     assert "train" in dataset, "Field `train` not in Dataset!"
+    if ignore_train:
+        del dataset["train"]
 
-    # First, run straight-up tokenization
+    # First, normalize texet if necessary
+    dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
+
+    # Second, run straight-up tokenization
     def tokenize(examples: Dict[str, List[str]]) -> BatchEncoding:
         return tokenizer(examples["text"])
 
@@ -65,17 +78,17 @@ def get_auto_dataset(
         load_from_cache_file=True,
     )
 
-    # Second, actually run chunking (collapse multiple sequences into a giant document to read `seq_len` chunks from)
+    # Finally, actually run chunking (collapse multiple sequences into a giant document to read `seq_len` chunks from)
     def group(examples: Dict[str, List[int]]) -> Dict[str, List[int]]:
         # Concatenate all the Texts
         concatenated = {k: sum(examples[k], []) for k in examples.keys()}
         total_length = len(concatenated[list(examples.keys())[0]])
 
         # Drop the "very last" bit of the dataset that doesn't fit into block size...
-        total_length = (total_length // seq_len) * seq_len
+        total_length = ((total_length - seq_len + stride) // stride) * stride
 
         # Split by Chunks of Maximum Length
-        result = {k: [t[i : i + seq_len] for i in range(0, total_length, seq_len)] for k, t in concatenated.items()}
+        result = {k: [t[i : i + seq_len] for i in range(0, total_length, stride)] for k, t in concatenated.items()}
         result["labels"] = result["input_ids"].copy()
         return result
 
@@ -87,7 +100,8 @@ def get_auto_dataset(
 
     # Create Post-Chunking Cache Paths
     post_chunking_cache_files = {
-        k: str(paths["preprocessed"] / dataset_id / "preprocessing" / "chunking" / f"{k}-chunked.hf") for k in dataset
+        k: str(paths["preprocessed"] / dataset_id / "preprocessing" / "chunking" / f"{k}-stride{stride}-chunked.hf")
+        for k in dataset
     }
     # Create Parent Path of Cache Files
     (paths["preprocessed"] / dataset_id / "preprocessing" / "chunking").mkdir(parents=True, exist_ok=True)
