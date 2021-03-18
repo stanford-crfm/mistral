@@ -28,13 +28,13 @@ FAIRSCALE_Z3_OFF="--training_arguments.sharded_ddp zero_dp_3+auto_wrap+offload"
 
 # export NCCL_DEBUG=INFO; \
 # =>> ZeRO-1 (Simple)
-# python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $FAIRSCALE_Z1
+python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $FAIRSCALE_Z1
 
 # =>> ZeRO-2
 # python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $FAIRSCALE_Z2
 
 # =>> ZeRO-3
-python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $FAIRSCALE_Z3
+# python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $FAIRSCALE_Z3
 
 # TODO D :: Offloading Doesn't Work Yet?
 # =>> ZeRO-2 Offload
