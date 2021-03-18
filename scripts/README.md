@@ -31,6 +31,6 @@ which nvcc
 # Make sure `mistral` Conda Environment is Activated
 conda activate mistral
 
-# Install `fairscale` and `deepspeed`
+# Install `fairscale` -- note that Fairscale is changing rapidly, so may need to update repeatedly.
 pip install fairscale
 ```
