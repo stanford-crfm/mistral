@@ -30,7 +30,7 @@ DEEPSPEED_Z3_OFF="--training_arguments.deepspeed scripts/deepspeed/z3-offload-co
 
 # export NCCL_DEBUG=INFO; \
 # =>> ZeRO-1
-# deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z1
+deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z1
 
 # =>> ZeRO-2
 # deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z2
@@ -38,8 +38,11 @@ DEEPSPEED_Z3_OFF="--training_arguments.deepspeed scripts/deepspeed/z3-offload-co
 # =>> ZeRO-3
 # deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z3
 
+# =>> ZeRO-2 Offload
+# deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z2_OFF
+
 # =>> ZeRO-3 Offload
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z3_OFF
+# deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z3_OFF
 
 # Kill Running Processes (Because `deepspeed` doesn't like to clean up after itself...)
 pkill -f "train.py"
