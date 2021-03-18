@@ -13,8 +13,8 @@ def get_schema() -> Dict[str, Any]:
 
     # Schema for Dataset
     data_schema = {
-        "name": merge(tstring, nullable, default(None)),
         "id": merge(tstring, required),
+        "name": merge(tstring, nullable, default(None)),
         "num_proc": merge(tinteger, default(64)),
         "validation_ratio": merge(tfloat, default(0.0005)),
     }
@@ -22,6 +22,7 @@ def get_schema() -> Dict[str, Any]:
     # Schema for Model
     model_schema = {
         "id": merge(tstring, required),
+        "gradient_checkpointing": merge(tboolean, default(False)),
         "pretrained_tokenizer": merge(tboolean, default(True)),
         "seq_len": merge(tinteger, default(1024)),
     }
@@ -32,14 +33,14 @@ def get_schema() -> Dict[str, Any]:
         "do_train": merge(tboolean, default(True)),
         "evaluation_strategy": merge(tstring, default("steps")),
         "per_device_train_batch_size": merge(tinteger, default(2)),
-        "per_device_eval_batch_size": merge(tinteger, default(2)),
+        "per_device_eval_batch_size": merge(tinteger, default(8)),
         "gradient_accumulation_steps": merge(tinteger, default(1)),
         "prediction_loss_only": merge(tboolean, default(True)),
-        "learning_rate": merge(tfloat, default(2.0e-5)),
+        "learning_rate": merge(tfloat, default(5.0e-5)),
         "weight_decay": merge(tfloat, default(0.01)),
-        "adam_epsilon": merge(tfloat, default(1.0e-8)),
         "adam_beta1": merge(tfloat, default(0.9)),
         "adam_beta2": merge(tfloat, default(0.999)),
+        "adam_epsilon": merge(tfloat, default(1.0e-8)),
         "max_grad_norm": merge(tfloat, default(1.0)),
         "max_steps": merge(tinteger, default(-1)),
         "lr_scheduler_type": merge(tstring, default("cosine")),
@@ -51,7 +52,7 @@ def get_schema() -> Dict[str, Any]:
         "eval_steps": merge(tinteger, default(1000)),
         "save_steps": merge(tinteger, default(1000)),
         "seed": merge(tinteger, default(21)),
-        "fp16": merge(tboolean, default(True)),
+        "fp16": merge(tboolean, default(False)),
         "local_rank": merge(tboolean, nullable, default(None)),
     }
 
@@ -59,7 +60,7 @@ def get_schema() -> Dict[str, Any]:
     infra_schema = {
         "rank": merge(tinteger, default(-1)),
         "nodes": merge(tinteger, default(1)),
-        "gpus": merge(tinteger, default(1)),
+        "gpus": merge(tinteger, default(8)),
     }
 
     # Schema for Storing Training and Data Artifacts
@@ -75,7 +76,7 @@ def get_schema() -> Dict[str, Any]:
         "training_arguments": stdict(trainer_schema),
         "artifacts": stdict(artifacts_schema),
         "infra": stdict(infra_schema),
-        "bsz": merge(tinteger, default(2)),
+        "effective_bsz": merge(tinteger, default(512)),
         "resume": merge(tboolean, default(False)),
         "log_level": merge(tinteger, default(20)),
         "run_id": merge(tstring, nullable, default(None)),

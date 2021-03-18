@@ -27,10 +27,11 @@ from datetime import datetime
 import numpy as np
 import torch
 from quinine import QuinineArgumentParser
-from transformers import Trainer, TrainingArguments, default_data_collator
+from transformers import Trainer, default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
 
 from conf.train_schema import get_schema
+from src.args import get_training_arguments
 from src.corpora import get_auto_dataset
 from src.models import get_auto_clm_tokenizer
 from src.overwatch import get_overwatch
@@ -73,7 +74,10 @@ def train() -> None:
     # Instantiate Pretrained Tokenizer and Initialize AutoModel (GPT-2) from Arguments
     overwatch.info(f"Building Tokenize and Initializing `{quinfig.model.id}` via AutoModel/AutoConfig...")
     model, tokenizer = get_auto_clm_tokenizer(
-        quinfig.model.id, paths, use_pretrained_tokenizer=quinfig.model.pretrained_tokenizer
+        quinfig.model.id,
+        paths,
+        gradient_checkpointing=quinfig.model.gradient_checkpointing,
+        use_pretrained_tokenizer=quinfig.model.pretrained_tokenizer,
     )
 
     # Load Dataset w/ Preprocessing, Batching, and Collating --> Fix Permissions immediately afterwards
@@ -90,14 +94,17 @@ def train() -> None:
     set_permissions(paths)
 
     # Initialize Training Arguments from Quinfig
-    # TODO 20 :: Clean this up in a neat way -- probably overwrite in grand-child config itself... but path injection?
-    training_args = quinfig.training_arguments
-    training_args.run_name = run_id
-    training_args.output_dir = paths["runs"]
-    training_args.seed = quinfig.seed
-    training_args.local_rank = quinfig.infra.rank
-    training_args.report_to = "none"
-    training_args = TrainingArguments(**quinfig.training_arguments)
+    overwatch.info("Setting Training Arguments from Quinfig...")
+    training_args = get_training_arguments(
+        quinfig.training_arguments,
+        run_name=run_id,
+        output_dir=paths["runs"],
+        seed=quinfig.seed,
+        local_rank=quinfig.infra.rank,
+        effective_bsz=quinfig.effective_bsz,
+        nodes=quinfig.infra.nodes,
+        gpus_per_node=quinfig.infra.gpus,
+    )
 
     # Important - Note that by default if multiple GPUs available on node, HF.Trainer defaults to `torch.DataParallel`
     #   which is almost always worse in efficiency than the DDP equivalent. So basically, always run with DDP!

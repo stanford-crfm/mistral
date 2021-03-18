@@ -43,13 +43,17 @@ def gpt_initialize(model: AutoModelForCausalLM, initializer_range: float = 0.02,
 
 
 def get_auto_clm_tokenizer(
-    model_id: str, paths: Dict[str, Path], use_pretrained_tokenizer: bool = True
+    model_id: str, paths: Dict[str, Path], gradient_checkpointing: bool = True, use_pretrained_tokenizer: bool = True
 ) -> Tuple[AutoModelForCausalLM, PreTrainedTokenizer]:
     """ Download/Load AutoConfig and Instantiate Corresponding Model and Tokenizer. """
 
     # Create Configuration
     overwatch.info(f"Fetching Hugging Face AutoConfig for Model: `{REGISTRY[model_id]}`...")
     config = AutoConfig.from_pretrained(REGISTRY[model_id], cache_dir=paths["configs"])
+
+    # Overwrite Config based on Gradient Checkpointing (Defaults to False)
+    if gradient_checkpointing:
+        config.gradient_checkpointing = True
 
     # Create Tokenizer
     overwatch.info(f"Fetching Hugging Face [Fast] AutoTokenizer for Model: `{REGISTRY[model_id]}`...")
@@ -64,7 +68,8 @@ def get_auto_clm_tokenizer(
     model = AutoModelForCausalLM.from_config(config)
     model.resize_token_embeddings(len(tokenizer))
 
-    # Get New GPT-2 Specific Initializer
-    gpt_initialize(model, initializer_range=config.initializer_range, n_layer=config.n_layer)
+    # Run GPT-Specific Initialization, if applicable
+    if "gpt" in model_id:
+        gpt_initialize(model, initializer_range=config.initializer_range, n_layer=config.n_layer)
 
     return model, tokenizer
