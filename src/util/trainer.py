@@ -86,5 +86,6 @@ class OnlineBenchmarkTrainer(Trainer):
             self.log(output.metrics)
             metrics.update(output.metrics)
 
+        self.control = self.callback_handler.on_evaluate(self.args, self.state, self.control, output.metrics)
         self._memory_tracker.stop_and_update_metrics(metrics)
         return metrics
