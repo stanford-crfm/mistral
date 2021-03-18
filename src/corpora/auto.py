@@ -11,6 +11,8 @@ from typing import Dict, List
 import datasets
 from transformers import BatchEncoding, PreTrainedTokenizerBase
 
+from .detokenization import auto_detokenize
+
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
 overwatch = logging.getLogger("mistral.corpora.auto")
@@ -42,7 +44,10 @@ def get_auto_dataset(
     # Preprocess Dataset in a Streaming Fashion
     assert "train" in dataset, "Field `train` not in Dataset!"
 
-    # First, run straight-up tokenization
+    # First, normalize texet if necessary
+    dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
+
+    # Second, run straight-up tokenization
     def tokenize(examples: Dict[str, List[str]]) -> BatchEncoding:
         return tokenizer(examples["text"])
 
