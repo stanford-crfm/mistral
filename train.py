@@ -27,14 +27,7 @@ from datetime import datetime
 import numpy as np
 import torch
 from quinine import QuinineArgumentParser
-from transformers import (
-    AutoConfig,
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    Trainer,
-    TrainingArguments,
-    default_data_collator,
-)
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, TrainingArguments, default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
 
 from conf.train_schema import get_schema
@@ -42,6 +35,8 @@ from src.corpora import get_auto_dataset
 from src.overwatch import get_overwatch
 from src.util import REGISTRY, create_paths, set_permissions
 from src.util.callbacks import CustomWandbCallback, compute_metrics
+from src.util.registry import ONLINE_EVAL_DATA_REGISTRY
+from src.util.trainer import OnlineBenchmarkTrainer
 
 
 def train() -> None:
@@ -104,6 +99,22 @@ def train() -> None:
     )
     set_permissions(paths)
 
+    # Load Online Eval Datasets
+    custom_eval_datasets = dict()
+    for eval_dataset_arg in list(filter(lambda x: x.startswith("do_"), quinfig.online_eval.keys())):
+        if getattr(quinfig.online_eval, eval_dataset_arg):
+            dataset_name = eval_dataset_arg.rstrip("do_")
+            overwatch.info(f"Downloading and Preprocessing Online Eval Datset {dataset_name}")
+            custom_eval_datasets[dataset_name] = get_auto_dataset(
+                tokenizer,
+                paths,
+                dataset_id=ONLINE_EVAL_DATA_REGISTRY[dataset_name],
+                dataset_name=ONLINE_EVAL_DATA_REGISTRY[dataset_name],
+                validation_ratio=quinfig.dataset.validation_ratio,
+                seq_len=quinfig.model.seq_len,
+                preprocessing_num_proc=quinfig.dataset.num_proc,
+            )
+
     # Initialize Model
     # TODO 27 :: Make sure weight initialization follows GPT-2 Paper & Best Practices [it does not currently]
     overwatch.info(f"Initializing Tabula Rasa Model from Configuration: `{REGISTRY[quinfig.model.id]}`...")
@@ -133,11 +144,12 @@ def train() -> None:
     # TODO 32 :: Make sure we're using the right opt/schedule... should be configured by `training_args` so check!
     # TODO 33 :: Pass in `compute_metrics` for correct evaluation metrics --> Perplexity! Do during train as well?
     overwatch.info("Initializing Model Trainer...")
-    trainer = Trainer(
+    trainer = OnlineBenchmarkTrainer(
         model=model,
         args=training_args,
         train_dataset=lm_dataset["train"],
         eval_dataset=lm_dataset["validation"],
+        custom_eval_datasets=custom_eval_datasets,
         tokenizer=tokenizer,
         data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
         compute_metrics=compute_metrics,

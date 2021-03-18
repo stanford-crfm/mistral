@@ -1,0 +1,88 @@
+"""
+trainer.py
+
+Customer HF Trainer that allows for online eval of multiple datasets.
+"""
+import collections
+import logging
+import time
+from typing import Callable, Dict, List, Optional, Tuple, Union
+
+import torch
+from torch.utils.data import Dataset
+from transformers import (
+    DataCollator,
+    PreTrainedModel,
+    PreTrainedTokenizerBase,
+    Trainer,
+    TrainerCallback,
+    TrainingArguments,
+)
+from transformers.trainer_utils import EvalPrediction, speed_metrics
+
+
+overwatch = logging.getLogger("mistral.util.trainer")
+
+
+class OnlineBenchmarkTrainer(Trainer):
+    def __init__(
+        self,
+        model: Union[PreTrainedModel, torch.nn.Module] = None,
+        args: TrainingArguments = None,
+        data_collator: Optional[DataCollator] = None,
+        train_dataset: Optional[Dataset] = None,
+        eval_dataset: Optional[Dataset] = None,
+        custom_eval_datasets: Optional[Dict[str, Dataset]] = None,
+        tokenizer: Optional[PreTrainedTokenizerBase] = None,
+        model_init: Callable[[], PreTrainedModel] = None,
+        compute_metrics: Optional[Callable[[EvalPrediction], Dict]] = None,
+        callbacks: Optional[List[TrainerCallback]] = None,
+        optimizers: Tuple[torch.optim.Optimizer, torch.optim.lr_scheduler.LambdaLR] = (None, None),
+    ):
+        super(OnlineBenchmarkTrainer, self).init(
+            model=model,
+            args=args,
+            data_collator=data_collator,
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
+            tokenizer=tokenizer,
+            model_init=model_init,
+            compute_metrics=compute_metrics,
+            callbacks=callbacks,
+            optimizers=optimizers,
+        )
+        self.custom_eval_datasets = custom_eval_datasets if custom_eval_datasets is not None else {}
+
+    def evaluate(
+        self,
+        eval_dataset: Optional[Dataset] = None,
+        ignore_keys: Optional[List[str]] = None,
+        metric_key_prefix: str = "eval",
+        eval_ppl_datasets: bool = True,
+    ) -> Dict[str, float]:
+        # Normal evaluate -- this calls the on_evaluate callback
+        metrics = super(OnlineBenchmarkTrainer, self).evaluate(eval_dataset, ignore_keys, metric_key_prefix)
+
+        self._memory_tracker.start()
+
+        for custom_dataset_name, custom_eval_dataset in self.custom_eval_datasets.items():
+            if custom_eval_dataset is not None and not isinstance(custom_eval_dataset, collections.abc.Sized):
+                raise ValueError("eval_dataset must implement __len__")
+            custom_metric_key_prefix = f"{metric_key_prefix}_{custom_dataset_name}"
+            eval_dataloader = self.get_eval_dataloader(custom_eval_dataset)
+            start_time = time.time()
+
+            output = self.prediction_loop(
+                eval_dataloader,
+                description=f"Evaluation {custom_dataset_name}",
+                prediction_loss_only=False,
+                metric_key_prefix=custom_metric_key_prefix,
+            )
+            ppl = torch.exp(output.loss)
+            metrics.update({f"{custom_metric_key_prefix}_ppl": ppl})
+            n_samples = len(custom_eval_dataset)
+            output.metrics.update(speed_metrics(custom_metric_key_prefix, start_time, n_samples))
+            self.log(output.metrics)
+
+        self._memory_tracker.stop_and_update_metrics(output.metrics)
+        return metrics

@@ -61,6 +61,14 @@ def get_schema() -> Dict[str, Any]:
         "local_rank": merge(tboolean, nullable, default(None)),
     }
 
+    # Schema for Online Custom Eval Dataset (e.g. LAMBADA)
+    # TODO: How customized do we want this? Should users be able to pass in any arbitrary dataset?
+    online_eval_schema = {
+        "do_wikitext": merge(tboolean, default(True)),
+        "do_lambada": merge(tboolean, default(True)),
+        "ppl_stride": merge(tinteger, default(512)),
+    }
+
     # Schema for Training Infrastructure
     infra_schema = {
         "rank": merge(tinteger, default(-1)),
@@ -80,6 +88,7 @@ def get_schema() -> Dict[str, Any]:
         "run": stdict(run_schema),
         "model": stdict(model_schema),
         "training_arguments": stdict(trainer_schema),
+        "online_eval": stdict(online_eval_schema),
         "artifacts": stdict(artifacts_schema),
         "infra": stdict(infra_schema),
         "bsz": merge(tinteger, default(2)),
