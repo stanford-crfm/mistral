@@ -7,7 +7,7 @@ CONFIG="--config conf/gpt2-benchmark-config.yaml"
 INFRA="--nnodes 1 --nproc_per_node 8"
 GC="--model.gradient_checkpointing true"
 
-# Only Two Choices for Batch Size -- Max for w/ Gradient Checkpointing (32 on 40 GB A100) and w/o (8 on 40GB A100)
+# A Few Choices for Batch Size
 D_BSZ_8="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8"
 D_BSZ_16="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 16"
 D_BSZ_32="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 32"
@@ -32,12 +32,12 @@ LAUNCHER="torch.distributed.launch"
 #sleep 3
 
 # Single Node FS-Z1, No GC, Device BSZ = 16 --> Cleanup --> Sleep
-python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $FS_Z1 --run_id 30-fs=z1-n=1-g=8-fp16-dbsz=16
-pkill -f "train.py"
-sleep 3
+#python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $FS_Z1 --run_id 30-fs=z1-n=1-g=8-fp16-dbsz=16
+#pkill -f "train.py"
+#sleep 3
 
 # Single Node FS-Z1, ++GC, Device BSZ = 32 --> Cleanup --> Sleep
-python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_32 $FS_Z1 --run_id 31-fs=z1-n=1-g=8-gc-fp16-dbsz=32
+python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC $D_BSZ_32 $FS_Z1 --run_id 31-fs=z1-n=1-g=8-gc-fp16-dbsz=32
 pkill -f "train.py"
 sleep 3
 
@@ -52,7 +52,7 @@ pkill -f "train.py"
 sleep 3
 
 # Single Node FS-Z2, ++GC, Device BSZ = 32 --> Cleanup --> Sleep
-python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_32 $FS_Z2 --run_id 34-fs=z2-n=1-g=8-gc-fp16-dbsz=32
+python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC $D_BSZ_32 $FS_Z2 --run_id 34-fs=z2-n=1-g=8-gc-fp16-dbsz=32
 pkill -f "train.py"
 sleep 3
 
@@ -67,6 +67,6 @@ pkill -f "train.py"
 sleep 3
 
 # Single Node FS-Z3, ++GC, Device BSZ = 32 --> Cleanup --> Sleep
-python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_32 $FS_Z3 --run_id 37-fs=z3-n=1-g=8-gc-fp16-dbsz=32
+python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC $D_BSZ_32 $FS_Z3 --run_id 37-fs=z3-n=1-g=8-gc-fp16-dbsz=32
 pkill -f "train.py"
 sleep 3
