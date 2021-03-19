@@ -10,7 +10,7 @@ We chunk the runs and provide benchmarking instructions in the following section
 
 ## Vanilla Trainer
 
-The First 16 Runs (Vanilla/Single-GPU Trainer) can all be run programatically as follows:
+The First 20 Runs (Vanilla/Single-GPU Trainer) can all be run programatically as follows:
 
 ```
 # From the root of the `mistral` directory
@@ -19,4 +19,16 @@ The First 16 Runs (Vanilla/Single-GPU Trainer) can all be run programatically as
 
 Note, however, that these runs take forever, so best to launch these last, right before you go to sleep!
 
-## Single-Node DDP Trainer
+## Single-Node & Multi-Node DDP Trainer
+
+Runs 21 - 24 (Single-Node DDP Trainer) can all be run programatically as follows:
+
+```
+# From the root of the `mistral` directory
+./scripts/benchmarking/ddp-single.sh
+```
+
+Runs 25 - 28 (Multi-Node DDP Trainer) can be run manually (because multiple nodes!) via the directions in the
+following script: `scripts/benchmarking/ddp-multi.sh`
+
+## FairScale Trainer

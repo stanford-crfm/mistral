@@ -2,7 +2,7 @@
 #   Benchmarking Script for Vanilla Trainer (very top of the Benchmarking table). This is to get a rough upper bound
 #   on single-GPU runtime, mostly as a sanity check.
 
-# CONSTANTS
+# Constants
 CONFIG="--config conf/gpt2-benchmark-config.yaml"
 INFRA="--nnodes 1 --nproc_per_node 1"
 GC="--model.gradient_checkpointing true"
