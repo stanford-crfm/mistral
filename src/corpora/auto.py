@@ -29,7 +29,7 @@ def get_auto_dataset(
     preprocessing_num_proc: int = 64,
     stride: int = -1,
     ignore_train: bool = False,
-) -> datasets.Dataset:
+) -> datasets.DatasetDict:
     """ Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset. """
     # Sanity check on input args
     stride = seq_len if stride < 0 else stride
