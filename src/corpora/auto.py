@@ -5,9 +5,9 @@ Default Dataset/Corpus Utilities. Downloads (if necessary) from the Hugging Face
 de-facto training, validation, and testing tests. Performs additional tokenization and normalization as well.
 """
 import logging
+from copy import deepcopy
 from pathlib import Path
 from typing import Dict, List
-from copy import deepcopy
 
 import datasets
 from transformers import BatchEncoding, PreTrainedTokenizer
@@ -55,10 +55,6 @@ def get_auto_dataset(
         del dataset["train"]
         assert len(dataset) > 0, "You can't set ignore_train = True when there is only train data"
 
-    if dataset_id == "lambada":
-        assert ignore_train, "Preprocessing for LAMBADA training set is not implemented."
-        return lambada_preprocess(tokenizer, dataset, seq_len, paths["preprocessed"], preprocessing_num_proc)
-
     # First, Normalize Text if Necessary. Tokenization Strategies are in dekoneizatoin.py.
     dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
 
@@ -98,7 +94,7 @@ def get_auto_dataset(
         result = {k: [t[i : i + seq_len] for i in range(0, total_length, stride)] for k, t in concatenated.items()}
         result["labels"] = deepcopy(result["input_ids"])
 
-        # Mask out losses in overlapping regions
+        # Mask out losses in overlapping regions. If training data, string will be equal to seq_len
         for i, labels in enumerate(result["labels"]):
             if i == 0:
                 continue
@@ -156,17 +152,27 @@ def auto_detokenize(
     return detokenized_dataset
 
 
-def lambada_preprocess(
+def get_lambada(
     tokenizer: PreTrainedTokenizer,
-    dataset: datasets.DatasetDict,
-    seq_len: int,
-    preprocess_path: Path,
-    preprocessing_num_proc: int = 8,
-):
+    paths: Dict[str, Path],
+    dataset_id: str = "lambada",
+    dataset_name: str = None,
+    validation_ratio: float = 0.0005,
+    seq_len: int = 1024,
+    preprocessing_num_proc: int = 64,
+    stride: int = -1,
+    ignore_train: bool = True,
+) -> datasets.DatasetDict:
     """
     Run special tokenization and grouping for the Lambada dataset.
     Taken from https://github.com/NVIDIA/Megatron-LM/blob/main/tasks/zeroshot_gpt2/datasets.py
     """
+    # Sanity check on input args
+    stride = seq_len if stride < 0 else stride
+    assert stride <= seq_len, "Data grouping stride is smaller than sequence length: we are losing data."
+
+    dataset = datasets.load_dataset(dataset_id, dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True)
+    del dataset["train"]
 
     def tokenize_and_group(example: Dict[str, str]) -> Dict[str, str]:
         text = example["text"]
@@ -183,10 +189,10 @@ def lambada_preprocess(
 
     # Create Preprocessing Cache Paths
     post_preprocess_cache_files = {
-        k: str(preprocess_path / "lambada" / "preprocessing" / f"{k}-processed.hf") for k in dataset
+        k: str(paths["preprocessed"] / "lambada" / "preprocessing" / f"{k}-processed.hf") for k in dataset
     }
     # Create Parent Path of Cache Files
-    (preprocess_path / "lambada" / "preprocessing").mkdir(parents=True, exist_ok=True)
+    (paths["preprocessed"] / "lambada" / "preprocessing").mkdir(parents=True, exist_ok=True)
 
     processed_dataset = dataset.map(
         tokenize_and_group,

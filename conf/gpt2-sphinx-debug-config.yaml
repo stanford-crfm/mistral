@@ -17,7 +17,7 @@ wandb: mistral-debugging
 # Artifacts & Caching
 artifacts:
     cache_dir: /scr-ssd/mercury/mistral/artifacts
-    run_dir: /scr-ssd/mercury/mistral/runs-laurel
+    run_dir: /scr-ssd/mercury/mistral/runs
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
 effective_bsz: 16

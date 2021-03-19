@@ -98,9 +98,10 @@ def train() -> None:
     custom_eval_datasets = dict()
     for eval_dataset_arg in list(filter(lambda x: x.startswith("do_"), quinfig.online_eval.keys())):
         if getattr(quinfig.online_eval, eval_dataset_arg):
+            # Dataset name is in quinfig arg of "do_<dataset>" -> Boolean
             dataset_name = eval_dataset_arg.lstrip("do_")
             overwatch.info(f"Downloading and Preprocessing Online Eval Datset {dataset_name}")
-            custom_eval_datasets[dataset_name] = get_auto_dataset(
+            custom_eval_datasets[dataset_name] = ONLINE_EVAL_DATA_REGISTRY[dataset_name]["generator"](
                 tokenizer,
                 paths,
                 dataset_id=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["id"],

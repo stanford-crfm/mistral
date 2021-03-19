@@ -26,6 +26,12 @@ overwatch = logging.getLogger("mistral.util.trainer")
 
 
 class OnlineBenchmarkTrainer(Trainer):
+    """
+    Trainer that handles online evaluation datasets -- e.g., LAMBADA and Wikitext 103 Perplexity Scores.
+
+    Overrides `evaluate` to trigger eval on each online dataset.
+    """
+
     def __init__(
         self,
         model: Union[PreTrainedModel, torch.nn.Module] = None,
@@ -61,11 +67,14 @@ class OnlineBenchmarkTrainer(Trainer):
         metric_key_prefix: str = "eval",
         eval_ppl_datasets: bool = True,
     ) -> Dict[str, float]:
-        # Normal evaluate -- this calls the on_evaluate callback
+        # Normal Evaluate -- this calls the on_evaluate callback
         metrics = super(OnlineBenchmarkTrainer, self).evaluate(eval_dataset, ignore_keys, metric_key_prefix)
+        if not eval_ppl_datasets:
+            return metrics
 
         self._memory_tracker.start()
 
+        # Iterate over each online eval dataset
         for custom_dataset_name, custom_eval_dataset in self.custom_eval_datasets.items():
             if custom_eval_dataset is not None and not isinstance(custom_eval_dataset, collections.abc.Sized):
                 raise ValueError("eval_dataset must implement __len__")
@@ -80,7 +89,7 @@ class OnlineBenchmarkTrainer(Trainer):
             )
             n_samples = len(custom_eval_dataset)
             output.metrics.update(speed_metrics(custom_metric_key_prefix, start_time, n_samples))
-
+            # Compute perplexity --- Note :: this is unadjusted
             ppl = np.exp(output.metrics[f"{custom_metric_key_prefix}_loss"])
             output.metrics.update({f"{custom_metric_key_prefix}_ppl": ppl})
             self.log(output.metrics)
