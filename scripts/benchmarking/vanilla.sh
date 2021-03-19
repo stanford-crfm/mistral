@@ -13,6 +13,8 @@ D_BSZ_1="--training_arguments.per_device_train_batch_size 1"
 D_BSZ_2="--training_arguments.per_device_train_batch_size 2"
 D_BSZ_4="--training_arguments.per_device_train_batch_size 4"
 D_BSZ_8="--training_arguments.per_device_train_batch_size 8"
+D_BSZ_16="--training_arguments.per_device_train_batch_size 16"
+D_BSZ_32="--training_arguments.per_device_train_batch_size 32"
 
 # ---
 
@@ -69,3 +71,17 @@ CUDA_VISIBLE_DEVICES=0 python train.py $CONFIG $INFRA $GC $FP16 $D_BSZ_4 --run_i
 
 # Single-Node, Single GPU, ++GC, FP16, Device BSZ = 8
 CUDA_VISIBLE_DEVICES=0 python train.py $CONFIG $INFRA $GC $FP16 $D_BSZ_8 --run_id 16-vanilla-g=1-gc-fp16-dbsz=8
+
+# --- (Extra Experiments because Gradient Checkpointing Exceeded Expectations)
+
+# Single-Node, Single GPU, ++GC, FP32, Device BSZ = 16
+CUDA_VISIBLE_DEVICES=0 python train.py $CONFIG $INFRA $GC $D_BSZ_16 --run_id 17-vanilla-g=1-gc-dbsz=16
+
+# Single-Node, Single GPU, ++GC, FP16, Device BSZ = 16
+CUDA_VISIBLE_DEVICES=0 python train.py $CONFIG $INFRA $GC $FP16 $D_BSZ_16 --run_id 18-vanilla-g=1-gc-dbsz=16
+
+# Single-Node, Single GPU, ++GC, FP32, Device BSZ = 32
+CUDA_VISIBLE_DEVICES=0 python train.py $CONFIG $INFRA $GC $D_BSZ_32 --run_id 19-vanilla-g=1-gc-dbsz=32
+
+# Single-Node, Single GPU, ++GC, FP16, Device BSZ = 32
+CUDA_VISIBLE_DEVICES=0 python train.py $CONFIG $INFRA $GC $FP16 $D_BSZ_32 --run_id 20-vanilla-g=1-gc-dbsz=32
