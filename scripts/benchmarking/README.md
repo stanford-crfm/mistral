@@ -40,5 +40,5 @@ Runs 29 - 37 (Single Node FairScale with Z1, Z2, and Z3) can all be run programm
 ./scripts/benchmarking/fairscale-single.sh
 ```
 
-Runs 38 - (Multi-Node FairScale Trainer) can be run manually (because multiple nodes!) via the directions in the
+Runs 38 - 43 (Multi-Node FairScale Trainer) can be run manually (because multiple nodes!) via the directions in the
 following script: `scripts/benchmarking/ddp-multi.sh`.
