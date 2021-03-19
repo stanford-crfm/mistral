@@ -33,11 +33,11 @@ from transformers.trainer_utils import get_last_checkpoint
 from conf.train_schema import get_schema
 from src.args import get_training_arguments
 from src.corpora import get_auto_dataset
+from src.corpora.auto import ONLINE_EVAL_DATA_REGISTRY
 from src.models import get_auto_clm_tokenizer
 from src.overwatch import get_overwatch
 from src.util import create_paths, set_permissions
 from src.util.callbacks import CustomWandbCallback, compute_metrics
-from src.util.registry import ONLINE_EVAL_DATA_REGISTRY
 from src.util.trainer import OnlineBenchmarkTrainer
 
 

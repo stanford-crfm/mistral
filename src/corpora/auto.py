@@ -13,7 +13,7 @@ import datasets
 from transformers import BatchEncoding, PreTrainedTokenizer
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
-from ..util.registry import DATASET_TOKENIZATION_STRATEGY
+from src.corpora.detokenization import DATASET_TOKENIZATION_STRATEGY
 
 
 overwatch = logging.getLogger("mistral.corpora.auto")
@@ -204,3 +204,11 @@ def get_lambada(
     )
 
     return processed_dataset
+
+
+# TODO: Is this how we want to structure the eval datasets?
+# Mapping of eval dataset name -> HF ids, names, and method for generating dataset
+ONLINE_EVAL_DATA_REGISTRY = {
+    "wikitext": {"id": "wikitext", "name": "wikitext-103-raw-v1", "generator": get_auto_dataset},
+    "lambada": {"id": "lambada", "name": None, "generator": get_lambada},
+}

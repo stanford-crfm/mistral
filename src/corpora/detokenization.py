@@ -49,3 +49,6 @@ def wikitext_detokenize(example: Dict[str, str]) -> Dict[str, str]:
     text = text.replace(" 's", "'s")
 
     return {"text": text}
+
+
+DATASET_TOKENIZATION_STRATEGY = {"wikitext": wikitext_detokenize}
