@@ -32,3 +32,13 @@ Runs 25 - 28 (Multi-Node DDP Trainer) can be run manually (because multiple node
 following script: `scripts/benchmarking/ddp-multi.sh`
 
 ## FairScale Trainer
+
+Runs 29 - 37 (Single Node FairScale with Z1, Z2, and Z3) can all be run programmatically as follows:
+
+```
+# From the root of the `mistral` directory
+./scripts/benchmarking/fairscale-single.sh
+```
+
+Runs 38 - (Multi-Node FairScale Trainer) can be run manually (because multiple nodes!) via the directions in the
+following script: `scripts/benchmarking/ddp-multi.sh`.
