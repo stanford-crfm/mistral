@@ -27,7 +27,7 @@ python -m torch.distributed.launch --nproc_per_node 8 --nnodes 2 --node_rank 1 -
 
 # ---
 
-# Multi-Node FS-Z2, No GC, FP16, Device BSZ = 8 -- TODO :: Change to 16 if Possible?
+# Multi-Node FS-Z2, No GC, FP16, Device BSZ = 8
 
 ## =>> Sphinx1
 python -m torch.distributed.launch --nproc_per_node 8 --nnodes 2 --node_rank 0 --master_addr=sphinx1.stanford.edu train.py --config conf/gpt2-benchmark-config.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8 --training_arguments.sharded_ddp zero_dp_2+auto_wrap --run_id 40-fs=z2-n=2-g=8-fp16-dbsz=8; pkill -f "train.py"; sleep 3
@@ -47,7 +47,7 @@ python -m torch.distributed.launch --nproc_per_node 8 --nnodes 2 --node_rank 1 -
 
 # ---
 
-# Multi-Node FS-Z3, No GC, FP16, Device BSZ = 8 -- TODO :: Change to 16 if Possible?
+# Multi-Node FS-Z3, No GC, FP16, Device BSZ = 8
 
 ## =>> Sphinx1
 python -m torch.distributed.launch --nproc_per_node 8 --nnodes 2 --node_rank 0 --master_addr=sphinx1.stanford.edu train.py --config conf/gpt2-benchmark-config.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8 --training_arguments.sharded_ddp zero_dp_3+auto_wrap --run_id 42-fs=z3-n=2-g=8-fp16-dbsz=8; pkill -f "train.py"; sleep 3
@@ -66,3 +66,5 @@ python -m torch.distributed.launch --nproc_per_node 8 --nnodes 2 --node_rank 0 -
 python -m torch.distributed.launch --nproc_per_node 8 --nnodes 2 --node_rank 1 --master_addr=sphinx1.stanford.edu train.py --config conf/gpt2-benchmark-config.yaml --nnodes 2 --nproc_per_node 8 --model.gradient_checkpointing true --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 32 --training_arguments.sharded_ddp zero_dp_3+auto_wrap --run_id 43-fs=z3-n=2-g=8-gc-fp16-dbsz=32; pkill -f "train.py"; sleep 3
 
 # ---
+
+#
