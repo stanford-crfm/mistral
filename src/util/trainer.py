@@ -58,7 +58,12 @@ class OnlineBenchmarkTrainer(Trainer):
             callbacks=callbacks,
             optimizers=optimizers,
         )
-        self.custom_eval_datasets = custom_eval_datasets if custom_eval_datasets is not None else {}
+        custom_eval_datasets = custom_eval_datasets if custom_eval_datasets is not None else {}
+        # No idea why, but you can't use a dict to store the datasets. They must be stored
+        # separately as class objects. It might be related to how module need custom ModuleDicts for
+        # dictionaries to work with distributed models. But who knows.
+        self.wikitext_dataset = custom_eval_datasets.get("wikitext", None)
+        self.lambada_dataset = custom_eval_datasets.get("lambada", None)
 
     def evaluate(
         self,
@@ -75,26 +80,38 @@ class OnlineBenchmarkTrainer(Trainer):
         self._memory_tracker.start()
 
         # Iterate over each online eval dataset
-        for custom_dataset_name, custom_eval_dataset in self.custom_eval_datasets.items():
-            if custom_eval_dataset is not None and not isinstance(custom_eval_dataset, collections.abc.Sized):
-                raise ValueError("eval_dataset must implement __len__")
-            custom_metric_key_prefix = f"{metric_key_prefix}_{custom_dataset_name}"
-            eval_dataloader = self.get_eval_dataloader(custom_eval_dataset)
-            start_time = time.time()
-            output = self.prediction_loop(
-                eval_dataloader,
-                description=f"Evaluation {custom_dataset_name}",
-                prediction_loss_only=True,
-                metric_key_prefix=custom_metric_key_prefix,
-            )
-            n_samples = len(custom_eval_dataset)
-            output.metrics.update(speed_metrics(custom_metric_key_prefix, start_time, n_samples))
-            # Compute perplexity --- Note :: this is unadjusted
-            ppl = np.exp(output.metrics[f"{custom_metric_key_prefix}_loss"])
-            output.metrics.update({f"{custom_metric_key_prefix}_ppl": ppl})
-            self.log(output.metrics)
-            metrics.update(output.metrics)
+        # Store new metrics for control call
+        new_dataset_metrics = {}
+        if self.wikitext_dataset is not None:
+            output_metrics = self.single_dataset_eval("wikitext", self.wikitext_dataset, metric_key_prefix)
+            new_dataset_metrics.update(output_metrics)
+            self.log(output_metrics)
 
-        self.control = self.callback_handler.on_evaluate(self.args, self.state, self.control, output.metrics)
-        self._memory_tracker.stop_and_update_metrics(metrics)
+        if self.lambada_dataset is not None:
+            output_metrics = self.single_dataset_eval("lambada", self.lambada_dataset, metric_key_prefix)
+            new_dataset_metrics.update(output_metrics)
+            self.log(output_metrics)
+
+        self.control = self.callback_handler.on_evaluate(self.args, self.state, self.control, new_dataset_metrics)
+        self._memory_tracker.stop_and_update_metrics(new_dataset_metrics)
+        metrics.update(new_dataset_metrics)
         return metrics
+
+    def single_dataset_eval(self, dataset_name, dataset, metric_key_prefix):
+        if dataset is not None and not isinstance(dataset, collections.abc.Sized):
+            raise ValueError("eval_dataset must implement __len__")
+        custom_metric_key_prefix = f"{metric_key_prefix}_{dataset_name}"
+        eval_dataloader = self.get_eval_dataloader(dataset)
+        start_time = time.time()
+        output = self.prediction_loop(
+            eval_dataloader,
+            description=f"Evaluation {dataset_name}",
+            prediction_loss_only=True,
+            metric_key_prefix=custom_metric_key_prefix,
+        )
+        n_samples = len(dataset) if dataset is not None else 1
+        output.metrics.update(speed_metrics(custom_metric_key_prefix, start_time, n_samples))
+        # Compute perplexity --- Note :: this is unadjusted
+        ppl = np.exp(output.metrics[f"{custom_metric_key_prefix}_loss"])
+        output.metrics.update({f"{custom_metric_key_prefix}_ppl": ppl})
+        return output.metrics
