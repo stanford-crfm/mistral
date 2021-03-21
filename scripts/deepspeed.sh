@@ -33,7 +33,7 @@ DEEPSPEED_Z3_OFF="--training_arguments.deepspeed scripts/deepspeed/z3-offload-co
 # deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z1
 
 # =>> ZeRO-2
-# deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z2
+deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z2
 
 # =>> ZeRO-3
 # deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z3
@@ -42,7 +42,7 @@ DEEPSPEED_Z3_OFF="--training_arguments.deepspeed scripts/deepspeed/z3-offload-co
 # deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z1_OFF
 
 # =>> ZeRO-2 Offload
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z2_OFF
+# deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z2_OFF
 
 # =>> ZeRO-3 Offload
 # deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z3_OFF

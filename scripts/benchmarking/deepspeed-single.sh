@@ -1,5 +1,5 @@
 # deepspeed-single.sh
-#   Benchmarking Script for Single-Node FairScale Trainer, verifying multi-stage sharded training (ZeRO 1, 2, and 3)
+#   Benchmarking Script for Single-Node DeepSpeed Trainer, verifying multi-stage sharded training (ZeRO 1, 2, and 3)
 #   with and without gradient checkpointing.
 
 # Constants
