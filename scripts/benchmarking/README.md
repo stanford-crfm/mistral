@@ -52,4 +52,9 @@ Runs 44 - 52 (Single Node DeepSpeed with Z1, Z2, and Z3) can all be run programm
 ./scripts/benchmarking/deepspeed-single.sh
 ```
 
-Runs 53 - ... (manual DeepSpeed Multi-Node setup).
+Runs 53 - 58 (Multi-Node DeepSpeed with just Z1, Z2) can also all be run programmatically:
+
+```
+# From the root of the `mistral` directory
+./scripts/benchmarking/deepspeed-multi.sh
+```
