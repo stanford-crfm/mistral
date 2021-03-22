@@ -13,6 +13,7 @@ run_id: null
 
 # Weights & Biases
 wandb: mistral-debugging
+group: null
 
 # Artifacts & Caching
 artifacts:

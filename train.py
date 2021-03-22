@@ -27,21 +27,23 @@ from datetime import datetime
 import numpy as np
 import torch
 from quinine import QuinineArgumentParser
-from transformers import Trainer, default_data_collator
+from transformers.data.data_collator import default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
 
 from conf.train_schema import get_schema
 from src.args import get_training_arguments
 from src.corpora import get_auto_dataset
+from src.corpora.auto import ONLINE_EVAL_DATA_REGISTRY
 from src.models import get_auto_clm_tokenizer
 from src.overwatch import get_overwatch
 from src.util import create_paths, set_permissions
 from src.util.callbacks import CustomWandbCallback, compute_metrics
+from src.util.trainer import OnlineBenchmarkTrainer
 
 
 def train() -> None:
     # Parse Quinfig (via Quinine Argparse Binding)
-    print("[*] Mercury :: Launching =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
+    print("[*] Mercury :: Launching the Bastard =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
     print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)')
     quinfig = QuinineArgumentParser(schema=get_schema()).parse_quinfig()
 
@@ -85,7 +87,7 @@ def train() -> None:
         use_pretrained_tokenizer=quinfig.model.pretrained_tokenizer,
     )
 
-    # Load Dataset w/ Preprocessing, Batching, and Collating --> Fix Permissions immediately afterwards
+    # Load Dataset w/ Preprocessing, Batching, and Collating
     overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
     lm_dataset = get_auto_dataset(
         tokenizer,
@@ -96,6 +98,27 @@ def train() -> None:
         seq_len=quinfig.model.seq_len,
         preprocessing_num_proc=quinfig.dataset.num_proc,
     )
+
+    # Load Online Eval Datasets
+    custom_eval_datasets = dict()
+    for eval_dataset_arg in list(filter(lambda x: x.startswith("do_"), quinfig.online_eval.keys())):
+        if getattr(quinfig.online_eval, eval_dataset_arg):
+            # Dataset name is in quinfig arg of "do_<dataset>" -> Boolean
+            dataset_name = eval_dataset_arg.lstrip("do_")
+            overwatch.info(f"Downloading and Preprocessing Online Eval Dataset {dataset_name}")
+            custom_eval_datasets[dataset_name] = ONLINE_EVAL_DATA_REGISTRY[dataset_name]["generator"](
+                tokenizer,
+                paths,
+                dataset_id=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["id"],
+                dataset_name=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["name"],
+                validation_ratio=quinfig.dataset.validation_ratio,
+                seq_len=quinfig.model.seq_len,
+                stride=quinfig.online_eval.stride,
+                preprocessing_num_proc=quinfig.dataset.eval_num_proc,
+                ignore_train=True,
+            )["validation"]
+
+    # Fix All Dataset Permissions
     set_permissions(paths)
 
     # Initialize Training Arguments from Quinfig
@@ -118,18 +141,20 @@ def train() -> None:
     if quinfig.local_rank <= 0:
         overwatch.info(f"Training Arguments: {training_args}")
 
-    trainer = Trainer(
+    trainer = OnlineBenchmarkTrainer(
         model=model,
         args=training_args,
+        data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
         train_dataset=lm_dataset["train"],
         eval_dataset=lm_dataset["validation"],
+        custom_eval_datasets=custom_eval_datasets,
         tokenizer=tokenizer,
-        data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
         compute_metrics=compute_metrics,
         callbacks=[
             CustomWandbCallback(
                 quinfig.wandb,
                 json_file=str(paths["runs"] / "metrics.json"),
+                group=quinfig.group,
                 resume=quinfig.resume,
                 resume_run_id=resume_run_id,
                 wandb_dir=str(paths["runs"]),

@@ -15,8 +15,9 @@ def get_schema() -> Dict[str, Any]:
     data_schema = {
         "id": merge(tstring, required),
         "name": merge(tstring, nullable, default(None)),
-        "num_proc": merge(tinteger, default(64)),
         "validation_ratio": merge(tfloat, default(0.0005)),
+        "num_proc": merge(tinteger, default(64)),
+        "eval_num_proc": merge(tinteger, default(4)),
     }
 
     # Schema for Model
@@ -54,9 +55,17 @@ def get_schema() -> Dict[str, Any]:
         "seed": merge(tinteger, default(42)),
         "fp16": merge(tboolean, default(True)),
         "fp16_backend": merge(tstring, default("auto")),
-        "local_rank": merge(tinteger, nullable, default(None)),
         "sharded_ddp": merge(tstring, nullable, default(None)),
         "deepspeed": merge(tstring, nullable, default(None)),
+        "dataloader_num_workers": merge(tinteger, default(4)),
+        "local_rank": merge(tinteger, nullable, default(None)),
+    }
+
+    # Schema for Online Custom Evaluation Datasets (e.g. LAMBADA)
+    online_eval_schema = {
+        "do_wikitext": merge(tboolean, default(True)),
+        "do_lambada": merge(tboolean, default(True)),
+        "stride": merge(tinteger, default(512)),
     }
 
     # Schema for Storing Training and Data Artifacts
@@ -70,12 +79,14 @@ def get_schema() -> Dict[str, Any]:
         "dataset": stdict(data_schema),
         "model": stdict(model_schema),
         "training_arguments": stdict(trainer_schema),
+        "online_eval": stdict(online_eval_schema),
         "artifacts": stdict(artifacts_schema),
         "effective_bsz": merge(tinteger, default(512)),
         "resume": merge(tboolean, default(False)),
         "log_level": merge(tinteger, default(20)),
         "run_id": merge(tstring, nullable, default(None)),
         "wandb": merge(tstring, nullable, default(None)),
+        "group": merge(tstring, nullable, default(None)),
         "seed": merge(tinteger, default(42)),
         # Infra Params - Passed in from `torch.distributed`
         "local_rank": merge(tinteger, default(-1)),

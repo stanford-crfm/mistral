@@ -1,7 +1,7 @@
 """
 registry.py
 
-Model Registry :: Human-Readable Model Identifier --> Huggingface.co ID. Ideally will be expanded upon as we introduce
+Model/Data Registry :: Human-Readable Identifier --> Huggingface.co ID. Ideally will be expanded upon as we introduce
 more model configurations, different types of architectures, etc.
 """
 
