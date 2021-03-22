@@ -23,7 +23,7 @@ training_arguments:
     prediction_loss_only: true
 
     # Learning Rate & Optimization Parameters, assumes AdamW -- TODO 11 :: Check these and then double check them!
-    learning_rate: 0.0006
+    learning_rate: 0.00015
     weight_decay: 0.01
     adam_beta1: 0.9
     adam_beta2: 0.999
@@ -33,7 +33,7 @@ training_arguments:
     max_grad_norm: 1.0
 
     # Maximum Training Steps (Overrides epochs!)
-    max_steps: 320000
+    max_steps: 400000
 
     # LR Scheduling Parameters -- Warmup Steps should be 0.01% of total steps (Could use ratio)
     lr_scheduler_type: cosine
