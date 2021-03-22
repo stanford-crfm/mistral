@@ -4,7 +4,7 @@
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
-    - datasets/wikitext103.yaml
+    - datasets/openwebtext.yaml
     - models/gpt2-small.yaml
     - trainers/toy.yaml
 
