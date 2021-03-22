@@ -105,7 +105,7 @@ def train() -> None:
         if getattr(quinfig.online_eval, eval_dataset_arg):
             # Dataset name is in quinfig arg of "do_<dataset>" -> Boolean
             dataset_name = eval_dataset_arg.lstrip("do_")
-            overwatch.info(f"Downloading and Preprocessing Online Eval Datset {dataset_name}")
+            overwatch.info(f"Downloading and Preprocessing Online Eval Dataset {dataset_name}")
             custom_eval_datasets[dataset_name] = ONLINE_EVAL_DATA_REGISTRY[dataset_name]["generator"](
                 tokenizer,
                 paths,
@@ -114,7 +114,7 @@ def train() -> None:
                 validation_ratio=quinfig.dataset.validation_ratio,
                 seq_len=quinfig.model.seq_len,
                 stride=quinfig.online_eval.stride,
-                preprocessing_num_proc=quinfig.dataset.num_proc,
+                preprocessing_num_proc=quinfig.dataset.eval_num_proc,
                 ignore_train=True,
             )["validation"]
 
@@ -154,6 +154,7 @@ def train() -> None:
             CustomWandbCallback(
                 quinfig.wandb,
                 json_file=str(paths["runs"] / "metrics.json"),
+                group=quinfig.group,
                 resume=quinfig.resume,
                 resume_run_id=resume_run_id,
                 wandb_dir=str(paths["runs"]),

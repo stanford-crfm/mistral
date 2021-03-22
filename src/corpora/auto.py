@@ -35,7 +35,9 @@ def get_auto_dataset(
     # Sanity check on input args
     stride = seq_len if stride < 0 else stride
     assert stride <= seq_len, "Data grouping stride is smaller than sequence length: we are losing data."
-    dataset = datasets.load_dataset(dataset_id, name=dataset_name, cache_dir=paths["dataset"], keep_in_memory=True)
+    dataset = datasets.load_dataset(
+        dataset_id, name=dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True
+    )
 
     if "validation" not in dataset:
         assert "train" in dataset, "You must have train in dataset to make a validation dataset"
@@ -55,7 +57,7 @@ def get_auto_dataset(
         del dataset["train"]
         assert len(dataset) > 0, "You can't set ignore_train = True when there is only train data"
 
-    # First, Normalize Text if Necessary. Tokenization Strategies are in dekoneizatoin.py.
+    # First, Normalize Text if Necessary. Tokenization Strategies are in detokenization.py.
     dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
 
     # Second, run straight-up tokenization
@@ -111,7 +113,7 @@ def get_auto_dataset(
 
     # Create Post-Chunking Cache Paths
     post_chunking_cache_files = {
-        k: str(paths["preprocessed"] / dataset_id / "preprocessing" / "chunking" / f"{k}-stride{stride}-chunked.hf")
+        k: str(paths["preprocessed"] / dataset_id / "preprocessing" / "chunking" / f"{k}-stride={stride}-chunked.hf")
         for k in dataset
     }
     # Create Parent Path of Cache Files
@@ -129,7 +131,7 @@ def get_auto_dataset(
 
 
 def auto_detokenize(
-    dataset_id: str, dataset: datasets.DatasetDict, preprocess_path: Path, preprocessing_num_proc: int = 8
+    dataset_id: str, dataset: datasets.DatasetDict, preprocess_path: Path, preprocessing_num_proc: int = 4
 ) -> datasets.DatasetDict:
     if dataset_id in DATASET_TOKENIZATION_REGISTRY:
         overwatch.info(f"Detokenizing Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
@@ -160,15 +162,18 @@ def get_lambada(
     paths: Dict[str, Path],
     dataset_id: str = "lambada",
     dataset_name: str = None,
+    validation_ratio: float = 0.0005,
     seq_len: int = 1024,
-    preprocessing_num_proc: int = 64,
+    preprocessing_num_proc: int = 4,
     stride: int = -1,
+    ignore_train: bool = False,
 ) -> datasets.DatasetDict:
     """
     Run special tokenization and grouping for the Lambada dataset.
 
     Taken from https://github.com/NVIDIA/Megatron-LM/blob/main/tasks/zeroshot_gpt2/datasets.py
     """
+    overwatch.info(f"Preprocessing LAMBADA Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
 
     # Sanity check on Input Arguments
     stride = seq_len if stride < 0 else stride

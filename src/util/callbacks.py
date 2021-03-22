@@ -32,6 +32,7 @@ class CustomWandbCallback(WandbCallback):
         self,
         project: str,
         json_file: str,
+        group: str = None,
         resume: bool = False,
         resume_run_id: str = None,
         wandb_dir: str = None,
@@ -51,7 +52,7 @@ class CustomWandbCallback(WandbCallback):
         self.json_file = json_file
 
         # Wandb arguments
-        self.resume, self.resume_run_id, self.wandb_dir = resume, resume_run_id, wandb_dir
+        self.group, self.resume, self.resume_run_id, self.wandb_dir = group, resume, resume_run_id, wandb_dir
 
         # Timers
         self.within_time, self.between_time = None, None
@@ -123,6 +124,7 @@ class CustomWandbCallback(WandbCallback):
 
             self._wandb.init(
                 project=os.getenv("WANDB_PROJECT", "huggingface"),
+                group=self.group,
                 config=combined_dict,
                 name=run_name,
                 reinit=reinit,

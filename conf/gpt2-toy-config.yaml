@@ -13,6 +13,7 @@ run_id: null
 
 # Weights & Biases (Set os.environ["WANDB_PROJECT"])
 wandb: mistral-debugging
+group: null
 
 # Artifacts & Caching
 artifacts:

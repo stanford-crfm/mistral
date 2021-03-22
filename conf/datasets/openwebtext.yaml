@@ -8,3 +8,6 @@ dataset:
 
     # Number of Preprocessing Workers
     num_proc: 64
+
+    # Number of Evaluation Preprocessing Workers
+    eval_num_proc: 4

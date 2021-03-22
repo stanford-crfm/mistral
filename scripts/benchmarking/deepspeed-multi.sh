@@ -25,31 +25,32 @@ DISTRIBUTED_ARGS="--num_gpus 8 --num_nodes 2 --master_addr $MASTER_ADDR"
 # ---
 
 # Multi-Node Node DS-Z1, No GC, Device BSZ = 8 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_8 $DS_Z1 --run_id 53-ds=z1-n=2-g=8-fp16-dbsz=8
-pkill -f "train.py"
-sleep 3
+#deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_8 $DS_Z1 --run_id 53-ds=z1-n=2-g=8-fp16-dbsz=8
+#pkill -f "train.py"
+#sleep 3
 
 # Multi-Node DS-Z1, No GC, Device BSZ = 16 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $DS_Z1 --run_id 54-ds=z1-n=2-g=8-fp16-dbsz=16
+#deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $DS_Z1 --run_id 54-ds=z1-n=2-g=8-fp16-dbsz=16
+deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $DS_Z1 --run_id 63-sk-on-eval-ds=z1-n=2-g=8-fp16-dbsz=16
 pkill -f "train.py"
 sleep 3
 
 # Multi-Node DS-Z1, ++GC, Device BSZ = 32 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC $D_BSZ_32 $DS_Z1 --run_id 55-ds=z1-n=2-g=8-gc-fp16-dbsz=32
-pkill -f "train.py"
-sleep 3
+#deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC $D_BSZ_32 $DS_Z1 --run_id 55-ds=z1-n=2-g=8-gc-fp16-dbsz=32
+#pkill -f "train.py"
+#sleep 3
 
 # Multi-Node DS-Z2, No GC, Device BSZ = 8 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_8 $DS_Z2 --run_id 56-ds=z2-n=2-g=8-fp16-dbsz=8
-pkill -f "train.py"
-sleep 3
+#deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_8 $DS_Z2 --run_id 56-ds=z2-n=2-g=8-fp16-dbsz=8
+#pkill -f "train.py"
+#sleep 3
 
 # Multi-Node DS-Z2, No GC, Device BSZ = 16 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $DS_Z2 --run_id 57-ds=z2-n=1-g=8-fp16-dbsz=16
-pkill -f "train.py"
-sleep 3
+#deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $DS_Z2 --run_id 57-ds=z2-n=1-g=8-fp16-dbsz=16
+#pkill -f "train.py"
+#sleep 3
 
 # Multi-Node DS-Z2, ++GC, Device BSZ = 32 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC $D_BSZ_32 $DS_Z2 --run_id 58-ds=z2-n=1-g=8-gc-fp16-dbsz=32
-pkill -f "train.py"
-sleep 3
+#deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC $D_BSZ_32 $DS_Z2 --run_id 58-ds=z2-n=1-g=8-gc-fp16-dbsz=32
+#pkill -f "train.py"
+#sleep 3

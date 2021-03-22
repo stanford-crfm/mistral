@@ -15,8 +15,9 @@ def get_schema() -> Dict[str, Any]:
     data_schema = {
         "id": merge(tstring, required),
         "name": merge(tstring, nullable, default(None)),
-        "num_proc": merge(tinteger, default(64)),
         "validation_ratio": merge(tfloat, default(0.0005)),
+        "num_proc": merge(tinteger, default(64)),
+        "eval_num_proc": merge(tinteger, default(4)),
     }
 
     # Schema for Model
@@ -85,6 +86,7 @@ def get_schema() -> Dict[str, Any]:
         "log_level": merge(tinteger, default(20)),
         "run_id": merge(tstring, nullable, default(None)),
         "wandb": merge(tstring, nullable, default(None)),
+        "group": merge(tstring, nullable, default(None)),
         "seed": merge(tinteger, default(42)),
         # Infra Params - Passed in from `torch.distributed`
         "local_rank": merge(tinteger, default(-1)),
