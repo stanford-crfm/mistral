@@ -23,6 +23,7 @@ from transformers.data.data_collator import DataCollator
 from transformers.trainer_utils import EvalPrediction, speed_metrics
 
 
+# Nest Overwatch under root `mistral` logger, inheriting formatting!
 overwatch = logging.getLogger("mistral.util.trainer")
 
 
