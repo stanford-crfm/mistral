@@ -1,5 +1,5 @@
-# benchmark.yaml
-#   Trainer config for Benchmarking, with the full fixed batch size of 512 (with gradient accumulation).
+# intensive.yaml
+#   Trainer config for Intensive Benchmarking, with the full fixed batch size of 512 (with gradient accumulation).
 #   This contract exactly follows that of HF.TrainingArguments so we can pass as a simple **kwargs -- make sure this
 #   continues to stay valid!
 #       Reference: https://huggingface.co/transformers/main_classes/trainer.html#trainingarguments
@@ -13,8 +13,8 @@ training_arguments:
     evaluation_strategy: steps
 
     # Set these based on GPU RAM available...
-    per_device_train_batch_size: 2
-    per_device_eval_batch_size: 2
+    per_device_train_batch_size: 8
+    per_device_eval_batch_size: 16
 
     # We set this dynamically based on DDP Computation [steps = effective_batch / (per_gpu_batch * gpus * nodes)]
     gradient_accumulation_steps: null
@@ -33,21 +33,21 @@ training_arguments:
     max_grad_norm: 1.0
 
     # Maximum Training Steps (Overrides epochs!) -- TODO 12 :: Check this!
-    max_steps: 50
+    max_steps: 1000
 
     # LR Scheduling Parameters -- TODO 13 :: Check these and then double check them!
     lr_scheduler_type: linear
-    warmup_steps: 2
+    warmup_steps: 100
 
     # Logging Parameters -- Logging Directory (Tensorboard - is this necessary?) should be Overwritten at Runtime!
     run_name: null
     logging_dir: null
     logging_first_step: true
-    logging_steps: 2
+    logging_steps: 50
 
     # Saving and Evaluation Steps (only at the end)
-    eval_steps: 10
-    save_steps: 10
+    eval_steps: 100
+    save_steps: 100
 
     # Seeds -- Should be Overwritten at Runtime!
     seed: null
