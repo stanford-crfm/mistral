@@ -160,11 +160,9 @@ def get_lambada(
     paths: Dict[str, Path],
     dataset_id: str = "lambada",
     dataset_name: str = None,
-    validation_ratio: float = 0.0005,
     seq_len: int = 1024,
     preprocessing_num_proc: int = 64,
     stride: int = -1,
-    ignore_train: bool = True,
 ) -> datasets.DatasetDict:
     """
     Run special tokenization and grouping for the Lambada dataset.

@@ -27,7 +27,7 @@ from datetime import datetime
 import numpy as np
 import torch
 from quinine import QuinineArgumentParser
-from transformers import default_data_collator
+from transformers.data.data_collator import default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
 
 from conf.train_schema import get_schema
@@ -144,11 +144,11 @@ def train() -> None:
     trainer = OnlineBenchmarkTrainer(
         model=model,
         args=training_args,
+        data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
         train_dataset=lm_dataset["train"],
         eval_dataset=lm_dataset["validation"],
         custom_eval_datasets=custom_eval_datasets,
         tokenizer=tokenizer,
-        data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
         compute_metrics=compute_metrics,
         callbacks=[
             CustomWandbCallback(
