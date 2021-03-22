@@ -1,39 +1,40 @@
-# gpt-toy-config.yaml
-#   Toy GPT-2 Config, currently working with the WikiText-103 Dataset, GPT-2 Small Architecture, and Single-Node
-#   Trainer. Inheritance and core paths can all be overridden from the command line or by re-writing these files.
+# gpt-benchmark-config.yaml
+#   Benchmarking GPT-2 Config, currently working with the OpenWebText Dataset, GPT-2 Small Architecture, and
+#   full batch size (512). Support for Single-Node, Multi-Node, Mixed Precision, DDP, FairScale, and DeepSpeed.
+#   Inheritance and core paths can all be overridden from the command line or by re-writing these files.
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
-    - datasets/wikitext103.yaml
+    - datasets/openwebtext.yaml
     - models/gpt2-small.yaml
-    - trainers/toy.yaml
+    - trainers/benchmark.yaml
 
 # Run ID -- defaults to `null`; override as you like!
 run_id: null
 
-# Weights & Biases (Set os.environ["WANDB_PROJECT"])
-wandb: mistral-debugging
+# Weights & Biases
+wandb: mistral-benchmarking
 
 # Artifacts & Caching
 artifacts:
-    cache_dir: /u/scr/nlp/mercury/mistral/artifacts
-    run_dir: /u/scr/nlp/mercury/mistral/runs
+    cache_dir: /scr-ssd/mercury/mistral/artifacts
+    run_dir: /scr-ssd/mercury/mistral/runs
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
-bsz: 8
+effective_bsz: 512
 
 # Resume from Checkpoint
 resume: false
 
 # `torch.distributed` Default Infra Parameters -- to be overwritten by call to `torch.distributed.launch`
 local_rank: -1
-nnodes: 1
-nproc_per_node: 8
+nnodes: -1
+nproc_per_node: -1
 
 # DeepSpeed Default Infra Parameters -- to be overwritten by call to `DeepSpeed`
-num_gpus: 8
-num_nodes: 1
-world_size: 8
+num_gpus: -1
+num_nodes: -1
+world_size: -1
 
 # Logging Parameters -- 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL
 log_level: 20

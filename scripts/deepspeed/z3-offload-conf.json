@@ -1,0 +1,14 @@
+{
+  "zero_optimization": {
+    "stage": 3,
+    "allgather_partitions": true,
+    "allgather_bucket_size": 2e8,
+    "reduce_scatter": true,
+    "reduce_bucket_size": 2e8,
+    "overlap_comm": true,
+    "contiguous_gradients": true,
+    "cpu_offload": true,
+    "cpu_offload_params": true,
+    "cpu_offload_pin_memory": true
+  }
+}

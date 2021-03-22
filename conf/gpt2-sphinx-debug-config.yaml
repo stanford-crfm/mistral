@@ -1,4 +1,4 @@
-# gpt-debug-config.yaml
+# gpt-sphinx-debug-config.yaml
 #   Debugging GPT-2 Config, currently working with the OpenWebText Dataset, GPT-2 Small Architecture, and Single-Node
 #   Trainer. Inheritance and core paths can all be overridden from the command line or by re-writing these files.
 ---
@@ -20,22 +20,23 @@ artifacts:
     run_dir: /scr-ssd/mercury/mistral/runs
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
-effective_bsz: 16
+effective_bsz: 32
 
 # Resume from Checkpoint
-resume: False
+resume: false
+
+# `torch.distributed` Default Infra Parameters -- to be overwritten by call to `torch.distributed.launch`
+local_rank: -1
+nnodes: -1
+nproc_per_node: -1
+
+# DeepSpeed Default Infra Parameters -- to be overwritten by call to `DeepSpeed`
+num_gpus: -1
+num_nodes: -1
+world_size: -1
 
 # Logging Parameters -- 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL
 log_level: 20
-
-# Top-Level Infrastructure Parameters
-infra:
-    # Local Rank -- for Distributed Training :: -1 refers to non-distributed training, 0-8 (16?) otherwise
-    rank: -1
-
-    # GPUs assumed to be uniform *across* nodes
-    nodes: 1
-    gpus: 8
 
 # Random Seed
 seed: 21

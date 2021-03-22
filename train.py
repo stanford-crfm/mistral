@@ -47,17 +47,22 @@ def train() -> None:
     print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)')
     quinfig = QuinineArgumentParser(schema=get_schema()).parse_quinfig()
 
+    # Set Distributed Arguments
+    # TODO A :: @Laurel, @Karan -- `local_rank` not in Quinfig w/ torch.distributed.launch?
+    quinfig.world_size = int(os.getenv("WORLD_SIZE", quinfig.nproc_per_node))
+    quinfig.local_rank = int(os.getenv("LOCAL_RANK", -1))
+
     # Create Unique Run Name (for Logging, Checkpointing, and W&B) :: Initialize all Directories
     run_id = quinfig.run_id
     if run_id is None:
         run_id = (
-            f"{quinfig.model.id}-d={quinfig.dataset.id}-n={quinfig.infra.nodes}-g={quinfig.infra.gpus}+"
-            f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
+            f"{quinfig.model.id}-d={quinfig.dataset.id}-n={quinfig.nnodes}-g={quinfig.nproc_per_node}-"
+            f"w={quinfig.world_size}+{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
         )
     paths = create_paths(run_id, quinfig.model.id, quinfig.artifacts.run_dir, quinfig.artifacts.cache_dir)
 
     # Overwatch :: Setup & Configure Console/File Logger --> Handle Process 0 vs. other Process Logging!
-    overwatch = get_overwatch(paths["runs"] / f"{run_id}.log", quinfig.log_level, rank=quinfig.infra.rank)
+    overwatch = get_overwatch(paths["runs"] / f"{run_id}.log", quinfig.log_level, local_rank=quinfig.local_rank)
     overwatch.info(f"Starting Run: {run_id}...")
 
     # Set Randomness
@@ -112,6 +117,7 @@ def train() -> None:
                 preprocessing_num_proc=quinfig.dataset.num_proc,
                 ignore_train=True,
             )["validation"]
+
     # Fix All Dataset Permissions
     set_permissions(paths)
 
@@ -122,22 +128,19 @@ def train() -> None:
         run_name=run_id,
         output_dir=paths["runs"],
         seed=quinfig.seed,
-        local_rank=quinfig.infra.rank,
+        local_rank=quinfig.local_rank,
         effective_bsz=quinfig.effective_bsz,
-        nodes=quinfig.infra.nodes,
-        gpus_per_node=quinfig.infra.gpus,
+        nodes=quinfig.nnodes,
+        gpus_per_node=quinfig.nproc_per_node,
     )
 
-    # Important - Note that by default if multiple GPUs available on node, HF.Trainer defaults to `torch.DataParallel`
-    #   which is almost always worse in efficiency than the DDP equivalent. So basically, always run with DDP!
-    # TODO 21 :: Set up DDP (Single-Node), DDP (Multi-Node) Training + Mixed Precision Training
-    # TODO 22 :: Setup DeepSpeed Training
-    # TODO 23 :: Setup FairScale Training
-
     # Initialize Trainer, with the relevant arguments
-    # TODO 32 :: Make sure we're using the right opt/schedule... should be configured by `training_args` so check!
-    # TODO 33 :: Pass in `compute_metrics` for correct evaluation metrics --> Perplexity! Do during train as well?
+    # TODO B :: Make sure we're using the right opt/schedule... should be configured by `training_args` so check!
+    # TODO C :: Pass in `compute_metrics` for correct evaluation metrics --> Perplexity! Do during train as well?
     overwatch.info("Initializing Model Trainer...")
+    if quinfig.local_rank <= 0:
+        overwatch.info(f"Training Arguments: {training_args}")
+
     trainer = OnlineBenchmarkTrainer(
         model=model,
         args=training_args,
@@ -162,7 +165,6 @@ def train() -> None:
     overwatch.info("Training...")
     trainer.train(resume_from_checkpoint=last_checkpoint)
     trainer.save_model()
-
     overwatch.info("...and that's all folks!")
 
 

@@ -322,35 +322,38 @@ class CustomWandbCallback(WandbCallback):
         eval_dataloader=None,
         **kwargs,
     ):
-        """Calls wandb.init, we add additional arguments to that call using this method."""
+        """ Calls wandb.init, we add additional arguments to that call using this method. """
+
         # Pass in additional keyword arguments to the wandb.init call as kwargs
         super().on_train_begin(
             args, state, control, model, resume=self.resume, dir=self.wandb_dir, id=self.resume_run_id, **kwargs
         )
 
-        # Watch the model
-        self._wandb.watch(model)
+        # Process Zero Barrier
+        if state.is_world_process_zero:
+            # Watch the model
+            self._wandb.watch(model)
 
-        # Log model information
-        self._wandb.log(
-            {
-                "model-info/num_parameters": model.num_parameters(),
-                "model-info/trainable_parameters": model.num_parameters(only_trainable=True),
-            },
-            step=state.global_step,
-        )
-
-        if state.global_step > self._last_log_step:
-            self._append_jsonl(
+            # Log model information
+            self._wandb.log(
                 {
-                    "num_parameters": model.num_parameters(),
-                    "trainable_parameters": model.num_parameters(only_trainable=True),
-                    "step": state.global_step,
-                }
+                    "model-info/num_parameters": model.num_parameters(),
+                    "model-info/trainable_parameters": model.num_parameters(only_trainable=True),
+                },
+                step=state.global_step,
             )
 
-        # Initialize the timers
-        self.within_time, self.between_time = time.time(), time.time()
+            if state.global_step > self._last_log_step:
+                self._append_jsonl(
+                    {
+                        "num_parameters": model.num_parameters(),
+                        "trainable_parameters": model.num_parameters(only_trainable=True),
+                        "step": state.global_step,
+                    }
+                )
+
+            # Initialize the timers
+            self.within_time, self.between_time = time.time(), time.time()
 
     def on_train_end(
         self,
@@ -381,15 +384,17 @@ class CustomWandbCallback(WandbCallback):
         logs=None,
         **kwargs,
     ):
-        # Log Train Perplexity
-        if any([k == "loss" for k in logs]):
-            logs["perplexity"] = math.exp(logs["loss"])
-
-        # Log memory usage
-        self._log_memory(state)
-
-        # Append to the log
-        if state.global_step > self._last_log_step:
-            self._append_jsonl({"logs": logs, "step": state.global_step})
-
         super().on_log(args, state, control, model, logs, **kwargs)
+
+        # Process Zero Barrier
+        if state.is_world_process_zero:
+            # Log Train Perplexity
+            if any([k == "loss" for k in logs]):
+                logs["perplexity"] = math.exp(logs["loss"])
+
+            # Log memory usage
+            self._log_memory(state)
+
+            # Append to the log
+            if state.global_step > self._last_log_step:
+                self._append_jsonl({"logs": logs, "step": state.global_step})

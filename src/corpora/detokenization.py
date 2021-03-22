@@ -9,36 +9,41 @@ from typing import Dict
 
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
-overwatch = logging.getLogger("mistral.corpora.auto")
+overwatch = logging.getLogger("mistral.corpora.detokenization")
 
 
 def wikitext_detokenize(example: Dict[str, str]) -> Dict[str, str]:
     """
     Wikitext is whitespace tokenized and we remove these whitespaces.
+
     Taken from https://github.com/NVIDIA/Megatron-LM/blob/main/tasks/zeroshot_gpt2/detokenizer.py
     """
-    # contractions
+    # Contractions
     text = example["text"]
     text = text.replace("s '", "s'")
     text = re.sub(r"/' [0-9]/", r"/'[0-9]/", text)
-    # number separators
+
+    # Number Separators
     text = text.replace(" @-@ ", "-")
     text = text.replace(" @,@ ", ",")
     text = text.replace(" @.@ ", ".")
-    # punctuation
+
+    # Punctuation
     text = text.replace(" : ", ": ")
     text = text.replace(" ; ", "; ")
     text = text.replace(" . ", ". ")
     text = text.replace(" ! ", "! ")
     text = text.replace(" ? ", "? ")
     text = text.replace(" , ", ", ")
-    # double brackets
+
+    # Double Brackets
     text = re.sub(r"\(\s*([^\)]*?)\s*\)", r"(\1)", text)
     text = re.sub(r"\[\s*([^\]]*?)\s*\]", r"[\1]", text)
     text = re.sub(r"{\s*([^}]*?)\s*}", r"{\1}", text)
     text = re.sub(r"\"\s*([^\"]*?)\s*\"", r'"\1"', text)
     text = re.sub(r"'\s*([^']*?)\s*'", r"'\1'", text)
-    # miscellaneous
+
+    # Miscellaneous
     text = text.replace("= = = =", "====")
     text = text.replace("= = =", "===")
     text = text.replace("= =", "==")
@@ -51,4 +56,5 @@ def wikitext_detokenize(example: Dict[str, str]) -> Dict[str, str]:
     return {"text": text}
 
 
-DATASET_TOKENIZATION_STRATEGY = {"wikitext": wikitext_detokenize}
+# Set Registry for Various Datasets
+DATASET_TOKENIZATION_REGISTRY = {"wikitext": wikitext_detokenize}

@@ -39,6 +39,22 @@ def get_training_arguments(
     # Since we Implement a Custom W&B / JSON Logging Callback, we don't report to anyone -- we've gone rogue!
     training_args.report_to = "none"
 
+    # If "sharded_ddp" is None --> replace with False
+    if training_args.sharded_ddp is None:
+        training_args.sharded_ddp = False
+    else:
+        assert isinstance(training_args.sharded_ddp, str) and training_args.sharded_ddp in [
+            "simple",
+            "zero_dp_2+auto_wrap",
+            "zero_dp_2+auto_wrap+offload",
+            "zero_dp_3+auto_wrap",
+            "zero_dp_3+auto_wrap+offload",
+        ]
+
+        # If "+" in `sharded_ddp` --> Split, and then join... this is kinda hacky (TODO :: Fix!)
+        if "+" in training_args.sharded_ddp:
+            training_args.sharded_ddp = " ".join(training_args.sharded_ddp.split("+"))
+
     # Compute Gradient Accumulation Dynamically
     training_args.gradient_accumulation_steps = effective_bsz // (
         quinfig_args.per_device_train_batch_size * gpus_per_node * nodes
