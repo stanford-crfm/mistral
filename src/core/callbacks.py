@@ -210,9 +210,13 @@ class CustomWandbCallback(WandbCallback):
             # Get time taken in step
             within_time_taken = time.time() - self.within_time
 
-            # Log step information
+            # Log Step Information
             self._wandb.log(
-                {"info/global_step": state.global_step, "train_info/time_within_train_step": within_time_taken},
+                {
+                    "info/global_step": state.global_step,
+                    "train_info/time_within_train_step": within_time_taken,
+                    "train_info/loss_scale": optimizer.loss_scale,
+                },
                 step=state.global_step,
             )
 
