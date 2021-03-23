@@ -36,7 +36,7 @@ training_arguments:
     max_steps: 400000
 
     # LR Scheduling Parameters -- Warmup Steps should be 1% of total steps (Could use ratio)
-    lr_scheduler_type: linear
+    lr_scheduler_type: cosine
     warmup_steps: 4000
 
     # Logging Parameters -- Logging Directory (Tensorboard - is this necessary?) should be Overwritten at Runtime!
