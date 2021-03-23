@@ -22,7 +22,7 @@ training_arguments:
     # For Online Evaluation, only keep around the Losses
     prediction_loss_only: true
 
-    # Learning Rate & Optimization Parameters, assumes AdamW -- TODO 11 :: Check these and then double check them!
+    # Learning Rate & Optimization Parameters, assumes AdamW
     learning_rate: 5.0e-5
     weight_decay: 0.01
     adam_beta1: 0.9
@@ -32,10 +32,10 @@ training_arguments:
     # Gradient Norm
     max_grad_norm: 1.0
 
-    # Maximum Training Steps (Overrides epochs!) -- TODO 12 :: Check this!
+    # Maximum Training Steps (Overrides epochs!)
     max_steps: 50
 
-    # LR Scheduling Parameters -- TODO 13 :: Check these and then double check them!
+    # LR Scheduling Parameters
     lr_scheduler_type: linear
     warmup_steps: 10
 

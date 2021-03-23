@@ -12,7 +12,7 @@ training_arguments:
     do_train: true
     evaluation_strategy: steps
 
-    # Set these based on GPU RAM available...
+    # Set these based on GPU RAM/your available hardware
     per_device_train_batch_size: 16
     per_device_eval_batch_size: 16
 
@@ -22,11 +22,11 @@ training_arguments:
     # For Online Evaluation, only keep around the Losses
     prediction_loss_only: true
 
-    # Learning Rate & Optimization Parameters, assumes AdamW -- TODO 11 :: Check these and then double check them!
-    learning_rate: 0.00015
+    # Learning Rate & Optimization Parameters, assumes AdamW
+    learning_rate: 0.0006
     weight_decay: 0.01
     adam_beta1: 0.9
-    adam_beta2: 0.999
+    adam_beta2: 0.95
     adam_epsilon: 1.0e-8
 
     # Gradient Norm
@@ -35,9 +35,9 @@ training_arguments:
     # Maximum Training Steps (Overrides epochs!)
     max_steps: 400000
 
-    # LR Scheduling Parameters -- Warmup Steps should be 0.01% of total steps (Could use ratio)
-    lr_scheduler_type: cosine
-    warmup_steps: 3200
+    # LR Scheduling Parameters -- Warmup Steps should be 1% of total steps (Could use ratio)
+    lr_scheduler_type: linear
+    warmup_steps: 4000
 
     # Logging Parameters -- Logging Directory (Tensorboard - is this necessary?) should be Overwritten at Runtime!
     run_name: null
@@ -45,7 +45,7 @@ training_arguments:
     logging_first_step: true
     logging_steps: 50
 
-    # Saving and Evaluation Steps (only at the end)
+    # Saving and Evaluation Steps
     eval_steps: 1000
     save_steps: 1000
 

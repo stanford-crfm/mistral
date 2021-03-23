@@ -5,15 +5,14 @@
 # Constants
 CONFIG="--config conf/gpt2-intensive-config.yaml"
 INFRA="--nnodes 2 --nproc_per_node 8"
-GC="--model.gradient_checkpointing true"
 
 # A Few Choices for Batch Size
 D_BSZ_8="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8"
 D_BSZ_16="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 16"
 
 # DeepSpeed Configurations
-DS_Z1="--training_arguments.deepspeed scripts/deepspeed/z1-conf.json"
-DS_Z2="--training_arguments.deepspeed scripts/deepspeed/z2-conf.json"
+DS_Z1="--training_arguments.deepspeed conf/deepspeed/z1-conf.json"
+DS_Z2="--training_arguments.deepspeed conf/deepspeed/z2-conf.json"
 
 # Set DeepSpeed Launcher Parameters
 MASTER_ADDR=sphinx1.stanford.edu

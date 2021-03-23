@@ -32,13 +32,11 @@ from transformers.trainer_utils import get_last_checkpoint
 
 from conf.train_schema import get_schema
 from src.args import get_training_arguments
-from src.corpora import get_auto_dataset
-from src.corpora.auto import ONLINE_EVAL_DATA_REGISTRY
+from src.core import CustomWandbCallback, OnlineBenchmarkTrainer
+from src.corpora import ONLINE_EVAL_DATA_REGISTRY, get_auto_dataset
 from src.models import get_auto_clm_tokenizer
 from src.overwatch import get_overwatch
 from src.util import create_paths, set_permissions
-from src.util.callbacks import CustomWandbCallback, compute_metrics
-from src.util.trainer import OnlineBenchmarkTrainer
 
 
 def train() -> None:
@@ -48,7 +46,7 @@ def train() -> None:
     quinfig = QuinineArgumentParser(schema=get_schema()).parse_quinfig()
 
     # Set Distributed Arguments
-    # TODO A :: @Laurel, @Karan -- `local_rank` not in Quinfig w/ torch.distributed.launch?
+    # TODO train.A :: @Laurel, @Karan -- `local_rank` not in Quinfig w/ torch.distributed.launch?
     quinfig.world_size = int(os.getenv("WORLD_SIZE", quinfig.nproc_per_node))
     quinfig.local_rank = int(os.getenv("LOCAL_RANK", -1))
 
@@ -135,8 +133,6 @@ def train() -> None:
     )
 
     # Initialize Trainer, with the relevant arguments
-    # TODO B :: Make sure we're using the right opt/schedule... should be configured by `training_args` so check!
-    # TODO C :: Pass in `compute_metrics` for correct evaluation metrics --> Perplexity! Do during train as well?
     overwatch.info("Initializing Model Trainer...")
     if quinfig.local_rank <= 0:
         overwatch.info(f"Training Arguments: {training_args}")
@@ -149,7 +145,6 @@ def train() -> None:
         eval_dataset=lm_dataset["validation"],
         custom_eval_datasets=custom_eval_datasets,
         tokenizer=tokenizer,
-        compute_metrics=compute_metrics,
         callbacks=[
             CustomWandbCallback(
                 quinfig.wandb,

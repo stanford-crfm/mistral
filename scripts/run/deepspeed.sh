@@ -20,13 +20,13 @@ DISTRIBUTED_ARGS="--num_gpus $GPUS_PER --num_nodes ${nnodes} --master_addr $MAST
 CONFIG_ARGS="--config conf/gpt2-sphinx-debug-config.yaml --nproc_per_node $GPUS_PER --nnodes ${nnodes}"
 
 # DeepSpeed Configurations
-DEEPSPEED_Z1="--training_arguments.deepspeed scripts/deepspeed/z1-conf.json"
-DEEPSPEED_Z2="--training_arguments.deepspeed scripts/deepspeed/z2-conf.json"
-DEEPSPEED_Z3="--training_arguments.deepspeed scripts/deepspeed/z3-conf.json"
+DEEPSPEED_Z1="--training_arguments.deepspeed conf/deepspeed/z1-conf.json"
+DEEPSPEED_Z2="--training_arguments.deepspeed conf/deepspeed/z2-conf.json"
+DEEPSPEED_Z3="--training_arguments.deepspeed conf/deepspeed/z3-conf.json"
 
-DEEPSPEED_Z1_OFF="--training_arguments.deepspeed scripts/deepspeed/z1-offload-conf.json"
-DEEPSPEED_Z2_OFF="--training_arguments.deepspeed scripts/deepspeed/z2-offload-conf.json"
-DEEPSPEED_Z3_OFF="--training_arguments.deepspeed scripts/deepspeed/z3-offload-conf.json"
+DEEPSPEED_Z1_OFF="--training_arguments.deepspeed conf/deepspeed/z1-offload-conf.json"
+DEEPSPEED_Z2_OFF="--training_arguments.deepspeed conf/deepspeed/z2-offload-conf.json"
+DEEPSPEED_Z3_OFF="--training_arguments.deepspeed conf/deepspeed/z3-offload-conf.json"
 
 # export NCCL_DEBUG=INFO; \
 # =>> ZeRO-1

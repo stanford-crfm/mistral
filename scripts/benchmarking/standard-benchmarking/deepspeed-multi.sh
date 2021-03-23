@@ -13,9 +13,9 @@ D_BSZ_16="--training_arguments.fp16 true --training_arguments.per_device_train_b
 D_BSZ_32="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 32"
 
 # DeepSpeed Configurations
-DS_Z1="--training_arguments.deepspeed scripts/deepspeed/z1-conf.json"
-DS_Z2="--training_arguments.deepspeed scripts/deepspeed/z2-conf.json"
-DS_Z3="--training_arguments.deepspeed scripts/deepspeed/z3-conf.json"
+DS_Z1="--training_arguments.deepspeed conf/deepspeed/z1-conf.json"
+DS_Z2="--training_arguments.deepspeed conf/deepspeed/z2-conf.json"
+DS_Z3="--training_arguments.deepspeed conf/deepspeed/z3-conf.json"
 
 # Set DeepSpeed Launcher Parameters
 MASTER_ADDR=sphinx1.stanford.edu

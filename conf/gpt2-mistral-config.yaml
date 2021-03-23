@@ -1,6 +1,6 @@
 # gpt-mistral-config.yaml
 #   Full Mistral GPT-2 Small Training Config, currently working with the OpenWebText Dataset, GPT-2 Small Architecture,
-#   and full batch size (512). Runs with TODO.
+#   and full batch size (512). Runs with DeepSpeed ZeRO-2, with a per-device BSZ of 16.
 #
 #   Inheritance and core paths can all be overridden from the command line or by re-writing these files.
 ---
@@ -10,12 +10,12 @@ inherit:
     - models/gpt2-small.yaml
     - trainers/gpt2-small.yaml
 
-# Run ID -- defaults to `null`; override as you like!
-run_id: aurora
+# Run ID -- make sure to override!
+run_id: null
 
 # Weights & Biases
 wandb: mistral-gpt2
-group: null
+group: gpt2-small
 
 # Artifacts & Caching
 artifacts:
