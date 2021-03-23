@@ -1,7 +1,7 @@
 """
 trainer.py
 
-Customer HF Trainer that allows for online eval of multiple datasets.
+Custom Hugging Face Trainer that allows for online eval of multiple datasets.
 """
 import collections
 import logging
@@ -24,7 +24,7 @@ from transformers.trainer_utils import EvalPrediction, speed_metrics
 
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
-overwatch = logging.getLogger("mistral.util.trainer")
+overwatch = logging.getLogger("mistral.core.trainer")
 
 
 class OnlineBenchmarkTrainer(Trainer):
@@ -78,8 +78,20 @@ class OnlineBenchmarkTrainer(Trainer):
 
         # Normal Evaluate -- this calls the on_evaluate callback
         metrics = super(OnlineBenchmarkTrainer, self).evaluate(eval_dataset, ignore_keys, metric_key_prefix)
+
+        # Create New Metrics Dictionary --> TODO trainer.A :: Fix so doesn't explicitly assume OpenWebText
+        metrics = {
+            "eval_openwebtext_loss": metrics["eval_loss"],
+            "eval_openwebtext_ppl": np.exp(metrics["eval_loss"]),
+            "eval_openwebtext_runtime": metrics["eval_runtime"],
+            "eval_openwebtext_samples_per_second": metrics["eval_samples_per_second"],
+            "epoch": metrics["epoch"],
+        }
+        self.log(metrics)
         if not eval_ppl_datasets:
             return metrics
+
+        # Start Memory Tracker
         self._memory_tracker.start()
 
         # Iterate over each Online Evaluation Dataset - Store New Metrics for Control Call
@@ -102,7 +114,7 @@ class OnlineBenchmarkTrainer(Trainer):
 
     def single_dataset_eval(self, dataset_name: str, dataset: Dataset, metric_key_prefix: str) -> Dict[str, float]:
         """ Run Perplexity Evaluation on a Single Dataset. """
-        custom_metric_key_prefix = f"{dataset_name}-{metric_key_prefix}"
+        custom_metric_key_prefix = f"{metric_key_prefix}_{dataset_name}"
         if dataset is not None and not isinstance(dataset, collections.abc.Sized):
             raise ValueError("eval_dataset must implement __len__")
 

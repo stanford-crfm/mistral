@@ -13,9 +13,9 @@ import yaml
 
 
 MAP = {
-    # We always want the latest version of Transformers -- TODO :: Lock this to a specific version!
+    # We always want the latest version of Transformers -- TODO export.A :: Lock to a specific version!
     "transformers": "git+https://github.com/huggingface/transformers",
-    # We require the latest version of the Experiment Impact Tracker -- TODO :: Lock this to a specific version!
+    # We require the latest version of the Experiment Impact Tracker -- TODO export.B :: Lock to a specific version!
     "experiment-impact-tracker": "git+https://github.com/Breakend/experiment-impact-tracker",
 }
 

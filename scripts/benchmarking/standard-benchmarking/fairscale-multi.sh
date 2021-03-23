@@ -1,5 +1,5 @@
 # fairscale-multi.sh
-#   Benchmarking Script for Multi--Node FairScale Trainer, verifying multi-stage sharded training (ZeRO 1, 2, and 3)
+#   Benchmarking Script for Multi-Node FairScale Trainer, verifying multi-stage sharded training (ZeRO 1, 2, and 3)
 #   with and without gradient checkpointing. Batch Sizes here are taken from the Single-Node FS Runs (since nothing
 #   changes across node boundaries w.r.t. ZeRO.
 #

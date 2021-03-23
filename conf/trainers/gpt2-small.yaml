@@ -1,5 +1,5 @@
-# toy.yaml
-#   Toy trainer config for Single-GPU training, with a fixed batch size of 2 (with gradient accumulation).
+# gpt2-small.yaml
+#   Trainer config for Full GPT-2 Small, with the full fixed batch size of 512 (with gradient accumulation).
 #   This contract exactly follows that of HF.TrainingArguments so we can pass as a simple **kwargs -- make sure this
 #   continues to stay valid!
 #       Reference: https://huggingface.co/transformers/main_classes/trainer.html#trainingarguments
@@ -12,9 +12,9 @@ training_arguments:
     do_train: true
     evaluation_strategy: steps
 
-    # Set these based on GPU RAM available...
-    per_device_train_batch_size: 2
-    per_device_eval_batch_size: 2
+    # Set these based on GPU RAM/your available hardware
+    per_device_train_batch_size: 16
+    per_device_eval_batch_size: 16
 
     # We set this dynamically based on DDP Computation [steps = effective_batch / (per_gpu_batch * gpus * nodes)]
     gradient_accumulation_steps: null
@@ -23,31 +23,31 @@ training_arguments:
     prediction_loss_only: true
 
     # Learning Rate & Optimization Parameters, assumes AdamW
-    learning_rate: 5.0e-5
+    learning_rate: 0.0006
     weight_decay: 0.01
     adam_beta1: 0.9
-    adam_beta2: 0.999
+    adam_beta2: 0.95
     adam_epsilon: 1.0e-8
 
     # Gradient Norm
     max_grad_norm: 1.0
 
     # Maximum Training Steps (Overrides epochs!)
-    max_steps: 50
+    max_steps: 400000
 
-    # LR Scheduling Parameters
+    # LR Scheduling Parameters -- Warmup Steps should be 1% of total steps (Could use ratio)
     lr_scheduler_type: linear
-    warmup_steps: 10
+    warmup_steps: 4000
 
     # Logging Parameters -- Logging Directory (Tensorboard - is this necessary?) should be Overwritten at Runtime!
     run_name: null
     logging_dir: null
     logging_first_step: true
-    logging_steps: 10
+    logging_steps: 50
 
     # Saving and Evaluation Steps
-    eval_steps: 10
-    save_steps: 10
+    eval_steps: 1000
+    save_steps: 1000
 
     # Seeds -- Should be Overwritten at Runtime!
     seed: null

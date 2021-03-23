@@ -1,7 +1,13 @@
+"""
+callbacks.py
+
+Custom Hugging Face Weights and Biases Callback that allows for writing custom metrics, better resuming functionality.
+"""
+
 import logging
-import math
 import os
 import time
+from typing import Dict
 
 import jsonlines
 import torch
@@ -10,23 +16,24 @@ from transformers.integrations import WandbCallback
 
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
-overwatch = logging.getLogger("mistral.util.callbacks")
+overwatch = logging.getLogger("mistral.core.callbacks")
 
 
-def compute_metrics(preds):
-    """
-    Compute custom metrics using the predictions and labels from the LM.
-    """
-    _ = preds.predictions, preds.label_ids
-    return {"my_metric": 0.0}
+# Helper Function
+def rewrite_logs(d: Dict[str, float]) -> Dict[str, float]:
+    new_d = {}
+    eval_prefix = "eval_"
+    eval_prefix_len = len(eval_prefix)
+    for k, v in d.items():
+        if k.startswith(eval_prefix):
+            new_d["eval/" + k[eval_prefix_len:]] = v
+        else:
+            new_d["train/" + k] = v
+    return new_d
 
 
 class CustomWandbCallback(WandbCallback):
-    """
-    Custom Weights and Biases Callback used by Mistral for logging information from the Huggingface Trainer.
-
-    # TODO: Override the methods below to log useful things
-    """
+    """ Custom Weights and Biases Callback used by Mistral for logging information from the Huggingface Trainer. """
 
     def __init__(
         self,
@@ -76,7 +83,7 @@ class CustomWandbCallback(WandbCallback):
             if state.global_step > self._last_log_step:
                 self._append_jsonl({"train_info": memory_usage, "step": state.global_step})
 
-    def setup(self, args, state, model, reinit, **kwargs):
+    def setup(self, args, state, model, **kwargs):
         """
         Note: have to override this method in order to inject additional arguments into the wandb.init call. Currently,
         HF provides no way to pass kwargs to that.
@@ -111,25 +118,26 @@ class CustomWandbCallback(WandbCallback):
             if hasattr(model, "config") and model.config is not None:
                 model_config = model.config.to_dict()
                 combined_dict = {**model_config, **combined_dict}
-            trial_name = state.trial_name
-            init_args = {}
+
+            init_args, trial_name = {}, state.trial_name
             if trial_name is not None:
                 run_name = trial_name
                 init_args["group"] = args.run_name
             else:
                 run_name = args.run_name
+                init_args["group"] = self.group
 
-            # Add additional kwargs into the init_args dict
+            # Add Additional kwargs into init_args Dictionary
             init_args = {**init_args, **kwargs}
+            if self._wandb.run is None:
+                self._wandb.init(
+                    project=os.getenv("WANDB_PROJECT", "huggingface"),
+                    name=run_name,
+                    **init_args,
+                )
 
-            self._wandb.init(
-                project=os.getenv("WANDB_PROJECT", "huggingface"),
-                group=self.group,
-                config=combined_dict,
-                name=run_name,
-                reinit=reinit,
-                **init_args,
-            )
+            # Add Configuration Parameters
+            self._wandb.config.update(combined_dict, allow_val_change=True)
 
             # Keep track of Model Topology and Gradients, Unsupported on TPU
             if not is_torch_tpu_available() and os.getenv("WANDB_WATCH") != "false":
@@ -137,6 +145,7 @@ class CustomWandbCallback(WandbCallback):
                     model, log=os.getenv("WANDB_WATCH", "gradients"), log_freq=max(100, args.logging_steps)
                 )
 
+            # Custom JSON Resume Behavior
             if self.resume:
                 resume_reader = jsonlines.open(self.json_file, mode="r")
                 for last_log in resume_reader:
@@ -145,52 +154,8 @@ class CustomWandbCallback(WandbCallback):
                 resume_reader.close()
             else:
                 self._last_log_step = -1
+
             self.jsonl_writer = jsonlines.open(self.json_file, mode="w" if not self.resume else "a")
-
-    def on_init_end(
-        self,
-        args: TrainingArguments,
-        state: TrainerState,
-        control: TrainerControl,
-        model: PreTrainedModel = None,
-        tokenizer=None,
-        optimizer=None,
-        lr_scheduler=None,
-        train_dataloader=None,
-        eval_dataloader=None,
-        **kwargs,
-    ):
-        super().on_init_end(args, state, control, **kwargs)
-
-    def on_epoch_begin(
-        self,
-        args: TrainingArguments,
-        state: TrainerState,
-        control: TrainerControl,
-        model: PreTrainedModel = None,
-        tokenizer=None,
-        optimizer=None,
-        lr_scheduler=None,
-        train_dataloader=None,
-        eval_dataloader=None,
-        **kwargs,
-    ):
-        super().on_epoch_begin(args, state, control, **kwargs)
-
-    def on_epoch_end(
-        self,
-        args: TrainingArguments,
-        state: TrainerState,
-        control: TrainerControl,
-        model: PreTrainedModel = None,
-        tokenizer=None,
-        optimizer=None,
-        lr_scheduler=None,
-        train_dataloader=None,
-        eval_dataloader=None,
-        **kwargs,
-    ):
-        super().on_epoch_end(args, state, control, **kwargs)
 
     def on_step_begin(
         self,
@@ -213,8 +178,6 @@ class CustomWandbCallback(WandbCallback):
 
             # Compute and Log "Between Time Taken"
             between_time_taken = time.time() - self.between_time
-
-            # Log
             self._wandb.log({"train_info/time_between_train_steps": between_time_taken}, step=state.global_step)
             if state.global_step > self._last_log_step:
                 self._append_jsonl(
@@ -265,52 +228,6 @@ class CustomWandbCallback(WandbCallback):
             # Start timer for measuring between-step time
             self.between_time = time.time()
 
-    def on_evaluate(
-        self,
-        args: TrainingArguments,
-        state: TrainerState,
-        control: TrainerControl,
-        model: PreTrainedModel = None,
-        tokenizer=None,
-        optimizer=None,
-        lr_scheduler=None,
-        train_dataloader=None,
-        eval_dataloader=None,
-        metrics=None,
-        **kwargs,
-    ):
-        super().on_evaluate(args, state, control, metrics=metrics, **kwargs)
-
-    def on_save(
-        self,
-        args: TrainingArguments,
-        state: TrainerState,
-        control: TrainerControl,
-        model: PreTrainedModel = None,
-        tokenizer=None,
-        optimizer=None,
-        lr_scheduler=None,
-        train_dataloader=None,
-        eval_dataloader=None,
-        **kwargs,
-    ):
-        super().on_save(args, state, control, **kwargs)
-
-    def on_prediction_step(
-        self,
-        args: TrainingArguments,
-        state: TrainerState,
-        control: TrainerControl,
-        model: PreTrainedModel = None,
-        tokenizer=None,
-        optimizer=None,
-        lr_scheduler=None,
-        train_dataloader=None,
-        eval_dataloader=None,
-        **kwargs,
-    ):
-        super().on_prediction_step(args, state, control, **kwargs)
-
     def on_train_begin(
         self,
         args,
@@ -357,21 +274,6 @@ class CustomWandbCallback(WandbCallback):
             # Initialize the timers
             self.within_time, self.between_time = time.time(), time.time()
 
-    def on_train_end(
-        self,
-        args,
-        state,
-        control,
-        model: PreTrainedModel = None,
-        tokenizer=None,
-        optimizer=None,
-        lr_scheduler=None,
-        train_dataloader=None,
-        eval_dataloader=None,
-        **kwargs,
-    ):
-        super().on_train_end(args, state, control, model, tokenizer, **kwargs)
-
     def on_log(
         self,
         args,
@@ -386,17 +288,23 @@ class CustomWandbCallback(WandbCallback):
         logs=None,
         **kwargs,
     ):
-        super().on_log(args, state, control, model, logs, **kwargs)
+        # Null Check
+        if self._wandb is None:
+            return
+
+        # Initialization Check
+        if not self._initialized:
+            self.setup(args, state, model, reinit=False)
 
         # Process Zero Barrier
         if state.is_world_process_zero:
-            # Log Train Perplexity
-            if any([k == "loss" for k in logs]):
-                logs["perplexity"] = math.exp(logs["loss"])
+            # Rewrite Logs
+            logs = rewrite_logs(logs)
+            self._wandb.log(logs, step=state.global_step)
 
-            # Log memory usage
+            # Log Memory Usage
             self._log_memory(state)
 
-            # Append to the log
+            # Append to the JSON Log
             if state.global_step > self._last_log_step:
                 self._append_jsonl({"logs": logs, "step": state.global_step})

@@ -51,7 +51,7 @@ def get_training_arguments(
             "zero_dp_3+auto_wrap+offload",
         ]
 
-        # If "+" in `sharded_ddp` --> Split, and then join... this is kinda hacky (TODO :: Fix!)
+        # If "+" in `sharded_ddp` --> Split, and then join... this is kinda hacky (TODO training_args.A :: Fix!)
         if "+" in training_args.sharded_ddp:
             training_args.sharded_ddp = " ".join(training_args.sharded_ddp.split("+"))
 
