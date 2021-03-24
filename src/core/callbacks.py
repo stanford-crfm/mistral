@@ -255,8 +255,8 @@ class CustomWandbCallback(WandbCallback):
         # Process Zero Barrier
         if state.is_world_process_zero:
             # Watch the model
-            os.environ["WANDB_WATCH"] = "all"
-            self._wandb.watch(model, log="all", log_freq=args.logging_steps)
+            os.environ["WANDB_WATCH"] = "gradients"
+            self._wandb.watch(model, log="gradients", log_freq=args.eval_steps)
 
             # Log model information
             self._wandb.log(
