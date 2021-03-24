@@ -146,7 +146,7 @@ class CustomWandbCallback(WandbCallback):
                 )
 
             # Custom JSON Resume Behavior
-            if self.resume:
+            if self.resume and os.path.exists(self.json_file):
                 resume_reader = jsonlines.open(self.json_file, mode="r")
                 for last_log in resume_reader:
                     pass
@@ -255,7 +255,8 @@ class CustomWandbCallback(WandbCallback):
         # Process Zero Barrier
         if state.is_world_process_zero:
             # Watch the model
-            self._wandb.watch(model)
+            os.environ["WANDB_WATCH"] = "all"
+            self._wandb.watch(model, log="all", log_freq=args.logging_steps)
 
             # Log model information
             self._wandb.log(

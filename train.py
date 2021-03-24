@@ -71,8 +71,11 @@ def train() -> None:
 
     last_checkpoint, resume_run_id = None, None
     if quinfig.resume:
-        last_checkpoint = get_last_checkpoint(paths["runs"])
-        resume_run_id = os.readlink(paths["runs"] / "wandb" / "latest-run").split("-")[-1]
+        if quinfig.resume_checkpoint is not None:
+            last_checkpoint = quinfig.resume_checkpoint
+        else:
+            last_checkpoint = get_last_checkpoint(paths["runs"])
+            resume_run_id = os.readlink(paths["runs"] / "wandb" / "latest-run").split("-")[-1]
         assert last_checkpoint is not None, "Cannot detect checkpoint in run_dir -- Resuming Failed!"
         overwatch.info(f"Checkpoint detected, Resuming Training at `{last_checkpoint}`.")
 

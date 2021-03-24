@@ -49,6 +49,9 @@ training_arguments:
     eval_steps: 1000
     save_steps: 1000
 
+    # Resume Behavior --> ignore "full determinism" on resume (saves time for debugging)
+    ignore_data_skip: true
+
     # Seeds -- Should be Overwritten at Runtime!
     seed: null
 
