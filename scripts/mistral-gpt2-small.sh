@@ -11,9 +11,6 @@ D_BSZ_16="--training_arguments.fp16 true --training_arguments.per_device_train_b
 # DeepSpeed Training Configuration
 DS_Z2="--training_arguments.deepspeed conf/deepspeed/z2-conf.json"
 
-# Resume Behavior (for Debugging)
-# RESUME="--resume true --resume_checkpoint /scr-ssd/mercury/mistral/runs/crash-02-fp16-NaN-aurora-gpt2-small-x21/checkpoint-81000"
-
 # Set DeepSpeed Launcher Parameters
 MASTER_ADDR=sphinx1.stanford.edu
 MASTER_PORT=7000
