@@ -24,7 +24,7 @@ training_arguments:
 
     # Learning Rate & Optimization Parameters, assumes AdamW
     learning_rate: 0.0006
-    weight_decay: 0.01
+    weight_decay: 0.1
     adam_beta1: 0.9
     adam_beta2: 0.95
     adam_epsilon: 1.0e-8
@@ -48,6 +48,9 @@ training_arguments:
     # Saving and Evaluation Steps
     eval_steps: 1000
     save_steps: 1000
+
+    # Resume Behavior --> ignore "full determinism" on resume (saves time for debugging)
+    ignore_data_skip: true
 
     # Seeds -- Should be Overwritten at Runtime!
     seed: null

@@ -30,11 +30,9 @@ def get_overwatch(path: Path, level: int, local_rank: int = 0) -> logging.Logger
     logging.basicConfig(level=level, format=LOG_FORMAT, datefmt=DATE_FORMAT)
 
     # Suppress Hugging Face Loggers --> propagate up to Root!
-    transformers.logging.disable_default_handler()
+    transformers.logging._get_library_root_logger().handlers = []
+    transformers.logging._get_library_root_logger().setLevel(level=level)
     datasets.logging._get_library_root_logger().handlers = []
-
-    # Set Transformers Default Level
-    transformers.logging.set_verbosity(verbosity=level)
 
     # Create Default Logger & add File Handler
     logger = logging.getLogger()
