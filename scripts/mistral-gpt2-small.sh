@@ -11,7 +11,7 @@ D_BSZ_16="--training_arguments.fp16 true --training_arguments.per_device_train_b
 # DeepSpeed Training Configuration
 DS_Z2="--training_arguments.deepspeed conf/deepspeed/z2-conf.json"
 
-# Random Seeds -- Aurora :: 21, Blizzard :: 49, Cirrus :: 81
+# Random Seeds -- Aurora :: 21, Blizzard :: 49, Cyclone :: 81
 AURORA="--seed 21"
 BLIZZARD="--seed 49"
 CYCLONE="--seed 81"
