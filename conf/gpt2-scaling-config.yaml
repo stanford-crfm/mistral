@@ -7,7 +7,7 @@
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
-    - datasets/openwebtext.yaml
+    - datasets/wikitext103.yaml
     - models/gpt2-small.yaml
     - trainers/gpt2-small.yaml
 
@@ -15,8 +15,8 @@ inherit:
 run_id: null
 
 # Weights & Biases
-wandb: mistral-gpt2
-group: gpt2-small
+wandb: mistral-scaling
+group: null
 
 # Artifacts & Caching
 artifacts:
