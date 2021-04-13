@@ -1,4 +1,4 @@
-# gpt-sphinx-debug-config.yaml
+# gpt2-sphinx-debug-config.yaml
 #   Debugging GPT-2 Config, currently working with the OpenWebText Dataset, GPT-2 Small Architecture, and Single-Node
 #   Trainer. Inheritance and core paths can all be overridden from the command line or by re-writing these files.
 ---

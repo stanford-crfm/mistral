@@ -1,6 +1,6 @@
-# gpt2-mistral-gcp-config.yaml
+# gpt2-mistral-config.yaml
 #   Full Mistral GPT-2 Small Training Config, currently working with the OpenWebText Dataset, GPT-2 Small Architecture,
-#   and full batch size (512). Runs with DeepSpeed ZeRO-2, with a per-device BSZ of 16. Written for Google Cloud!
+#   and full batch size (512). Runs with DeepSpeed ZeRO-2, with a per-device BSZ of 16.
 #
 #   Inheritance and core paths can all be overridden from the command line or by re-writing these files.
 ---
@@ -19,8 +19,8 @@ group: gpt2-small
 
 # Artifacts & Caching
 artifacts:
-    cache_dir: /home/data/mercury/mistral/artifacts
-    run_dir: /home/data/mercury/mistral/runs
+    cache_dir: /scr-ssd/mercury/mistral/artifacts
+    run_dir: /scr-ssd/mercury/mistral/runs
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
 effective_bsz: 512

@@ -1,4 +1,4 @@
-# gpt-scaling-config.yaml
+# gpt2-scaling-config.yaml
 #   GPT-2 Scaling Config for benchmarking memory footprint and training time for various GPT-2 Architectures, working
 #   with the WikiText-103 Dataset (assuming data loading doesn't affect GPU Memory), sequence length of 1024,
 #   and full batch size (512).
