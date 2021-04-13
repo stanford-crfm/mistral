@@ -1,4 +1,4 @@
-# gpt-toy-config.yaml
+# gpt2-toy-config.yaml
 #   Toy GPT-2 Config, currently working with the WikiText-103 Dataset, GPT-2 Small Architecture, and Single-Node
 #   Trainer. Inheritance and core paths can all be overridden from the command line or by re-writing these files.
 ---

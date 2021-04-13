@@ -1,4 +1,4 @@
-# gpt-benchmark-config.yaml
+# gpt2-benchmark-config.yaml
 #   Benchmarking GPT-2 Config, currently working with the OpenWebText Dataset, GPT-2 Small Architecture, and
 #   full batch size (512). Support for Single-Node, Multi-Node, Mixed Precision, DDP, FairScale, and DeepSpeed.
 #   Inheritance and core paths can all be overridden from the command line or by re-writing these files.
