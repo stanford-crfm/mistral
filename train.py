@@ -41,7 +41,7 @@ from src.util import create_paths, set_permissions
 
 def train() -> None:
     # Parse Quinfig (via Quinine Argparse Binding)
-    print("[*] Mercury :: Launching the Bastard =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
+    print("[*] Mercury :: Launching... =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
     print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)')
     quinfig = QuinineArgumentParser(schema=get_schema()).parse_quinfig()
 
