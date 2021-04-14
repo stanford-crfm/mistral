@@ -29,11 +29,11 @@ pkill -f "train.py"
 sleep 3
 
 # Downpour: Single-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Seed =>> Seed 343
-deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_16 DOWNPOUR $DS_Z2 --run_id downpour-gpt2-small-343
+deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_16 $DOWNPOUR $DS_Z2 --run_id downpour-gpt2-small-343
 pkill -f "train.py"
 sleep 3
 
 # Eddy: Single-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Seed =>> Seed 777
-deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_16 EDDY $DS_Z2 --run_id eddy-gpt2-small-777
+deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_16 $EDDY $DS_Z2 --run_id eddy-gpt2-small-777
 pkill -f "train.py"
 sleep 3
