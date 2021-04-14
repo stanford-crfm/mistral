@@ -4,7 +4,7 @@
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
-    - datasets/openwebtext.yaml
+    - datasets/wikitext.yaml
     - models/gpt2-small.yaml
     - trainers/toy.yaml
 
@@ -13,7 +13,7 @@ run_id: null
 
 # Weights & Biases
 wandb: mistral-debugging
-group: null
+group: resuming
 
 # Artifacts & Caching
 artifacts:
@@ -21,7 +21,7 @@ artifacts:
     run_dir: /scr-ssd/mercury/mistral/runs
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
-effective_bsz: 32
+effective_bsz: 512
 
 # Resume from Checkpoint
 resume: false
