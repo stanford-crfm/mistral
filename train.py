@@ -75,9 +75,9 @@ def train() -> None:
             last_checkpoint = quinfig.resume_checkpoint
         else:
             last_checkpoint = get_last_checkpoint(paths["runs"])
-            resume_run_id = os.readlink(paths["runs"] / "wandb" / "latest-run").split("-")[-1]
-        assert last_checkpoint is not None, "Cannot detect checkpoint in run_dir -- Resuming Failed!"
-        overwatch.info(f"Checkpoint detected, Resuming Training at `{last_checkpoint}`.")
+            if last_checkpoint is not None:
+                resume_run_id = os.readlink(paths["runs"] / "wandb" / "latest-run").split("-")[-1]
+                overwatch.info(f"Checkpoint detected, Resuming Training at `{last_checkpoint}`.")
 
     # Instantiate Pretrained Tokenizer and Initialize AutoModel (GPT-2) from Arguments
     overwatch.info(f"Building Tokenize and Initializing `{quinfig.model.id}` via AutoModel/AutoConfig...")
