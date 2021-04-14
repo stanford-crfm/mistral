@@ -22,6 +22,9 @@ MASTER_ADDR=sphinx1.stanford.edu
 MASTER_PORT=7000
 DISTRIBUTED_ARGS="--num_gpus 8 --num_nodes 2 --master_addr $MASTER_ADDR"
 
+# Resume
+RESUME="--resume true"
+
 # ---
 
 # Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Sleep =>> Seed 21
@@ -34,7 +37,7 @@ DISTRIBUTED_ARGS="--num_gpus 8 --num_nodes 2 --master_addr $MASTER_ADDR"
 # pkill -f "train.py"
 # sleep 3
 
-# Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Seed =>> Seed 81
-deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_16 $CYCLONE $DS_Z2 --run_id cyclone-gpt2-small-x81
+# Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Seed =>> Seed 81 (+ Resume!)
+deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_16 $CYCLONE $RESUME $DS_Z2 --run_id cyclone-gpt2-small-x81
 pkill -f "train.py"
 sleep 3
