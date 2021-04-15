@@ -28,11 +28,11 @@ echo "RESUME = $RESUME"
 # Constants
 CONFIG="--config conf/gpt2-mistral-config.yaml";
 GCP_CONFIG="--config conf/gpt2-mistral-gcp-config.yaml";
-if [ "$RESUME" == "false" ];
+if [ "$RESUME" == "true" ];
 then
-  RES="--resume false";
-else
   RES="--resume true";
+else
+  RES="";
 fi
 
 INFRA="--nnodes 1 --nproc_per_node 16"
