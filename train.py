@@ -22,13 +22,11 @@ Reference:
 """
 import os
 import random
-import shutil
 from datetime import datetime
 
 import numpy as np
 import torch
 from quinine import QuinineArgumentParser
-from transformers import AutoModelForCausalLM
 from transformers.data.data_collator import default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
 
@@ -79,14 +77,6 @@ def train() -> None:
             # If machine fails while model is saving, checkpoint will be corrupted
             # We need to verify the last checkpoint is loadable and if not, get the second to last checkpoint
             last_checkpoint = get_last_checkpoint(paths["runs"])
-            if last_checkpoint is not None:
-                # Test that it is loadable
-                try:
-                    _ = AutoModelForCausalLM.from_pretrained(last_checkpoint)
-                except OSError:
-                    # Remove and get next checkpoint
-                    shutil.rmtree(last_checkpoint)
-                    last_checkpoint = get_last_checkpoint(paths["runs"])
             if last_checkpoint is not None:
                 resume_run_id = os.readlink(paths["runs"] / "wandb" / "latest-run").split("-")[-1]
                 overwatch.info(f"Checkpoint detected, Resuming Training at `{last_checkpoint}`.")
