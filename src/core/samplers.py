@@ -35,7 +35,8 @@ class AdvanceRandomSampler(RandomSampler):
         super(AdvanceRandomSampler, self).__init__(data_source, replacement, num_samples, generator)
         self._advance_samples = 0
 
-    def advance(self, num_samples):
+    def advance(self, num_samples: int):
+        assert 0 < num_samples < len(self), "invalid number of samples to skip"
         self._advance_samples = num_samples
 
     def __iter__(self):
@@ -89,7 +90,8 @@ class AdvanceDistributedSampler(DistributedSampler):
         super(AdvanceDistributedSampler, self).__init__(dataset, num_replicas, rank, shuffle, seed, drop_last)
         self._advance_samples = 0
 
-    def advance(self, num_samples):
+    def advance(self, num_samples: int):
+        assert 0 < num_samples < len(self), "invalid number of samples to skip"
         self._advance_samples = num_samples
 
     def __iter__(self) -> Iterator[T_co]:
