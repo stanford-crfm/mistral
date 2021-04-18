@@ -41,7 +41,7 @@ from src.util import create_paths, set_permissions
 
 def train() -> None:
     # Parse Quinfig (via Quinine Argparse Binding)
-    print("[*] Mercury :: Launching the Bastard =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
+    print("[*] Mercury :: Launching =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
     print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)')
     quinfig = QuinineArgumentParser(schema=get_schema()).parse_quinfig()
 
@@ -74,10 +74,12 @@ def train() -> None:
         if quinfig.resume_checkpoint is not None:
             last_checkpoint = quinfig.resume_checkpoint
         else:
+            # If machine fails while model is saving, checkpoint will be corrupted
+            # We need to verify the last checkpoint is loadable and if not, get the second to last checkpoint
             last_checkpoint = get_last_checkpoint(paths["runs"])
-            resume_run_id = os.readlink(paths["runs"] / "wandb" / "latest-run").split("-")[-1]
-        assert last_checkpoint is not None, "Cannot detect checkpoint in run_dir -- Resuming Failed!"
-        overwatch.info(f"Checkpoint detected, Resuming Training at `{last_checkpoint}`.")
+            if last_checkpoint is not None:
+                resume_run_id = os.readlink(paths["runs"] / "wandb" / "latest-run").split("-")[-1]
+                overwatch.info(f"Checkpoint detected, Resuming Training at `{last_checkpoint}`.")
 
     # Instantiate Pretrained Tokenizer and Initialize AutoModel (GPT-2) from Arguments
     overwatch.info(f"Building Tokenize and Initializing `{quinfig.model.id}` via AutoModel/AutoConfig...")
