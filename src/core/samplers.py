@@ -1,7 +1,11 @@
 """
 samplers.py
 
-Custom Data Sampler classes that support fastforwarding the first N samples
+Custom Data Sampler classes that support fastforwarding the first N samples.
+
+Modified from
+https://github.com/pytorch/pytorch/blob/master/torch/utils/data/sampler.py and
+https://github.com/pytorch/pytorch/blob/master/torch/utils/data/distributed.py
 """
 import torch
 from torch.utils.data.distributed import DistributedSampler
@@ -14,6 +18,17 @@ T_co = TypeVar("T_co", covariant=True)
 
 
 class AdvanceRandomSampler(RandomSampler):
+    """
+    Implements `advance` for RandomSampler.
+
+    Arguments:
+        data_source (Dataset): dataset to sample from
+        replacement (bool): samples are drawn on-demand with replacement if ``True``, default=``False``
+        num_samples (int): number of samples to draw, default=`len(dataset)`. This argument
+            is supposed to be specified only when `replacement` is ``True``.
+        generator (Generator): Generator used in sampling.
+    """
+
     def __init__(
         self, data_source: Sized, replacement: bool = False, num_samples: Optional[int] = None, generator=None
     ):
@@ -39,6 +54,29 @@ class AdvanceRandomSampler(RandomSampler):
 
 
 class AdvanceDistributedSampler(DistributedSampler):
+    """
+    Implements `advance for DistributedSampler.
+
+
+    Arguments:
+        dataset: Dataset used for sampling.
+        num_replicas (int, optional): Number of processes participating in
+            distributed training. By default, :attr:`rank` is retrieved from the
+            current distributed group.
+        rank (int, optional): Rank of the current process within :attr:`num_replicas`.
+            By default, :attr:`rank` is retrieved from the current distributed
+            group.
+        shuffle (bool, optional): If ``True`` (default), sampler will shuffle the
+            indices.
+        seed (int, optional): random seed used to shuffle the sampler if
+            :attr:`shuffle=True`. This number should be identical across all
+            processes in the distributed group. Default: ``0``.
+        drop_last (bool, optional): if ``True``, then the sampler will drop the
+            tail of the data to make it evenly divisible across the number of
+            replicas. If ``False``, the sampler will add extra indices to make
+            the data evenly divisible across the replicas. Default: ``False``.
+    """
+
     def __init__(
         self,
         dataset: Dataset,
