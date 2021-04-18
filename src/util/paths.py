@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 from typing import Dict
 
-from .registry import REGISTRY
+from .registry import PATH_REGISTRY
 
 
 def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[str, Path]:
@@ -28,10 +28,10 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[
         # Top-Level Checkpoint Directory for Given Run
         "runs": Path(run_dir) / run_id,
         # Cache Directories for various components
-        "configs": Path(cache_dir) / f"{REGISTRY[model]}-configs",
-        "tokenizer": Path(cache_dir) / f"{REGISTRY[model]}-tokenizer",
+        "configs": Path(cache_dir) / f"{PATH_REGISTRY[model]}-configs",
+        "tokenizer": Path(cache_dir) / f"{PATH_REGISTRY[model]}-tokenizer",
         "dataset": Path(cache_dir) / "datasets",
-        "preprocessed": Path(cache_dir) / f"{REGISTRY[model]}-processed",
+        "preprocessed": Path(cache_dir) / f"{PATH_REGISTRY[model]}-processed",
     }
 
     # Programatically Create Paths for each Directory
