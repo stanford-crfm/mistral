@@ -1,7 +1,11 @@
 """
 trainer.py
 
-Custom Hugging Face Trainer that allows for online eval of multiple datasets.
+Custom Hugging Face Trainer that
+1. allows for online eval of multiple datasets.
+2. allows for instantaneous data fast forwarding when resuming from a checkpoint
+
+modified from https://github.com/huggingface/transformers/blob/master/src/transformers/trainer.py
 """
 import collections
 import logging
