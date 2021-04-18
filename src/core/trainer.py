@@ -19,8 +19,7 @@ import numpy as np
 import torch
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.dataset import Dataset
-from torch.utils.data.distributed import DistributedSampler
-from torch.utils.data.sampler import RandomSampler, SequentialSampler
+from .samplers import AdvanceRandomSampler, AdvanceDistributedSampler
 
 from transformers import (
     AutoModelForCausalLM,
@@ -220,7 +219,7 @@ class OnlineBenchmarkTrainer(Trainer):
 
         else:
             if self.args.world_size <= 1:
-                return RandomSampler(self.train_dataset)
+                return AdvanceRandomSampler(self.train_dataset)
             elif (
                 self.args.parallel_mode in [ParallelMode.TPU, ParallelMode.SAGEMAKER_MODEL_PARALLEL]
                 and not self.args.dataloader_drop_last
@@ -233,7 +232,7 @@ class OnlineBenchmarkTrainer(Trainer):
                     rank=self.args.process_index,
                 )
             else:
-                return DistributedSampler(
+                return AdvanceDistributedSampler(
                     self.train_dataset, num_replicas=self.args.world_size, rank=self.args.process_index
                 )
 
@@ -452,8 +451,21 @@ class OnlineBenchmarkTrainer(Trainer):
                     break
 
         for epoch in range(epochs_trained, num_train_epochs):
-            if isinstance(train_dataloader, DataLoader) and isinstance(train_dataloader.sampler, DistributedSampler):
+            if isinstance(train_dataloader, DataLoader) and isinstance(
+                train_dataloader.sampler, AdvanceDistributedSampler
+            ):
                 train_dataloader.sampler.set_epoch(epoch)
+
+            # Use custom sampler class to skip the first `steps_trained_in_current_epoch` steps
+            if not self.args.ignore_data_skip:
+                if isinstance(train_dataloader, DataLoader) and (
+                    isinstance(train_dataloader.sampler, AdvanceDistributedSampler)
+                    or isinstance(train_dataloader.sampler, AdvanceRandomSampler)
+                ):
+                    train_dataloader.sampler.advance(steps_trained_in_current_epoch)
+                else:
+                    # Fastforwarding is only implemented for these two classes so far
+                    raise NotImplemented
 
             if is_torch_tpu_available():
                 parallel_loader = pl.ParallelLoader(train_dataloader, [self.args.device]).per_device_loader(
@@ -475,11 +487,6 @@ class OnlineBenchmarkTrainer(Trainer):
             self.control = self.callback_handler.on_epoch_begin(self.args, self.state, self.control)
 
             for step, inputs in enumerate(epoch_iterator):
-
-                # Skip past any already trained steps if resuming training
-                if steps_trained_in_current_epoch > 0:
-                    steps_trained_in_current_epoch -= 1
-                    continue
 
                 if step % self.args.gradient_accumulation_steps == 0:
                     self.control = self.callback_handler.on_step_begin(self.args, self.state, self.control)
