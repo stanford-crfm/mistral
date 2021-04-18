@@ -1,5 +1,5 @@
 # gpt2-small.yaml
-#   Trainer config for Full GPT-2 Small, with the full fixed batch size of 512 (with gradient accumulation).
+#   Trainer config for Full GPT-2 Medium, with the full fixed batch size of 512 (with gradient accumulation).
 #   This contract exactly follows that of HF.TrainingArguments so we can pass as a simple **kwargs -- make sure this
 #   continues to stay valid!
 #       Reference: https://huggingface.co/transformers/main_classes/trainer.html#trainingarguments
@@ -23,7 +23,7 @@ training_arguments:
     prediction_loss_only: true
 
     # Learning Rate & Optimization Parameters, assumes AdamW
-    learning_rate: 0.0006
+    learning_rate: 0.0003
     weight_decay: 0.1
     adam_beta1: 0.9
     adam_beta2: 0.95

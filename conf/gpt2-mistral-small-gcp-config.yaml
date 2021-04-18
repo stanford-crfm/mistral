@@ -1,13 +1,12 @@
-# gpt2-scaling-config.yaml
-#   GPT-2 Scaling Config for benchmarking memory footprint and training time for various GPT-2 Architectures, working
-#   with the WikiText-103 Dataset (assuming data loading doesn't affect GPU Memory), sequence length of 1024,
-#   and full batch size (512).
+# gpt2-mistral-small-gcp-config.yaml
+#   Full Mistral GPT-2 Small Training Config, currently working with the OpenWebText Dataset, GPT-2 Small Architecture,
+#   and full batch size (512). Runs with DeepSpeed ZeRO-2, with a per-device BSZ of 16. Written for Google Cloud!
 #
 #   Inheritance and core paths can all be overridden from the command line or by re-writing these files.
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
-    - datasets/wikitext103.yaml
+    - datasets/openwebtext.yaml
     - models/gpt2-small.yaml
     - trainers/gpt2-small.yaml
 
@@ -15,13 +14,13 @@ inherit:
 run_id: null
 
 # Weights & Biases
-wandb: mistral-scaling
-group: null
+wandb: mistral-gpt2
+group: gpt2-small
 
 # Artifacts & Caching
 artifacts:
-    cache_dir: /scr-ssd/mercury/mistral/artifacts
-    run_dir: /scr-ssd/mercury/mistral/runs
+    cache_dir: /home/data/mercury/mistral/artifacts
+    run_dir: /home/data/mercury/mistral/runs
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
 effective_bsz: 512

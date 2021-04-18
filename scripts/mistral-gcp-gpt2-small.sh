@@ -26,8 +26,7 @@ echo "MODEL = $MODEL"
 echo "RESUME = $RESUME"
 
 # Constants
-CONFIG="--config conf/gpt2-mistral-config.yaml";
-GCP_CONFIG="--config conf/gpt2-mistral-gcp-config.yaml";
+GCP_CONFIG="--config conf/gpt2-mistral-small-gcp-config.yaml";
 if [ "$RESUME" == "true" ];
 then
   RES="--resume true";
@@ -64,6 +63,26 @@ case $MODEL in
    eddy)
      SEED="--seed 777"
      RUN_ID="--run_id eddy-gpt2-small-x777"
+     ;;
+   flashflood)
+     SEED="--seed 801"
+     RUN_ID="--run_id flashflood-gpt2-small-x801"
+     ;;
+   gale)
+     SEED="--seed 837"
+     RUN_ID="--run_id gale-gpt2-small-x837"
+     ;;
+   haze)
+     SEED="--seed 900"
+     RUN_ID="--run_id haze-gpt2-small-x900"
+     ;;
+   icestorm)
+     SEED="--seed 999"
+     RUN_ID="--run_id icestorm-gpt2-small-999"
+     ;;
+   jetstream)
+     SEED="--seed 1080"
+     RUN_ID="--run_id jetstream-gpt2-small-x1080"
      ;;
    ?)
      usage

@@ -74,7 +74,7 @@ def train() -> None:
         if quinfig.resume_checkpoint is not None:
             last_checkpoint = quinfig.resume_checkpoint
         else:
-            # If machine fails while model is saving, checkpoint will be corrupted
+            # TODO train.B :: If machine fails while model is saving, checkpoint will be corrupted!
             # We need to verify the last checkpoint is loadable and if not, get the second to last checkpoint
             last_checkpoint = get_last_checkpoint(paths["runs"])
             if last_checkpoint is not None:
