@@ -1,0 +1,14 @@
+# gpt2-medium-config.yaml
+#   Configuration for the GPT-2 Medium Model.
+---
+model:
+    id: "gpt2-medium"
+
+    # Boolean whether to use Gradient Checkpointing to save GPU Memory at the expense of runtime
+    gradient_checkpointing: false
+
+    # Boolean whether to use the pre-existing Hugging Face AutoTokenizer (or train a new one from scratch)
+    pretrained_tokenizer: true
+
+    # Sequence Length
+    seq_len: 1024

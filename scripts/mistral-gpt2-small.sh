@@ -2,8 +2,7 @@
 #   Mistral GPT-2 Small Full Run with the DeepSpeed ZeRO-2 Optimizer, Per-Device Batch Size of 16.
 
 # Constants
-CONFIG="--config conf/gpt2-mistral-config.yaml"
-GCP_CONFIG="--config conf/gpt2-mistral-gcp-config.yaml"
+CONFIG="--config conf/gpt2-mistral-small-config.yaml"
 INFRA="--nnodes 2 --nproc_per_node 8"
 
 # Batch Size
@@ -16,6 +15,8 @@ DS_Z2="--training_arguments.deepspeed conf/deepspeed/z2-conf.json"
 AURORA="--seed 21"
 BLIZZARD="--seed 49"
 CYCLONE="--seed 81"
+
+# TODO mistral-gpt2-small.sh.A :: Add 7 other seeds + Control-Flow Logic!
 
 # Set DeepSpeed Launcher Parameters
 MASTER_ADDR=sphinx1.stanford.edu
