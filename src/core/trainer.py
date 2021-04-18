@@ -75,7 +75,7 @@ if is_apex_available():
     from apex import amp
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
-logger = logging.getLogger("mistral.core.trainer")
+overwatch = logging.getLogger("mistral.core.trainer")
 
 
 class OnlineBenchmarkTrainer(Trainer):
@@ -293,7 +293,7 @@ class OnlineBenchmarkTrainer(Trainer):
             if not os.path.isfile(os.path.join(resume_from_checkpoint, WEIGHTS_NAME)):
                 raise ValueError(f"Can't find a valid checkpoint at {resume_from_checkpoint}")
 
-            logger.info(f"Loading model from {resume_from_checkpoint}).")
+            overwatch.info(f"Loading model from {resume_from_checkpoint}).")
 
             if self.deepspeed:
                 # will be resumed in init_deepspeed
@@ -385,13 +385,13 @@ class OnlineBenchmarkTrainer(Trainer):
             else total_train_batch_size * self.args.max_steps
         )
 
-        logger.info("***** Running training *****")
-        logger.info(f"  Num examples = {num_examples}")
-        logger.info(f"  Num Epochs = {num_train_epochs}")
-        logger.info(f"  Instantaneous batch size per device = {self.args.per_device_train_batch_size}")
-        logger.info(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_train_batch_size}")
-        logger.info(f"  Gradient Accumulation steps = {self.args.gradient_accumulation_steps}")
-        logger.info(f"  Total optimization steps = {max_steps}")
+        overwatch.info("***** Running training *****")
+        overwatch.info(f"  Num examples = {num_examples}")
+        overwatch.info(f"  Num Epochs = {num_train_epochs}")
+        overwatch.info(f"  Instantaneous batch size per device = {self.args.per_device_train_batch_size}")
+        overwatch.info(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_train_batch_size}")
+        overwatch.info(f"  Gradient Accumulation steps = {self.args.gradient_accumulation_steps}")
+        overwatch.info(f"  Total optimization steps = {max_steps}")
 
         self.state.epoch = 0
         start_time = time.time()
@@ -410,11 +410,11 @@ class OnlineBenchmarkTrainer(Trainer):
             else:
                 steps_trained_in_current_epoch = 0
 
-            logger.info("  Continuing training from checkpoint, will skip to saved global_step")
-            logger.info(f"  Continuing training from epoch {epochs_trained}")
-            logger.info(f"  Continuing training from global step {self.state.global_step}")
+            overwatch.info("  Continuing training from checkpoint, will skip to saved global_step")
+            overwatch.info(f"  Continuing training from epoch {epochs_trained}")
+            overwatch.info(f"  Continuing training from global step {self.state.global_step}")
             if not self.args.ignore_data_skip:
-                logger.info(
+                overwatch.info(
                     f"  Will skip the first {epochs_trained} epochs then the first {steps_trained_in_current_epoch} "
                     "batches in the first epoch."
                 )
@@ -565,7 +565,7 @@ class OnlineBenchmarkTrainer(Trainer):
                     # tpu-comment: Logging debug metrics for PyTorch/XLA (compile, execute times, ops, etc.)
                     xm.master_print(met.metrics_report())
                 else:
-                    logger.warning(
+                    overwatch.warning(
                         "You enabled PyTorch/XLA debug metrics but you don't have a TPU "
                         "configured. Check your training configuration if this is unexpected."
                     )
@@ -576,7 +576,7 @@ class OnlineBenchmarkTrainer(Trainer):
             # Clean the state at the end of training
             delattr(self, "_past")
 
-        logger.info("\n\nTraining completed. Do not forget to share your model on huggingface.co/models =)\n\n")
+        overwatch.info("\n\nTraining completed. Do not forget to share your model on huggingface.co/models =)\n\n")
         if self.args.load_best_model_at_end and self.state.best_model_checkpoint is not None:
             # Wait for everyone to get here so we are sur the model has been saved by process 0.
             if is_torch_tpu_available():
@@ -584,7 +584,7 @@ class OnlineBenchmarkTrainer(Trainer):
             elif self.args.local_rank != -1:
                 dist.barrier()
 
-            logger.info(
+            overwatch.info(
                 f"Loading best model from {self.state.best_model_checkpoint} (score: {self.state.best_metric})."
             )
             if isinstance(self.model, PreTrainedModel):
