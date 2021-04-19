@@ -458,7 +458,7 @@ class OnlineBenchmarkTrainer(Trainer):
         if isinstance(train_dataloader, DataLoader) and isinstance(
             train_dataloader.sampler, AdvanceDistributedSampler
         ):
-            train_dataloader.sampler.set_epoch(epoch)
+            train_dataloader.sampler.set_epoch(epochs_trained)
 
         if not self.args.ignore_data_skip:
             if isinstance(train_dataloader, DataLoader) and (
