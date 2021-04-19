@@ -25,6 +25,6 @@ FF_RUN_ID="--run_id resume-ff-gpt2-small-x21"
 # ---
 
 # Single-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $RESUME $D_BSZ_16 $DS_Z2 $BASELINE_RUN_ID
+deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $RESUME $D_BSZ_16 $DS_Z2 $FF_RUN_ID
 pkill -f "train.py"
 sleep 3
