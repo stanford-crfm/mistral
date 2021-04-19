@@ -1,39 +1,42 @@
 """
 trainer.py
 
-Custom Hugging Face Trainer that
-1. allows for online eval of multiple datasets.
-2. allows for instantaneous data fast forwarding when resuming from a checkpoint
+Custom HuggingFace Trainer that:
+1. Allows for Online Evaluation of Multiple Datasets.
+2. Allows for *near-instantaneous* DataLoader Fast-Forwarding when Resuming from a Checkpoint.
+    - This is in opposition to the implementation in HF Transformers that iterates through data-loader linearly.
 
-modified from https://github.com/huggingface/transformers/blob/master/src/transformers/trainer.py
+Reference: https://github.com/huggingface/transformers/blob/master/src/transformers/trainer.py
 """
 import collections
 import logging
 import time
-from typing import Callable, Dict, List, Optional, Tuple, Union, Any
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-# Integrations must be imported before ML frameworks:
-from transformers.integrations import (  # isort: split
-    hp_params,
-    init_deepspeed,
-)
 
+# Integrations Must be imported before ML frameworks:
+from transformers.integrations import hp_params, init_deepspeed  # isort: split
+
+import gc
+import math
+import os
+import warnings
 
 import numpy as np
+import optuna
 import torch
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.dataset import Dataset
-from .samplers import AdvanceRandomSampler, AdvanceDistributedSampler
-
-from transformers import (
-    AutoModelForCausalLM,
-    PreTrainedModel,
-    PreTrainedTokenizerBase,
-    Trainer,
-    TrainingArguments,
-)
+from transformers import AutoModelForCausalLM, PreTrainedModel, PreTrainedTokenizerBase, Trainer, TrainingArguments
 from transformers.data.data_collator import DataCollator
-from transformers.training_args import ParallelMode
+from transformers.file_utils import (
+    WEIGHTS_NAME,
+    is_apex_available,
+    is_datasets_available,
+    is_sagemaker_dp_enabled,
+    is_torch_tpu_available,
+)
+from transformers.trainer_callback import TrainerCallback, TrainerState
 from transformers.trainer_pt_utils import (
     DistributedLengthGroupedSampler,
     DistributedSamplerWithLoop,
@@ -41,26 +44,16 @@ from transformers.trainer_pt_utils import (
 )
 from transformers.trainer_utils import (
     EvalPrediction,
-    speed_metrics,
-    set_seed,
-    TrainOutput,
     ShardedDDPOption,
+    TrainOutput,
     get_last_checkpoint,
+    set_seed,
+    speed_metrics,
 )
-from transformers.file_utils import (
-    WEIGHTS_NAME,
-    is_torch_tpu_available,
-    is_sagemaker_dp_enabled,
-    is_apex_available,
-    is_datasets_available,
-)
-from transformers.trainer_callback import (
-    TrainerCallback,
-    TrainerState,
-)
-import warnings
-import math
-import os
+from transformers.training_args import ParallelMode
+
+from .samplers import AdvanceDistributedSampler, AdvanceRandomSampler
+
 
 if is_datasets_available():
     import datasets
@@ -196,7 +189,7 @@ class OnlineBenchmarkTrainer(Trainer):
         ):
             return None
 
-        # Build the sampler.
+        # If `group_by_length` build custom Sampler --> TODO trainer.B :: Add Fast-Forward logic to these samplers!
         if self.args.group_by_length:
             if is_datasets_available() and isinstance(self.train_dataset, datasets.Dataset):
                 lengths = (
@@ -229,6 +222,7 @@ class OnlineBenchmarkTrainer(Trainer):
                 and not self.args.dataloader_drop_last
             ):
                 # Use a loop for TPUs when drop_last is False to have all batches have the same size.
+                # TODO trainer.C :: Add Fast-Forward logic to TPU Loader!
                 return DistributedSamplerWithLoop(
                     self.train_dataset,
                     batch_size=self.args.per_device_train_batch_size,
@@ -247,7 +241,8 @@ class OnlineBenchmarkTrainer(Trainer):
         **kwargs,
     ):
         """
-        Main training entry point.
+        Main Training Entry Point.
+
         Args:
             resume_from_checkpoint (:obj:`str` or :obj:`bool`, `optional`):
                 If a :obj:`str`, local path to a saved checkpoint as saved by a previous instance of
@@ -259,10 +254,8 @@ class OnlineBenchmarkTrainer(Trainer):
             kwargs:
                 Additional keyword arguments used to hide deprecated arguments
         """
-
-        # memory metrics - must set up as early as possible
+        # Memory Metrics - must set up as early as possible
         self._memory_tracker.start()
-
         self.is_in_train = True
 
         if "model_path" in kwargs:
@@ -274,6 +267,7 @@ class OnlineBenchmarkTrainer(Trainer):
             )
         if len(kwargs) > 0:
             raise TypeError(f"train() received got unexpected keyword arguments: {', '.join(list(kwargs.keys()))}.")
+
         # This might change the seed so needs to run first.
         self._hp_search_setup(trial)
 
@@ -284,7 +278,8 @@ class OnlineBenchmarkTrainer(Trainer):
             set_seed(self.args.seed)
             self.model = self.call_model_init(trial)
             model_reloaded = True
-            # Reinitializes optimizer and scheduler
+
+            # Re-initializes optimizer and scheduler
             self.optimizer, self.lr_scheduler = None, None
 
         # Load potential model checkpoint
@@ -300,7 +295,7 @@ class OnlineBenchmarkTrainer(Trainer):
             overwatch.info(f"Loading model from {resume_from_checkpoint}).")
 
             if self.deepspeed:
-                # will be resumed in init_deepspeed
+                # Will be resumed in init_deepspeed
                 pass
             elif isinstance(self.model, PreTrainedModel):
                 self.model = self.model.from_pretrained(resume_from_checkpoint)
@@ -322,9 +317,9 @@ class OnlineBenchmarkTrainer(Trainer):
         train_dataloader = self.get_train_dataloader()
 
         # Setting up training control variables:
-        # number of training epochs: num_train_epochs
-        # number of training steps per epoch: num_update_steps_per_epoch
-        # total number of training steps to execute: max_steps
+        #   Number of training epochs: `num_train_epochs`
+        #   Number of training steps per epoch: `num_update_steps_per_epoch`
+        #   Total Number of training steps to execute: `max_steps`
         if train_dataset_is_sized:
             num_update_steps_per_epoch = len(train_dataloader) // self.args.gradient_accumulation_steps
             num_update_steps_per_epoch = max(num_update_steps_per_epoch, 1)
@@ -337,7 +332,7 @@ class OnlineBenchmarkTrainer(Trainer):
                 max_steps = math.ceil(self.args.num_train_epochs * num_update_steps_per_epoch)
                 num_train_epochs = math.ceil(self.args.num_train_epochs)
         else:
-            # see __init__. max_steps is set when the dataset has no __len__
+            # See __init__. max_steps is set when the dataset has no __len__
             max_steps = self.args.max_steps
             num_train_epochs = 1
             num_update_steps_per_epoch = max_steps
@@ -360,7 +355,7 @@ class OnlineBenchmarkTrainer(Trainer):
 
         model = self._wrap_model(self.model_wrapped)
 
-        # for the rest of this function `model` is the outside model, whether it was wrapped or not
+        # For the rest of this function `model` is the outside model, whether it was wrapped or not
         if model is not self.model:
             self.model_wrapped = model
 
@@ -370,9 +365,9 @@ class OnlineBenchmarkTrainer(Trainer):
         # Check if saved optimizer or scheduler states exist
         self._load_optimizer_and_scheduler(resume_from_checkpoint)
 
-        # important: at this point:
-        # self.model         is the Transformers Model
-        # self.model_wrapped is DDP(Transformers Model), Deepspeed(Transformers Model), etc.
+        # Important -- at this point:
+        #   self.model         is the Transformers Model
+        #   self.model_wrapped is DDP(Transformers Model), Deepspeed(Transformers Model), etc.
 
         # Train!
         if is_torch_tpu_available():
@@ -392,13 +387,16 @@ class OnlineBenchmarkTrainer(Trainer):
         overwatch.info("***** Running training *****")
         overwatch.info(f"  Num examples = {num_examples}")
         overwatch.info(f"  Num Epochs = {num_train_epochs}")
-        overwatch.info(f"  Instantaneous batch size per device = {self.args.per_device_train_batch_size}")
-        overwatch.info(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_train_batch_size}")
+        overwatch.info(f"  Instantaneous Batch Size per Device = {self.args.per_device_train_batch_size}")
+        overwatch.info(
+            f"  Total train batch size (w. Parallel, Distributed & Accumulation) = {total_train_batch_size}"
+        )
         overwatch.info(f"  Gradient Accumulation steps = {self.args.gradient_accumulation_steps}")
-        overwatch.info(f"  Total optimization steps = {max_steps}")
+        overwatch.info(f"  Total Optimization Steps = {max_steps}")
 
         self.state.epoch = 0
         start_time = time.time()
+        time_for_data_skip = time.time()
         epochs_trained = 0
         steps_trained_in_current_epoch = 0
 
@@ -430,8 +428,9 @@ class OnlineBenchmarkTrainer(Trainer):
         self.callback_handler.train_dataloader = train_dataloader
         self.state.trial_name = self.hp_name(trial) if self.hp_name is not None else None
         self.state.trial_params = hp_params(trial) if trial is not None else None
+
         # This should be the same if the state has been saved but in case the training arguments changed, it's safer
-        # to set this after the load.
+        #   to set this after the load.
         self.state.max_steps = max_steps
         self.state.num_train_epochs = num_train_epochs
         self.state.is_local_process_zero = self.is_local_process_zero()
@@ -449,6 +448,7 @@ class OnlineBenchmarkTrainer(Trainer):
 
         # Skip the first epochs_trained epochs to get the random state of the dataloader at the right point.
         if not self.args.ignore_data_skip:
+            time_for_data_skip = time.time()
             for epoch in range(epochs_trained):
                 # We just need to begin an iteration to create the randomization of the sampler.
                 for _ in train_dataloader:
@@ -460,7 +460,7 @@ class OnlineBenchmarkTrainer(Trainer):
             ):
                 train_dataloader.sampler.set_epoch(epoch)
 
-            # Use custom sampler class to skip the first `steps_trained_in_current_epoch` steps
+            # Mercury =>> Use Custom Sampler Class to skip the First `steps_trained_in_current_epoch` Steps
             if not self.args.ignore_data_skip:
                 if isinstance(train_dataloader, DataLoader) and (
                     isinstance(train_dataloader.sampler, AdvanceDistributedSampler)
@@ -468,8 +468,13 @@ class OnlineBenchmarkTrainer(Trainer):
                 ):
                     train_dataloader.sampler.advance(steps_trained_in_current_epoch)
                 else:
-                    # Fastforwarding is only implemented for these two classes so far
-                    raise NotImplemented
+                    # TODO trainer.[B, C] :: Fast-Forwarding is only implemented for these two classes so far!
+                    raise NotImplementedError("Fast-Forwarding only implemented for Random and Distributed Sampler!")
+
+                # Update `time_for_data_skip` and Log
+                time_for_data_skip = time.time() - time_for_data_skip
+                metrics = {"time_to_resume": time_for_data_skip}
+                self.log(metrics)
 
             if is_torch_tpu_available():
                 parallel_loader = pl.ParallelLoader(train_dataloader, [self.args.device]).per_device_loader(
@@ -491,7 +496,6 @@ class OnlineBenchmarkTrainer(Trainer):
             self.control = self.callback_handler.on_epoch_begin(self.args, self.state, self.control)
 
             for step, inputs in enumerate(epoch_iterator):
-
                 if step % self.args.gradient_accumulation_steps == 0:
                     self.control = self.callback_handler.on_step_begin(self.args, self.state, self.control)
 
@@ -507,19 +511,19 @@ class OnlineBenchmarkTrainer(Trainer):
                     tr_loss += self.training_step(model, inputs)
                 self._total_flos += float(self.floating_point_ops(inputs))
 
-                # Optimizer step for deepspeed must be called on every step regardless of the value of gradient_accumulation_steps
+                # Optimizer step for deepspeed must be called on every step regardless of the value of
+                #   `gradient_accumulation_steps`
                 if self.deepspeed:
                     self.deepspeed.step()
 
                 if (step + 1) % self.args.gradient_accumulation_steps == 0 or (
-                    # last step in epoch but step is always smaller than gradient_accumulation_steps
-                    steps_in_epoch <= self.args.gradient_accumulation_steps
-                    and (step + 1) == steps_in_epoch
+                    # Last step in epoch but step is always smaller than gradient_accumulation_steps
+                    self.args.gradient_accumulation_steps
+                    >= steps_in_epoch
+                    == (step + 1)
                 ):
-                    # Gradient clipping
+                    # Gradient clipping -- Deepspeed does its own clipping!
                     if self.args.max_grad_norm is not None and self.args.max_grad_norm > 0 and not self.deepspeed:
-                        # deepspeed does its own clipping
-
                         if self.use_amp:
                             # AMP: gradients need unscaling
                             self.scaler.unscale_(self.optimizer)
@@ -539,7 +543,7 @@ class OnlineBenchmarkTrainer(Trainer):
 
                     # Optimizer step
                     if self.deepspeed:
-                        pass  # called outside the loop
+                        pass  # Called outside the loop
                     elif is_torch_tpu_available():
                         xm.optimizer_step(self.optimizer)
                     elif self.use_amp:
@@ -611,17 +615,17 @@ class OnlineBenchmarkTrainer(Trainer):
         self.log(metrics)
 
         self.control = self.callback_handler.on_train_end(self.args, self.state, self.control)
-        # add remaining tr_loss
+        # Add remaining tr_loss
         self._total_loss_scalar += tr_loss.item()
 
         if self.deepspeed:
-            # free up any memory that might be useful for eval
+            # Free up any memory that might be useful for eval
             self.deepspeed = None
             self.optimizer = None
             self.lr_scheduler = None
             self.model_wrapped = self.model
-            gc.collect()  # force memory release
-            # to restore normal behavior outside of train replay the place_model_on_device logic w/o deepspeed
+            gc.collect()  # Force memory release
+            # To restore normal behavior outside of train replay the place_model_on_device logic w/o deepspeed
             self.place_model_on_device = self.args.place_model_on_device
             if self.is_model_parallel:
                 self.place_model_on_device = False
