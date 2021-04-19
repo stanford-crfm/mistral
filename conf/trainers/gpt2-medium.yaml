@@ -13,7 +13,7 @@ training_arguments:
     evaluation_strategy: steps
 
     # Set these based on GPU RAM/your available hardware
-    per_device_train_batch_size: 16
+    per_device_train_batch_size: 4
     per_device_eval_batch_size: 16
 
     # We set this dynamically based on DDP Computation [steps = effective_batch / (per_gpu_batch * gpus * nodes)]
