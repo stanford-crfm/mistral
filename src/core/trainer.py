@@ -454,27 +454,32 @@ class OnlineBenchmarkTrainer(Trainer):
                 for _ in train_dataloader:
                     break
 
+        # Mercury =>> Use Custom Sampler Class to skip the First `steps_trained_in_current_epoch` Steps
+        if isinstance(train_dataloader, DataLoader) and isinstance(
+            train_dataloader.sampler, AdvanceDistributedSampler
+        ):
+            train_dataloader.sampler.set_epoch(epoch)
+
+        if not self.args.ignore_data_skip:
+            if isinstance(train_dataloader, DataLoader) and (
+                isinstance(train_dataloader.sampler, AdvanceDistributedSampler)
+                or isinstance(train_dataloader.sampler, AdvanceRandomSampler)
+            ):
+                train_dataloader.sampler.advance(steps_trained_in_current_epoch)
+            else:
+                # TODO trainer.[B, C] :: Fast-Forwarding is only implemented for these two classes so far!
+                raise NotImplementedError("Fast-Forwarding only implemented for Random and Distributed Sampler!")
+
+            # Update `time_for_data_skip` and Log
+            time_for_data_skip = time.time() - time_for_data_skip
+            metrics = {"time_to_resume": time_for_data_skip}
+            self.log(metrics)
+
         for epoch in range(epochs_trained, num_train_epochs):
             if isinstance(train_dataloader, DataLoader) and isinstance(
                 train_dataloader.sampler, AdvanceDistributedSampler
             ):
                 train_dataloader.sampler.set_epoch(epoch)
-
-            # Mercury =>> Use Custom Sampler Class to skip the First `steps_trained_in_current_epoch` Steps
-            if not self.args.ignore_data_skip:
-                if isinstance(train_dataloader, DataLoader) and (
-                    isinstance(train_dataloader.sampler, AdvanceDistributedSampler)
-                    or isinstance(train_dataloader.sampler, AdvanceRandomSampler)
-                ):
-                    train_dataloader.sampler.advance(steps_trained_in_current_epoch)
-                else:
-                    # TODO trainer.[B, C] :: Fast-Forwarding is only implemented for these two classes so far!
-                    raise NotImplementedError("Fast-Forwarding only implemented for Random and Distributed Sampler!")
-
-                # Update `time_for_data_skip` and Log
-                time_for_data_skip = time.time() - time_for_data_skip
-                metrics = {"time_to_resume": time_for_data_skip}
-                self.log(metrics)
 
             if is_torch_tpu_available():
                 parallel_loader = pl.ParallelLoader(train_dataloader, [self.args.device]).per_device_loader(

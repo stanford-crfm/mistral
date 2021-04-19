@@ -36,7 +36,7 @@ class AdvanceRandomSampler(RandomSampler):
         self._advance_samples = 0
 
     def advance(self, n_samples: int):
-        assert 0 < n_samples < len(self), "Invalid number of samples to skip!"
+        assert 0 <= n_samples < len(self), "Invalid number of samples to skip!"
         self._advance_samples = n_samples
 
     def __iter__(self):
@@ -91,7 +91,7 @@ class AdvanceDistributedSampler(DistributedSampler):
         self._advance_samples = 0
 
     def advance(self, n_samples: int):
-        assert 0 < n_samples < len(self), "Invalid number of samples to skip!"
+        assert 0 <= n_samples < len(self), "Invalid number of samples to skip!"
         self._advance_samples = n_samples
 
     def __iter__(self) -> Iterator[T_co]:

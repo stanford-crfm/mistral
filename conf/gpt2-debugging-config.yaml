@@ -4,9 +4,9 @@
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
-    - datasets/wikitext.yaml
+    - datasets/wikitext103.yaml
     - models/gpt2-small.yaml
-    - trainers/toy.yaml
+    - trainers/gpt2-small.yaml
 
 # Run ID -- defaults to `null`; override as you like!
 run_id: null
