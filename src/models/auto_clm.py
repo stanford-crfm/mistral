@@ -13,6 +13,7 @@ from typing import Dict, Tuple
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizer
 
 from ..util import REGISTRY
+from .gpt2_gc import GCGPT2LMHeadModel
 
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
@@ -43,7 +44,11 @@ def gpt_initialize(model: AutoModelForCausalLM, initializer_range: float = 0.02,
 
 
 def get_auto_clm_tokenizer(
-    model_id: str, paths: Dict[str, Path], gradient_checkpointing: bool = True, use_pretrained_tokenizer: bool = True
+    model_id: str,
+    paths: Dict[str, Path],
+    gradient_checkpointing: bool = True,
+    gc_checkpoints: int = 0,
+    use_pretrained_tokenizer: bool = True,
 ) -> Tuple[AutoModelForCausalLM, PreTrainedTokenizer]:
     """ Download/Load AutoConfig and Instantiate Corresponding Model and Tokenizer. """
 
@@ -66,10 +71,22 @@ def get_auto_clm_tokenizer(
         overwatch.error("Tokenizer Training/Initialization (from Scratch) not yet implemented!")
         raise NotImplementedError()
 
-    # Initialize Model
-    overwatch.info(f"Initializing Tabula Rasa Model from Configuration: `{REGISTRY[model_id]}`...")
-    model = AutoModelForCausalLM.from_config(config)
-    model.resize_token_embeddings(len(tokenizer))
+    # Adaptive Gradient Checkpointing
+    if gradient_checkpointing and gc_checkpoints > 0:
+        overwatch.info(
+            f"Initializing Tabula Rasa {gc_checkpoints}-GC-Checkpointed Model from Configuration:"
+            f" `{REGISTRY[model_id]}`..."
+        )
+        model = GCGPT2LMHeadModel(config)
+        model.create_checkpointed_model(gc_checkpoints)
+        model.resize_token_embeddings(len(tokenizer))
+
+    # No Adaptive Gradient Checkpointing
+    else:
+        # Initialize Model
+        overwatch.info(f"Initializing Tabula Rasa Model from Configuration: `{REGISTRY[model_id]}`...")
+        model = AutoModelForCausalLM.from_config(config)
+        model.resize_token_embeddings(len(tokenizer))
 
     # Run GPT-Specific Initialization, if applicable
     if "gpt" in model_id:
