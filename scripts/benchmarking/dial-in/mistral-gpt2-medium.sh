@@ -42,7 +42,7 @@ DISTRIBUTED_ARGS="--num_gpus 8 --num_nodes 2 --master_addr $MASTER_ADDR"
 #sleep 3
 #
 ## Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 8 (+ GC=6) --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC_6 $D_BSZ_8 $DS_Z2 --run_id gpt2-medium-dry-run-dbsz=8-gc-every=6-beta
+deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC_6 $D_BSZ_8 $DS_Z2 --run_id gpt2-medium-dry-run-dbsz=8-gc-every=6-gamma
 pkill -f "train.py"
 sleep 3
 
