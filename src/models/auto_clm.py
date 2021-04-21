@@ -47,7 +47,7 @@ def get_auto_clm_tokenizer(
     model_id: str,
     paths: Dict[str, Path],
     gradient_checkpointing: bool = True,
-    gc_checkpoints: int = 0,
+    gc_checkpoint_every: int = -1,
     use_pretrained_tokenizer: bool = True,
 ) -> Tuple[AutoModelForCausalLM, PreTrainedTokenizer]:
     """ Download/Load AutoConfig and Instantiate Corresponding Model and Tokenizer. """
@@ -61,6 +61,7 @@ def get_auto_clm_tokenizer(
 
     # Overwrite Config based on Gradient Checkpointing (Defaults to False)
     if gradient_checkpointing:
+        assert gc_checkpoint_every > 0, "Gradient Checkpointing = True, but `gc_checkpoint_every` < 0!"
         config.gradient_checkpointing = True
 
     # Create Tokenizer
@@ -72,23 +73,22 @@ def get_auto_clm_tokenizer(
         raise NotImplementedError()
 
     # Adaptive Gradient Checkpointing
-    if gradient_checkpointing and gc_checkpoints > 0:
+    if gradient_checkpointing:
         overwatch.info(
-            f"Initializing Tabula Rasa {gc_checkpoints}-GC-Checkpointed Model from Configuration:"
+            f"Initializing Tabula Rasa GC-Checkpointed Model (Every {gc_checkpoint_every} Blocks) from Configuration:"
             f" `{REGISTRY[model_id]}`..."
         )
         model = GCGPT2LMHeadModel(config)
-        model.create_checkpointed_model(gc_checkpoints)
-        model.resize_token_embeddings(len(tokenizer))
+        model.create_checkpointed_model(gc_checkpoint_every)
 
     # No Adaptive Gradient Checkpointing
     else:
         # Initialize Model
         overwatch.info(f"Initializing Tabula Rasa Model from Configuration: `{REGISTRY[model_id]}`...")
         model = AutoModelForCausalLM.from_config(config)
-        model.resize_token_embeddings(len(tokenizer))
 
     # Run GPT-Specific Initialization, if applicable
+    model.resize_token_embeddings(len(tokenizer))
     if "gpt" in model_id:
         gpt_initialize(model, initializer_range=config.initializer_range, n_layer=config.n_layer)
 

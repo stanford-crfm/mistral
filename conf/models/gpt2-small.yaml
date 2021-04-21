@@ -5,10 +5,11 @@ model:
     id: "gpt2-small"
 
     # Boolean whether to use Gradient Checkpointing to save GPU Memory at the expense of runtime
-    gradient_checkpointing:
+    gradient_checkpointing: false
 
-    # Integer # of Checkpoints to Place throughout the Model (Memory Footprint)
-    gc_checkpoints: 4
+    # Add Gradient Checkpointing Every `gc_checkpoint_every` Transformer blocks
+    # > Checkpoints = (# layers / `gc_checkpoint_every`) Blocks
+    gc_checkpoint_every: -1
 
     # Boolean whether to use the pre-existing Hugging Face AutoTokenizer (or train a new one from scratch)
     pretrained_tokenizer: true

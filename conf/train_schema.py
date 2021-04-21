@@ -24,7 +24,7 @@ def get_schema() -> Dict[str, Any]:
     model_schema = {
         "id": merge(tstring, required),
         "gradient_checkpointing": merge(tboolean, default(False)),
-        "gc_checkpoints": merge(tinteger, default(0)),
+        "gc_checkpoint_every": merge(tinteger, default(-1)),
         "pretrained_tokenizer": merge(tboolean, default(True)),
         "seq_len": merge(tinteger, default(1024)),
     }

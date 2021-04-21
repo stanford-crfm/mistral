@@ -19,15 +19,15 @@ class GCGPT2LMHeadModel(GPT2LMHeadModel):
     def __init__(self, config: GPT2Config):
         super().__init__(config)
 
-    def create_checkpointed_model(self, gc_checkpoints: int):
+    def create_checkpointed_model(self, gc_checkpoint_every: int):
         # Reinitalize GPT-2 Model w/ Custom GC Wrapper
-        self.transformer = GCGPT2Model(self.config, gc_checkpoints)
+        self.transformer = GCGPT2Model(self.config, gc_checkpoint_every)
 
 
 class GCGPT2Model(GPT2Model):
-    def __init__(self, config: GPT2Config, gc_checkpoints: int):
+    def __init__(self, config: GPT2Config, gc_checkpoint_every: int):
         super().__init__(config)
-        self.gc_checkpoints = gc_checkpoints
+        self.gc_checkpoint_every = gc_checkpoint_every
 
     def forward(
         self,
@@ -151,7 +151,11 @@ class GCGPT2Model(GPT2Model):
             if output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states,)
 
-            if getattr(self.config, "gradient_checkpointing", False) and self.training and i < self.gc_checkpoints:
+            if (
+                getattr(self.config, "gradient_checkpointing", False)
+                and self.training
+                and (i % self.gc_checkpoint_every) == 0
+            ):
                 if use_cache:
                     overwatch.warning(
                         "`use_cache=True` is incompatible with `config.gradient_checkpointing=True`. Setting "
