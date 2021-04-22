@@ -62,6 +62,7 @@ def get_auto_clm_tokenizer(
     # Overwrite Config based on Gradient Checkpointing (Defaults to False)
     if gradient_checkpointing:
         assert gc_checkpoint_every > 0, "Gradient Checkpointing = True, but `gc_checkpoint_every` < 0!"
+        assert gc_checkpoint_every <= config.n_layer, "Attempting to set `gc_checkpoint > # transformer layers!"
         config.gradient_checkpointing = True
 
     # Create Tokenizer
@@ -72,8 +73,8 @@ def get_auto_clm_tokenizer(
         overwatch.error("Tokenizer Training/Initialization (from Scratch) not yet implemented!")
         raise NotImplementedError()
 
-    # Adaptive Gradient Checkpointing
-    if gradient_checkpointing:
+    # Partial Gradient Checkpointing (currently only supported for GPT-2 models)
+    if gradient_checkpointing and "gpt2" in model_id:
         overwatch.info(
             f"Initializing Tabula Rasa GC-Checkpointed Model (Every {gc_checkpoint_every} Blocks) from Configuration:"
             f" `{REGISTRY[model_id]}`..."

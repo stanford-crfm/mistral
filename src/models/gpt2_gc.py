@@ -3,6 +3,8 @@ gpt2_gc.py
 
 Custom Implementation of the GPT-2 LM-Head Model (and auxiliary classes) with support for adaptive/custom number of
 gradient checkpoints (for fine-grained tweaking of memory footprint vs. speed).
+
+Reference: https://github.com/huggingface/transformers/blob/master/src/transformers/models/gpt2/modeling_gpt2.py
 """
 import logging
 
@@ -19,12 +21,14 @@ class GCGPT2LMHeadModel(GPT2LMHeadModel):
     def __init__(self, config: GPT2Config):
         super().__init__(config)
 
+    # @MERCURY =>> Reconfigure GPT2LMHead to take custom, partial checkpoint model instance!
     def create_checkpointed_model(self, gc_checkpoint_every: int):
         # Reinitalize GPT-2 Model w/ Custom GC Wrapper
         self.transformer = GCGPT2Model(self.config, gc_checkpoint_every)
 
 
 class GCGPT2Model(GPT2Model):
+    # @MERCURY =>> GPT-2 Model Instance now takes `gc_checkpoint_every` parameter.
     def __init__(self, config: GPT2Config, gc_checkpoint_every: int):
         super().__init__(config)
         self.gc_checkpoint_every = gc_checkpoint_every
@@ -151,6 +155,7 @@ class GCGPT2Model(GPT2Model):
             if output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states,)
 
+            # @MERCURY =>> Single line change, `and (i % self.gc_checkpoint_every) == 0` --> partial-checkpointing!
             if (
                 getattr(self.config, "gradient_checkpointing", False)
                 and self.training

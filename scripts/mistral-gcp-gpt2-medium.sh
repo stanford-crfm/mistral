@@ -19,7 +19,7 @@ do
 done
 
 # Set to Default Values if Param is not Set
-if [ -z "$MODEL" ]; then MODEL='downpour'; fi
+if [ -z "$MODEL" ]; then MODEL='arwen'; fi
 if [ -z "$RESUME" ]; then RESUME='false'; fi
 
 echo "MODEL = $MODEL"
