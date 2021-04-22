@@ -1,21 +1,20 @@
-# gpt2-mistral-medium-config.yaml
-#   Full Mistral GPT-2 Medium Training Config, currently working with the OpenWebText Dataset, GPT-2 Medium
-#   Architecture, and full batch size (512). Runs with DeepSpeed ZeRO-2, with a per-device BSZ of 8, with partial
-#   gradient checkpointing (4 / 24 blocks).
+# gpt2-mistral-medium-gcheck-config.yaml
+#   Full Mistral GPT-2 Medium Training Config, currently working with the WikiText Dataset, GPT-2 Medium Architecture,
+#   and full batch size (512). Runs with DeepSpeed ZeRO-2, with a per-device BSZ of 4/8.
 #
 #   Inheritance and core paths can all be overridden from the command line or by re-writing these files.
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
-    - datasets/openwebtext.yaml
-    - models/gpt2-medium.yaml
-    - trainers/gpt2-medium.yaml
+    - ../../datasets/wikitext103.yaml
+    - ../../models/gpt2-medium.yaml
+    - ../../trainers/gpt2-medium.yaml
 
 # Run ID -- make sure to override!
 run_id: null
 
 # Weights & Biases
-wandb: mistral-gpt2
+wandb: mistral-debugging
 group: gpt2-medium
 
 # Artifacts & Caching

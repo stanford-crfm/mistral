@@ -13,6 +13,7 @@ from typing import Dict, Tuple
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizer
 
 from ..util import REGISTRY
+from .gpt2_gc import GCGPT2LMHeadModel
 
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
@@ -43,7 +44,11 @@ def gpt_initialize(model: AutoModelForCausalLM, initializer_range: float = 0.02,
 
 
 def get_auto_clm_tokenizer(
-    model_id: str, paths: Dict[str, Path], gradient_checkpointing: bool = True, use_pretrained_tokenizer: bool = True
+    model_id: str,
+    paths: Dict[str, Path],
+    gradient_checkpointing: bool = True,
+    gc_checkpoint_every: int = -1,
+    use_pretrained_tokenizer: bool = True,
 ) -> Tuple[AutoModelForCausalLM, PreTrainedTokenizer]:
     """ Download/Load AutoConfig and Instantiate Corresponding Model and Tokenizer. """
 
@@ -56,6 +61,8 @@ def get_auto_clm_tokenizer(
 
     # Overwrite Config based on Gradient Checkpointing (Defaults to False)
     if gradient_checkpointing:
+        assert gc_checkpoint_every > 0, "Gradient Checkpointing = True, but `gc_checkpoint_every` < 0!"
+        assert gc_checkpoint_every <= config.n_layer, "Attempting to set `gc_checkpoint > # transformer layers!"
         config.gradient_checkpointing = True
 
     # Create Tokenizer
@@ -66,12 +73,23 @@ def get_auto_clm_tokenizer(
         overwatch.error("Tokenizer Training/Initialization (from Scratch) not yet implemented!")
         raise NotImplementedError()
 
-    # Initialize Model
-    overwatch.info(f"Initializing Tabula Rasa Model from Configuration: `{REGISTRY[model_id]}`...")
-    model = AutoModelForCausalLM.from_config(config)
-    model.resize_token_embeddings(len(tokenizer))
+    # Partial Gradient Checkpointing (currently only supported for GPT-2 models)
+    if gradient_checkpointing and "gpt2" in model_id:
+        overwatch.info(
+            f"Initializing Tabula Rasa GC-Checkpointed Model (Every {gc_checkpoint_every} Blocks) from Configuration:"
+            f" `{REGISTRY[model_id]}`..."
+        )
+        model = GCGPT2LMHeadModel(config)
+        model.create_checkpointed_model(gc_checkpoint_every)
+
+    # No Adaptive Gradient Checkpointing
+    else:
+        # Initialize Model
+        overwatch.info(f"Initializing Tabula Rasa Model from Configuration: `{REGISTRY[model_id]}`...")
+        model = AutoModelForCausalLM.from_config(config)
 
     # Run GPT-Specific Initialization, if applicable
+    model.resize_token_embeddings(len(tokenizer))
     if "gpt" in model_id:
         gpt_initialize(model, initializer_range=config.initializer_range, n_layer=config.n_layer)
 

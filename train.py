@@ -87,6 +87,7 @@ def train() -> None:
         quinfig.model.id,
         paths,
         gradient_checkpointing=quinfig.model.gradient_checkpointing,
+        gc_checkpoint_every=quinfig.model.gc_checkpoint_every,
         use_pretrained_tokenizer=quinfig.model.pretrained_tokenizer,
     )
 
