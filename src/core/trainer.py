@@ -45,7 +45,7 @@ if is_datasets_available():
     import datasets
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
-logger = logging.getLogger("mistral.core.trainer")
+overwatch = logging.getLogger("mistral.core.trainer")
 
 
 class OnlineBenchmarkTrainer(Trainer):
