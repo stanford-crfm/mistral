@@ -6,13 +6,7 @@ Custom Hugging Face Trainer that allows for online eval of multiple datasets.
 import collections
 import logging
 import time
-from typing import Callable, Dict, List, Optional, Tuple, Union, Any
-
-# Integrations must be imported before ML frameworks:
-from transformers.integrations import (  # isort: split
-    hp_params,
-    init_deepspeed,
-)
+from typing import Callable, Dict, List, Optional, Tuple
 
 
 import numpy as np
@@ -20,7 +14,7 @@ import torch
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.dataset import Dataset
 from torch.utils.data.distributed import DistributedSampler
-from torch.utils.data.sampler import RandomSampler, SequentialSampler
+from torch.utils.data.sampler import RandomSampler
 
 from transformers import (
     AutoModelForCausalLM,
@@ -39,41 +33,16 @@ from transformers.trainer_pt_utils import (
 from transformers.trainer_utils import (
     EvalPrediction,
     speed_metrics,
-    set_seed,
-    TrainOutput,
-    ShardedDDPOption,
-    get_last_checkpoint,
 )
 from transformers.file_utils import (
-    WEIGHTS_NAME,
-    is_torch_tpu_available,
-    is_sagemaker_dp_enabled,
-    is_apex_available,
     is_datasets_available,
 )
 from transformers.trainer_callback import (
     TrainerCallback,
-    TrainerState,
 )
-import warnings
-import math
-import os
 
 if is_datasets_available():
     import datasets
-
-if is_sagemaker_dp_enabled():
-    import smdistributed.dataparallel.torch.distributed as dist
-else:
-    import torch.distributed as dist
-
-if is_torch_tpu_available():
-    import torch_xla.core.xla_model as xm
-    import torch_xla.debug.metrics as met
-    import torch_xla.distributed.parallel_loader as pl
-
-if is_apex_available():
-    from apex import amp
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
 logger = logging.getLogger("mistral.core.trainer")
