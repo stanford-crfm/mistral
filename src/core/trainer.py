@@ -160,7 +160,7 @@ class OnlineBenchmarkTrainer(Trainer):
         """
         Mostly copied from https://github.com/huggingface/transformers/blob/master/src/transformers/trainer.py#L509
 
-        We modify the Distributed Sampler by add the `seed` argument
+        We modify the Distributed Samplers by adding the `seed` argument
         """
         if isinstance(self.train_dataset, torch.utils.data.IterableDataset) or not isinstance(
             self.train_dataset, collections.abc.Sized
