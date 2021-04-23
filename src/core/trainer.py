@@ -188,6 +188,11 @@ class OnlineBenchmarkTrainer(Trainer):
         return output.metrics
 
     def _get_train_sampler(self) -> Optional[torch.utils.data.sampler.Sampler]:
+        """
+        Mostly copied from https://github.com/huggingface/transformers/blob/master/src/transformers/trainer.py#L509
+
+        We modify the Distributed Sampler by add the `seed` argument
+        """
         if isinstance(self.train_dataset, torch.utils.data.IterableDataset) or not isinstance(
             self.train_dataset, collections.abc.Sized
         ):
