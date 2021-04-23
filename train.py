@@ -163,6 +163,8 @@ def train() -> None:
         ],
     )
 
+    if quinfig.local_rank <= 0 and last_checkpoint is None:
+        trainer.save_model(output_dir=str(paths["runs"] / "checkpoint-0000"))
     # Training Time!
     overwatch.info("Training...")
     trainer.train(resume_from_checkpoint=last_checkpoint)
