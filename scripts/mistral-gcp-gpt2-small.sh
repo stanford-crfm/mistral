@@ -3,7 +3,7 @@
 #   MegaGPU Instances.
 
 # Parse Named Command Arguments::
-#   EX: bash mistral-gcp-gpt2-small.sh MODEL="cyclone" RESUME="true"
+#   EX: bash mistral-gcp-gpt2-small.sh MODEL="alias" RESUME="true"
 for ARGUMENT in "$@"
 do
 
@@ -19,7 +19,7 @@ do
 done
 
 # Set to Default Values if Param is not Set
-if [ -z "$MODEL" ]; then MODEL='downpour'; fi
+if [ -z "$MODEL" ]; then MODEL='alias'; fi
 if [ -z "$RESUME" ]; then RESUME='false'; fi
 
 echo "MODEL = $MODEL"
@@ -42,47 +42,27 @@ D_BSZ_16="--training_arguments.fp16 true --training_arguments.per_device_train_b
 # DeepSpeed Training Configuration
 DS_Z2="--training_arguments.deepspeed conf/deepspeed/z2-conf.json"
 
-# Random Seeds -- Aurora :: 21, Blizzard :: 49, Cyclone :: 81, Downpour :: 343, Eddy :: 777
+# Random Seeds -- Alias :: 21, Battlestar :: 49, Caprica :: 81, Darkmatter :: 343, Expanse :: 777
 case $MODEL in
-   aurora)
+   alias)
      SEED="--seed 21"
-     RUN_ID="--run_id aurora-gpt2-small-x21"
+     RUN_ID="--run_id alias-gpt2-small-x21"
      ;;
-   blizzard)
+   battlestar)
      SEED="--seed 49"
-     RUN_ID="--run_id blizzard-gpt2-small-x49"
+     RUN_ID="--run_id battlestar-gpt2-small-x49"
      ;;
-   cyclone)
+   caprica)
      SEED="--seed 81"
-     RUN_ID="--run_id cyclone-gpt2-small-x81"
+     RUN_ID="--run_id caprica-gpt2-small-x81"
      ;;
-   downpour)
+   darkmatter)
      SEED="--seed 343"
-     RUN_ID="--run_id downpour-gpt2-small-x343"
+     RUN_ID="--run_id darkmatter-gpt2-small-x343"
      ;;
-   eddy)
+   expanse)
      SEED="--seed 777"
-     RUN_ID="--run_id eddy-gpt2-small-x777"
-     ;;
-   flashflood)
-     SEED="--seed 801"
-     RUN_ID="--run_id flashflood-gpt2-small-x801"
-     ;;
-   gale)
-     SEED="--seed 837"
-     RUN_ID="--run_id gale-gpt2-small-x837"
-     ;;
-   haze)
-     SEED="--seed 900"
-     RUN_ID="--run_id haze-gpt2-small-x900"
-     ;;
-   icestorm)
-     SEED="--seed 999"
-     RUN_ID="--run_id icestorm-gpt2-small-999"
-     ;;
-   jetstream)
-     SEED="--seed 1080"
-     RUN_ID="--run_id jetstream-gpt2-small-x1080"
+     RUN_ID="--run_id expanse-gpt2-small-x777"
      ;;
    ?)
      usage
