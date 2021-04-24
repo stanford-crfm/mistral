@@ -331,14 +331,14 @@ class CustomCheckpointCallback(TrainerCallback):
 
         # `frequencies` specifies when to checkpoint (based on the current training step). Specifically:
         #   Input: [(freq, until), (new_freq, until) ...]
-        #   > We assert that until monotonically increases over frequencies on initialization!
+        #       > We assert that `until` monotonically increases (lightweight validation)
         self.freq, self.until = zip(*frequencies)
         assert all(i < j for i, j in zip(self.until, self.until[1:])), "Frequency `until_step` not increasing!"
 
     def on_step_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
         """ Borrow Checkpoint Logic from `DefaultFlowCallback` to decide when to checkpoint. """
 
-        # Save (note we explicitly save checkpoint-000 in `train.py`, so no need to do it here)
+        # Save (note we explicitly save checkpoint-0 in `train.py`, so no need to do it here)
         c = state.global_step
         if args.save_steps > 0 and c % (self.freq[bisect_left(self.until, c, hi=len(self.until) - 1)]) == 0:
             control.should_save = True
