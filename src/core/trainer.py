@@ -10,18 +10,24 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
-from torch.utils.data import Dataset
-from transformers import (
-    AutoModelForCausalLM,
-    PreTrainedModel,
-    PreTrainedTokenizerBase,
-    Trainer,
-    TrainerCallback,
-    TrainingArguments,
-)
+from torch.utils.data.dataset import Dataset
+from torch.utils.data.distributed import DistributedSampler
+from torch.utils.data.sampler import RandomSampler
+from transformers import AutoModelForCausalLM, PreTrainedModel, PreTrainedTokenizerBase, Trainer, TrainingArguments
 from transformers.data.data_collator import DataCollator
+from transformers.file_utils import is_datasets_available
+from transformers.trainer_callback import TrainerCallback
+from transformers.trainer_pt_utils import (
+    DistributedLengthGroupedSampler,
+    DistributedSamplerWithLoop,
+    LengthGroupedSampler,
+)
 from transformers.trainer_utils import EvalPrediction, speed_metrics
+from transformers.training_args import ParallelMode
 
+
+if is_datasets_available():
+    import datasets
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
 overwatch = logging.getLogger("mistral.core.trainer")
@@ -134,3 +140,64 @@ class OnlineBenchmarkTrainer(Trainer):
         output.metrics.update({f"{custom_metric_key_prefix}_ppl": ppl})
 
         return output.metrics
+
+    def _get_train_sampler(self) -> Optional[torch.utils.data.sampler.Sampler]:
+        """
+        Mostly copied from https://github.com/huggingface/transformers/blob/master/src/transformers/trainer.py#L509
+
+        We modify the Distributed Samplers by adding the `seed` argument
+        """
+        if isinstance(self.train_dataset, torch.utils.data.IterableDataset) or not isinstance(
+            self.train_dataset, collections.abc.Sized
+        ):
+            return None
+
+        # Build the sampler.
+        if self.args.group_by_length:
+            if is_datasets_available() and isinstance(self.train_dataset, datasets.Dataset):
+                lengths = (
+                    self.train_dataset[self.args.length_column_name]
+                    if self.args.length_column_name in self.train_dataset.column_names
+                    else None
+                )
+            else:
+                lengths = None
+            model_input_name = self.tokenizer.model_input_names[0] if self.tokenizer is not None else None
+            if self.args.world_size <= 1:
+                return LengthGroupedSampler(
+                    self.train_dataset, self.args.train_batch_size, lengths=lengths, model_input_name=model_input_name
+                )
+            else:
+                return DistributedLengthGroupedSampler(
+                    self.train_dataset,
+                    self.args.train_batch_size,
+                    num_replicas=self.args.world_size,
+                    rank=self.args.process_index,
+                    lengths=lengths,
+                    model_input_name=model_input_name,
+                    seed=self.args.seed,
+                )
+
+        else:
+            if self.args.world_size <= 1:
+                return RandomSampler(self.train_dataset)
+            elif (
+                self.args.parallel_mode in [ParallelMode.TPU, ParallelMode.SAGEMAKER_MODEL_PARALLEL]
+                and not self.args.dataloader_drop_last
+            ):
+                # Use a loop for TPUs when drop_last is False to have all batches have the same size.
+                return DistributedSamplerWithLoop(
+                    self.train_dataset,
+                    batch_size=self.args.per_device_train_batch_size,
+                    num_replicas=self.args.world_size,
+                    rank=self.args.process_index,
+                    seed=self.args.seed,
+                )
+            else:
+                # @Mercury =>> Critical Change :: Pass seed to Distributed Sampler to randomize Data Order!
+                return DistributedSampler(
+                    self.train_dataset,
+                    num_replicas=self.args.world_size,
+                    rank=self.args.process_index,
+                    seed=self.args.seed,
+                )
