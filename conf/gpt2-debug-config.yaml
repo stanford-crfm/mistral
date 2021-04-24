@@ -4,16 +4,16 @@
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
-    - datasets/wikitext103.yaml
+    - datasets/openwebtext.yaml
     - models/gpt2-small.yaml
-    - trainers/toy.yaml
+    - trainers/debug.yaml
 
 # Run ID -- defaults to `null`; override as you like!
 run_id: null
 
 # Weights & Biases
-wandb: mistral-debugging
-group: resuming
+wandb: mistral-sanity
+group: null
 
 # Artifacts & Caching
 artifacts:
@@ -26,6 +26,15 @@ effective_bsz: 512
 # Resume from Checkpoint
 resume: false
 resume_checkpoint: null
+
+# List of frequencies at which to save checkpoints, provided as a list of two-element tuples:
+#   - Frequency (`freq`) at which to save checkpoints (# steps)
+#   - Bound (`until`) on global step for given frequency (checkpoint every `freq` steps until global step = `until`)
+checkpoint_frequency:
+    - [10, 100]
+    - [25, 1000]
+    - [50, 2000]
+    - [100, 4000]
 
 # `torch.distributed` Default Infra Parameters -- to be overwritten by call to `torch.distributed.launch`
 local_rank: -1

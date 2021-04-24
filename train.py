@@ -32,7 +32,7 @@ from transformers.trainer_utils import get_last_checkpoint
 
 from conf.train_schema import get_schema
 from src.args import get_training_arguments
-from src.core import CustomWandbCallback, OnlineBenchmarkTrainer
+from src.core import CustomCheckpointCallback, CustomWandbCallback, OnlineBenchmarkTrainer
 from src.corpora import ONLINE_EVAL_DATA_REGISTRY, get_auto_dataset
 from src.models import get_auto_clm_tokenizer
 from src.overwatch import get_overwatch
@@ -143,6 +143,12 @@ def train() -> None:
     if quinfig.local_rank <= 0:
         overwatch.info(f"Training Arguments: {training_args}")
 
+    # Initialize Checkpoint Frequency Callback
+    if quinfig.checkpoint_frequency is None:
+        frequencies = [[quinfig.training_arguments.save_steps, quinfig.training_arguments.max_steps]]
+    else:
+        frequencies = quinfig.checkpoint_frequency
+
     trainer = OnlineBenchmarkTrainer(
         model=model,
         args=training_args,
@@ -159,12 +165,14 @@ def train() -> None:
                 resume=quinfig.resume,
                 resume_run_id=resume_run_id,
                 wandb_dir=str(paths["runs"]),
-            )
+            ),
+            CustomCheckpointCallback(frequencies=frequencies),
         ],
     )
 
     if quinfig.local_rank <= 0 and last_checkpoint is None:
-        trainer.save_model(output_dir=str(paths["runs"] / "checkpoint-0000"))
+        trainer.save_model(output_dir=str(paths["runs"] / "checkpoint-0"))
+
     # Training Time!
     overwatch.info("Training...")
     trainer.train(resume_from_checkpoint=last_checkpoint)

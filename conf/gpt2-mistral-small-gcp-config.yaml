@@ -29,6 +29,15 @@ effective_bsz: 512
 resume: false
 resume_checkpoint: null
 
+# List of frequencies at which to save checkpoints, provided as a list of two-element tuples:
+#   - Frequency (`freq`) at which to save checkpoints (# steps)
+#   - Bound (`until`) on global step for given frequency (checkpoint every `freq` steps until global step = `until`)
+checkpoint_frequency:
+    - [10, 100]
+    - [50, 2000]
+    - [100, 20000]
+    - [1000, 400000]
+
 # `torch.distributed` Default Infra Parameters -- to be overwritten by call to `torch.distributed.launch`
 local_rank: -1
 nnodes: -1

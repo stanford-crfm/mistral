@@ -67,26 +67,6 @@ case $MODEL in
      SEED="--seed 777"
      RUN_ID="--run_id eowyn-gpt2-medium-x777"
      ;;
-   feanor)
-     SEED="--seed 801"
-     RUN_ID="--run_id feanor-gpt2-medium-x801"
-     ;;
-   gandalf)
-     SEED="--seed 837"
-     RUN_ID="--run_id gandalf-gpt2-medium-x837"
-     ;;
-   hurin)
-     SEED="--seed 900"
-     RUN_ID="--run_id hurin-gpt2-medium-x900"
-     ;;
-   isildur)
-     SEED="--seed 999"
-     RUN_ID="--run_id isildur-gpt2-medium-999"
-     ;;
-   jrr)
-     SEED="--seed 1080"
-     RUN_ID="--run_id jrr-gpt2-medium-x1080"
-     ;;
    ?)
      usage
      exit

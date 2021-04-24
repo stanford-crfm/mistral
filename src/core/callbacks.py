@@ -7,11 +7,19 @@ Custom Hugging Face Weights and Biases Callback that allows for writing custom m
 import logging
 import os
 import time
-from typing import Dict
+from bisect import bisect_left
+from typing import Dict, List
 
 import jsonlines
 import torch
-from transformers import PreTrainedModel, TrainerControl, TrainerState, TrainingArguments, is_torch_tpu_available
+from transformers import (
+    PreTrainedModel,
+    TrainerCallback,
+    TrainerControl,
+    TrainerState,
+    TrainingArguments,
+    is_torch_tpu_available,
+)
 from transformers.integrations import WandbCallback
 
 
@@ -313,3 +321,26 @@ class CustomWandbCallback(WandbCallback):
             # Append to the JSON Log
             if state.global_step > self._last_log_step:
                 self._append_jsonl({"logs": logs, "step": state.global_step})
+
+
+class CustomCheckpointCallback(TrainerCallback):
+    """ Custom Checkpoint Callback used by Mistral for Saving Checkpoints at different frequencies. """
+
+    def __init__(self, frequencies: List[List[int]]):
+        super(CustomCheckpointCallback, self).__init__()
+
+        # `frequencies` specifies when to checkpoint (based on the current training step). Specifically:
+        #   Input: [(freq, until), (new_freq, until) ...]
+        #       > We assert that `until` monotonically increases (lightweight validation)
+        self.freq, self.until = zip(*frequencies)
+        assert all(i < j for i, j in zip(self.until, self.until[1:])), "Frequency `until_step` not increasing!"
+
+    def on_step_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
+        """ Borrow Checkpoint Logic from `DefaultFlowCallback` to decide when to checkpoint. """
+
+        # Save (note we explicitly save checkpoint-0 in `train.py`, so no need to do it here)
+        c = state.global_step
+        if args.save_steps > 0 and c % (self.freq[bisect_left(self.until, c, hi=len(self.until) - 1)]) == 0:
+            control.should_save = True
+
+        return control
