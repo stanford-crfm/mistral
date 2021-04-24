@@ -148,9 +148,6 @@ def train() -> None:
         frequencies = [[quinfig.training_arguments.save_steps, quinfig.training_arguments.max_steps]]
     else:
         frequencies = quinfig.checkpoint_frequency
-        import IPython
-
-        IPython.embed()
 
     trainer = OnlineBenchmarkTrainer(
         model=model,

@@ -10,6 +10,7 @@ from quinine.common.cerberus import (
     merge,
     nullable,
     required,
+    schema,
     stdict,
     tboolean,
     tfloat,
@@ -88,7 +89,7 @@ def get_schema() -> Dict[str, Any]:
     }
 
     # Combined Schema for `train.py`
-    schema = {
+    mistral_schema = {
         "dataset": stdict(data_schema),
         "model": stdict(model_schema),
         "training_arguments": stdict(trainer_schema),
@@ -97,7 +98,7 @@ def get_schema() -> Dict[str, Any]:
         "effective_bsz": merge(tinteger, default(512)),
         "resume": merge(tboolean, default(False)),
         "resume_checkpoint": merge(tstring, nullable, default(None)),
-        "checkpoint_frequency": merge(tlist, nullable, default(None)),
+        "checkpoint_frequency": merge(merge(tlist, schema(merge(tlist, schema(tinteger)))), nullable, default(None)),
         "log_level": merge(tinteger, default(20)),
         "run_id": merge(tstring, nullable, default(None)),
         "wandb": merge(tstring, nullable, default(None)),
@@ -113,4 +114,4 @@ def get_schema() -> Dict[str, Any]:
         "world_size": merge(tinteger, default(-1)),
     }
 
-    return schema
+    return mistral_schema
