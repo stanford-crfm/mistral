@@ -326,7 +326,7 @@ class CustomWandbCallback(WandbCallback):
 class CustomCheckpointCallback(TrainerCallback):
     """ Custom Checkpoint Callback used by Mistral for Saving Checkpoints at different frequencies. """
 
-    def __init__(self, frequencies: List[List[int, int]]):
+    def __init__(self, frequencies: List[List[int]]):
         super(CustomCheckpointCallback, self).__init__()
 
         # `frequencies` specifies when to checkpoint (based on the current training step). Specifically:

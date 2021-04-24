@@ -2,7 +2,7 @@
 #   Mistral Sanity Check -- GPT-2 Small 4K Step Run with the DeepSpeed ZeRO-2 Optimizer, Per-Device Batch Size of 16.
 
 # Constants
-CONFIG="--config conf/gpt2-debug-conf.yaml"
+CONFIG="--config conf/gpt2-debug-config.yaml"
 INFRA="--nnodes 2 --nproc_per_node 8"
 
 # Batch Size
