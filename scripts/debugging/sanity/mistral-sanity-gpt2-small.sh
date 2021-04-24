@@ -27,21 +27,21 @@ RESUME="--resume true"
 # ---
 
 # Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Sleep =>> Seed 21
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $ATHOS $DS_Z2 --run_id athos-gpt2-small-debug-x21
+#deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $ATHOS $DS_Z2 --run_id athos-gpt2-small-debug-x21
+#pkill -f "train.py"
+#sleep 3
+
+# Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Sleep =>> Seed 21 -- REPLICATION
+deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $ATHOS $DS_Z2 --run_id athos-replica-gpt2-small-debug-x21
 pkill -f "train.py"
 sleep 3
 
-## Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Sleep =>> Seed 21 -- REPLICATION
-#deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $ATHOS $DS_Z2 --run_id athos-replica-gpt2-small-debug-x21
-#pkill -f "train.py"
-#sleep 3
-#
-## Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Sleep =>> Seed 49
-#deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $PORTHOS $DS_Z2 --run_id porthos-gpt2-small-debug-x49
-#pkill -f "train.py"
-#sleep 3
-#
-## Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Sleep =>> Seed 81
-#deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $ARAMIS $DS_Z2 --run_id aramis-gpt2-small-debug-x81
-#pkill -f "train.py"
-#sleep 3
+# Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Sleep =>> Seed 49
+deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $PORTHOS $DS_Z2 --run_id porthos-gpt2-small-debug-x49
+pkill -f "train.py"
+sleep 3
+
+# Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Sleep =>> Seed 81
+deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $ARAMIS $DS_Z2 --run_id aramis-gpt2-small-debug-x81
+pkill -f "train.py"
+sleep 3

@@ -168,6 +168,7 @@ class OnlineBenchmarkTrainer(Trainer):
                     self.train_dataset, self.args.train_batch_size, lengths=lengths, model_input_name=model_input_name
                 )
             else:
+                # @Mercury =>> Critical Change :: Pass seed to Distributed Sampler to randomize Data Order!
                 return DistributedLengthGroupedSampler(
                     self.train_dataset,
                     self.args.train_batch_size,
@@ -185,6 +186,7 @@ class OnlineBenchmarkTrainer(Trainer):
                 self.args.parallel_mode in [ParallelMode.TPU, ParallelMode.SAGEMAKER_MODEL_PARALLEL]
                 and not self.args.dataloader_drop_last
             ):
+                # @Mercury =>> Critical Change :: Pass seed to Distributed Sampler to randomize Data Order!
                 # Use a loop for TPUs when drop_last is False to have all batches have the same size.
                 return DistributedSamplerWithLoop(
                     self.train_dataset,
