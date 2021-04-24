@@ -8,38 +8,23 @@ import logging
 import time
 from typing import Callable, Dict, List, Optional, Tuple
 
-
 import numpy as np
 import torch
-from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.dataset import Dataset
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.sampler import RandomSampler
-
-from transformers import (
-    AutoModelForCausalLM,
-    PreTrainedModel,
-    PreTrainedTokenizerBase,
-    Trainer,
-    TrainingArguments,
-)
+from transformers import AutoModelForCausalLM, PreTrainedModel, PreTrainedTokenizerBase, Trainer, TrainingArguments
 from transformers.data.data_collator import DataCollator
-from transformers.training_args import ParallelMode
+from transformers.file_utils import is_datasets_available
+from transformers.trainer_callback import TrainerCallback
 from transformers.trainer_pt_utils import (
     DistributedLengthGroupedSampler,
     DistributedSamplerWithLoop,
     LengthGroupedSampler,
 )
-from transformers.trainer_utils import (
-    EvalPrediction,
-    speed_metrics,
-)
-from transformers.file_utils import (
-    is_datasets_available,
-)
-from transformers.trainer_callback import (
-    TrainerCallback,
-)
+from transformers.trainer_utils import EvalPrediction, speed_metrics
+from transformers.training_args import ParallelMode
+
 
 if is_datasets_available():
     import datasets
@@ -209,6 +194,7 @@ class OnlineBenchmarkTrainer(Trainer):
                     seed=self.args.seed,
                 )
             else:
+                # @Mercury =>> Critical Change :: Pass seed to Distributed Sampler to randomize Data Order!
                 return DistributedSampler(
                     self.train_dataset,
                     num_replicas=self.args.world_size,
