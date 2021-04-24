@@ -5,7 +5,18 @@ Cerberus schema used by Quinine for train.py.
 """
 from typing import Any, Dict
 
-from quinine.common.cerberus import default, merge, nullable, required, stdict, tboolean, tfloat, tinteger, tstring
+from quinine.common.cerberus import (
+    default,
+    merge,
+    nullable,
+    required,
+    stdict,
+    stlist,
+    tboolean,
+    tfloat,
+    tinteger,
+    tstring,
+)
 
 
 def get_schema() -> Dict[str, Any]:
@@ -86,6 +97,7 @@ def get_schema() -> Dict[str, Any]:
         "effective_bsz": merge(tinteger, default(512)),
         "resume": merge(tboolean, default(False)),
         "resume_checkpoint": merge(tstring, nullable, default(None)),
+        "checkpoint_frequency": merge(stlist(stlist(tinteger)), nullable, default(None)),
         "log_level": merge(tinteger, default(20)),
         "run_id": merge(tstring, nullable, default(None)),
         "wandb": merge(tstring, nullable, default(None)),

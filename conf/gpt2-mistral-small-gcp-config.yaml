@@ -28,6 +28,11 @@ effective_bsz: 512
 # Resume from Checkpoint
 resume: false
 resume_checkpoint: null
+checkpoint_frequency:
+    - [10, 100]
+    - [50, 2000]
+    - [100, 20000]
+    - [1000, 400000]
 
 # `torch.distributed` Default Infra Parameters -- to be overwritten by call to `torch.distributed.launch`
 local_rank: -1
