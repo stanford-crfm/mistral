@@ -43,7 +43,7 @@ D_BSZ_16="--training_arguments.fp16 true --training_arguments.per_device_train_b
 GC="--model.gradient_checkpointing true --model.gc_checkpoint_every 6"
 
 # DeepSpeed Training Configuration
-DS_Z2="--training_arguments.deepspeed conf/deepspeed/z2-conf.json"
+DS_Z2="--training_arguments.deepspeed conf/deepspeed/z2-medium-conf.json"
 
 # Random Seeds -- Arwen :: 21, Beren :: 49, Cerebrimbor :: 81, Durin :: 343, Eowyn :: 777
 case $MODEL in
