@@ -1,8 +1,38 @@
 # mistral-gpt2-small.sh
-#   Mistral GPT-2 Small Full Run with the DeepSpeed ZeRO-2 Optimizer, Per-Device Batch Size of 16.
+#   Mistral GPT-2 Small Full Run with the DeepSpeed ZeRO-2 Optimizer, Per-Device Batch Size of 16. Runs locally, on
+#   Sphinx Cluster.
+
+# Parse Named Command Arguments::
+#   EX: bash mistral-gpt2-small.sh MODEL="firefly" RESUME="true"
+for ARGUMENT in "$@"
+do
+
+    KEY=$(echo $ARGUMENT | cut -f1 -d=)
+    VALUE=$(echo $ARGUMENT | cut -f2 -d=)
+
+    case "$KEY" in
+            MODEL)              MODEL=${VALUE} ;;
+            RESUME)             RESUME=${VALUE} ;;
+            *)
+    esac
+
+done
+
+# Set to Default Values if Param is not Set
+if [ -z "$MODEL" ]; then MODEL='firefly'; fi
+if [ -z "$RESUME" ]; then RESUME='false'; fi
+
+echo "MODEL = $MODEL"
+echo "RESUME = $RESUME"
 
 # Constants
-CONFIG="--config conf/gpt2-mistral-small-config.yaml"
+SPHINX_CONFIG="--config conf/gpt2-mistral-small-config.yaml"
+if [ "$RESUME" == "true" ];
+then
+  RES="--resume true";
+else
+  RES="";
+fi
 INFRA="--nnodes 2 --nproc_per_node 8"
 
 # Batch Size
@@ -11,34 +41,53 @@ D_BSZ_16="--training_arguments.fp16 true --training_arguments.per_device_train_b
 # DeepSpeed Training Configuration
 DS_Z2="--training_arguments.deepspeed conf/deepspeed/z2-conf.json"
 
-# Random Seeds -- Alias :: 21, Battlestar :: 49, Caprica :: 81
-ALIAS="--seed 21"
-BATTLESTAR="--seed 49"
-CAPRICA="--seed 81"
-
-# TODO mistral-gpt2-small.sh.A :: Add 7 other seeds + Control-Flow Logic!
+# Random Seeds -- Alias :: 21, Battlestar :: 49, Caprica :: 81, Darkmatter :: 343, Expanse :: 777
+case $MODEL in
+   alias)
+     SEED="--seed 21"
+     RUN_ID="--run_id alias-gpt2-small-x21"
+     ;;
+   battlestar)
+     SEED="--seed 49"
+     RUN_ID="--run_id battlestar-gpt2-small-x49"
+     ;;
+   caprica)
+     SEED="--seed 81"
+     RUN_ID="--run_id caprica-gpt2-small-x81"
+     ;;
+   darkmatter)
+     SEED="--seed 343"
+     RUN_ID="--run_id darkmatter-gpt2-small-x343"
+     ;;
+   expanse)
+     SEED="--seed 777"
+     RUN_ID="--run_id expanse-gpt2-small-x777"
+     ;;
+   firefly)
+     SEED="--seed 801"
+     RUN_ID="--run_id firefly-gpt2-small-x801"
+     ;;
+   gundam)
+     SEED="--seed 837"
+     RUN_ID="--run_id gundam-gpt2-small-x837"
+     ;;
+   highlander)
+     SEED="--seed 900"
+     RUN_ID="--run_id highlander-gpt2-small-x900"
+     ;;
+   ?)
+     usage
+     exit
+     ;;
+ esac
 
 # Set DeepSpeed Launcher Parameters
-MASTER_ADDR=sphinx1.stanford.edu
-MASTER_PORT=7000
-DISTRIBUTED_ARGS="--num_gpus 8 --num_nodes 2 --master_addr $MASTER_ADDR"
-
-# Resume
-RESUME="--resume true"
+DISTRIBUTED_ARGS="--num_gpus 8 --num_nodes 2 --master_addr sphinx1.stanford.edu"
 
 # ---
 
-# Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Sleep =>> Seed 21
-# deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $ALIAS $DS_Z2 --run_id alias-gpt2-small-x21
-# pkill -f "train.py"
-# sleep 3
-
-# Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Sleep =>> Seed 49
-# deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $BATTLESTAR $DS_Z2 --run_id battlestar-gpt2-small-x49
-# pkill -f "train.py"
-# sleep 3
-
-# Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Seed =>> Seed 81 (+ Resume!)
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $CAPRICA $RESUME $DS_Z2 --run_id caprica-gpt2-small-x81
+# Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Seed
+echo deepspeed $DISTRIBUTED_ARGS train.py $SPHINX_CONFIG $INFRA $D_BSZ_16 $SEED $RES $DS_Z2 $RUN_ID
+deepspeed $DISTRIBUTED_ARGS train.py $SPHINX_CONFIG $INFRA $D_BSZ_16 $SEED $RES $DS_Z2 $RUN_ID
 pkill -f "train.py"
 sleep 3
