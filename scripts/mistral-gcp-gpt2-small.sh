@@ -64,6 +64,18 @@ case $MODEL in
      SEED="--seed 777"
      RUN_ID="--run_id expanse-gpt2-small-x777"
      ;;
+   firefly)
+     SEED="--seed 801"
+     RUN_ID="--run_id firefly-gpt2-small-x801"
+     ;;
+   gundam)
+     SEED="--seed 837"
+     RUN_ID="--run_id gundam-gpt2-small-x837"
+     ;;
+   highlander)
+     SEED="--seed 900"
+     RUN_ID="--run_id highlander-gpt2-small-x900"
+     ;;
    ?)
      usage
      exit
