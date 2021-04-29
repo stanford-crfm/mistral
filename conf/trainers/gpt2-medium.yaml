@@ -12,8 +12,8 @@ training_arguments:
     do_train: true
     evaluation_strategy: steps
 
-    # Set these based on GPU RAM/your available hardware
-    per_device_train_batch_size: 8
+    # Set these based on GPU RAM/your available hardware (4 w/o gradient checkpointing, 8 w/ partial checkpointing)
+    per_device_train_batch_size: 4
     per_device_eval_batch_size: 16
 
     # We set this dynamically based on DDP Computation [steps = effective_batch / (per_gpu_batch * gpus * nodes)]
@@ -26,7 +26,7 @@ training_arguments:
     learning_rate: 0.0003
     weight_decay: 0.1
     adam_beta1: 0.9
-    adam_beta2: 0.95
+    adam_beta2: 0.999
     adam_epsilon: 1.0e-8
 
     # Gradient Norm
