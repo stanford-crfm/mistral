@@ -93,7 +93,7 @@ DISTRIBUTED_ARGS="--num_gpus 16 --num_nodes 1"
 # ---
 
 # Single-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Seed
-echo deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_4 $SEED $RES $DS_Z2 $RUN_ID
-deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_4 $SEED $RES $DS_Z2 $RUN_ID
+echo deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_4 $LR $SEED $RES $DS_Z2 $RUN_ID
+deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_4 $LR $SEED $RES $DS_Z2 $RUN_ID
 pkill -f "train.py"
 sleep 3
