@@ -36,35 +36,49 @@ fi
 
 INFRA="--nnodes 1 --nproc_per_node 16"
 
-# Batch Size
-D_BSZ_16="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8"
+# Batch Size (4 w/o gradient checkpointing, 8 w/ partial gradient checkpointing)
+D_BSZ_4="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4"
 
-# Gradient Checkpointing (Every 6 Blocks for 24 Blocks == 4 Blocks Checkpointed Total)
-GC="--model.gradient_checkpointing true --model.gc_checkpoint_every 6"
-
-# DeepSpeed Training Configuration
-DS_Z2="--training_arguments.deepspeed conf/deepspeed/z2-medium-conf.json"
+# DeepSpeed Training Configurations
+DS_Z2_BETA="--training_arguments.deepspeed conf/deepspeed/z2-medium-conf.json"
+DS_Z2_HALF="--training_arguments.deepspeed conf/deepspeed/z2-medium-half-conf.json"
 
 # Random Seeds -- Arwen :: 21, Beren :: 49, Cerebrimbor :: 81, Durin :: 343, Eowyn :: 777
 case $MODEL in
    arwen)
      SEED="--seed 21"
+     DS_Z2=DS_Z2_BETA
+     LR="--training_arguments.learning_rate 0.0003"
      RUN_ID="--run_id arwen-gpt2-medium-x21"
      ;;
    beren)
      SEED="--seed 49"
+     DS_Z2=DS_Z2_BETA
+     LR="--training_arguments.learning_rate 0.0003"
      RUN_ID="--run_id beren-gpt2-medium-x49"
      ;;
-   cerebrimbor)
+   cerebrimbor-beta)
      SEED="--seed 81"
-     RUN_ID="--run_id cerebrimbor-gpt2-medium-x81"
+     DS_Z2=DS_Z2_BETA
+     LR="--training_arguments.learning_rate 0.0003"
+     RUN_ID="--run_id cerebrimbor-beta-gpt2-medium-x81"
+     ;;
+   cerebrimbor-half)
+     SEED="--seed 81"
+     DS_Z2=DS_Z2_HALF
+     LR="--training_arguments.learning_rate 0.00015"
+     RUN_ID="--run_id cerebrimbor-beta-gpt2-medium-x81"
      ;;
    durin)
      SEED="--seed 343"
+     DS_Z2=DS_Z2_BETA
+     LR="--training_arguments.learning_rate 0.0003"
      RUN_ID="--run_id durin-gpt2-medium-x343"
      ;;
    eowyn)
      SEED="--seed 777"
+     DS_Z2=DS_Z2_BETA
+     LR="--training_arguments.learning_rate 0.0003"
      RUN_ID="--run_id eowyn-gpt2-medium-x777"
      ;;
    ?)
@@ -79,7 +93,7 @@ DISTRIBUTED_ARGS="--num_gpus 16 --num_nodes 1"
 # ---
 
 # Single-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Seed
-echo deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_16 $GC $SEED $RES $DS_Z2 $RUN_ID
-deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_16 $SEED $GC $RES $DS_Z2 $RUN_ID
+echo deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_4 $SEED $RES $DS_Z2 $RUN_ID
+deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_4 $SEED $RES $DS_Z2 $RUN_ID
 pkill -f "train.py"
 sleep 3
