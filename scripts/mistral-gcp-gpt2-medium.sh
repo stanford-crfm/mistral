@@ -47,37 +47,37 @@ DS_Z2_HALF="--training_arguments.deepspeed conf/deepspeed/z2-medium-half-conf.js
 case $MODEL in
    arwen)
      SEED="--seed 21"
-     DS_Z2=DS_Z2_BETA
+     DS_Z2=$DS_Z2_BETA
      LR="--training_arguments.learning_rate 0.0003"
      RUN_ID="--run_id arwen-gpt2-medium-x21"
      ;;
    beren)
      SEED="--seed 49"
-     DS_Z2=DS_Z2_BETA
+     DS_Z2=$DS_Z2_BETA
      LR="--training_arguments.learning_rate 0.0003"
      RUN_ID="--run_id beren-gpt2-medium-x49"
      ;;
    cerebrimbor-beta)
      SEED="--seed 81"
-     DS_Z2=DS_Z2_BETA
+     DS_Z2=$DS_Z2_BETA
      LR="--training_arguments.learning_rate 0.0003"
      RUN_ID="--run_id cerebrimbor-beta-gpt2-medium-x81"
      ;;
    cerebrimbor-half)
      SEED="--seed 81"
-     DS_Z2=DS_Z2_HALF
+     DS_Z2=$DS_Z2_HALF
      LR="--training_arguments.learning_rate 0.00015"
      RUN_ID="--run_id cerebrimbor-beta-gpt2-medium-x81"
      ;;
    durin)
      SEED="--seed 343"
-     DS_Z2=DS_Z2_BETA
+     DS_Z2=$DS_Z2_BETA
      LR="--training_arguments.learning_rate 0.0003"
      RUN_ID="--run_id durin-gpt2-medium-x343"
      ;;
    eowyn)
      SEED="--seed 777"
-     DS_Z2=DS_Z2_BETA
+     DS_Z2=$DS_Z2_BETA
      LR="--training_arguments.learning_rate 0.0003"
      RUN_ID="--run_id eowyn-gpt2-medium-x777"
      ;;
