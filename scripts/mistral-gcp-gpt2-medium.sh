@@ -67,7 +67,7 @@ case $MODEL in
      SEED="--seed 81"
      DS_Z2=$DS_Z2_HALF
      LR="--training_arguments.learning_rate 0.00015"
-     RUN_ID="--run_id cerebrimbor-beta-gpt2-medium-x81"
+     RUN_ID="--run_id cerebrimbor-half-gpt2-medium-x81"
      ;;
    durin)
      SEED="--seed 343"
