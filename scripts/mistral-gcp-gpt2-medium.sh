@@ -40,8 +40,8 @@ INFRA="--nnodes 1 --nproc_per_node 16"
 D_BSZ_4="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4"
 
 # Adam Beta2
-BETA2_999="-training_arguments.adam_beta2 0.999"
-BETA2_95="training_arguments.adam_beta2 0.95"
+BETA2_999="--training_arguments.adam_beta2 0.999"
+BETA2_95="--training_arguments.adam_beta2 0.95"
 
 # DeepSpeed Training Configurations
 DS_Z2_BETA="--training_arguments.deepspeed conf/deepspeed/z2-medium-conf.json"
