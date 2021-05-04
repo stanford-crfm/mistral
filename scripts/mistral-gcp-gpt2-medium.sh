@@ -39,9 +39,14 @@ INFRA="--nnodes 1 --nproc_per_node 16"
 # Batch Size (4 w/o gradient checkpointing, 8 w/ partial gradient checkpointing)
 D_BSZ_4="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4"
 
+# Adam Beta2
+BETA2_999="-training_arguments.adam_beta2 0.999"
+BETA2_95="training_arguments.adam_beta2 0.95"
+
 # DeepSpeed Training Configurations
 DS_Z2_BETA="--training_arguments.deepspeed conf/deepspeed/z2-medium-conf.json"
 DS_Z2_HALF="--training_arguments.deepspeed conf/deepspeed/z2-medium-half-conf.json"
+DS_Z2_PRIME="--training_arguments.deepspeed conf/deepspeed/z2-medium-prime-conf.json"
 
 # Random Seeds -- Arwen :: 21, Beren :: 49, Cerebrimbor :: 81, Durin :: 343, Eowyn :: 777
 case $MODEL in
@@ -61,13 +66,22 @@ case $MODEL in
      SEED="--seed 81"
      DS_Z2=$DS_Z2_BETA
      LR="--training_arguments.learning_rate 0.0003"
+     BETA2=$BETA2_999
      RUN_ID="--run_id cerebrimbor-beta-gpt2-medium-x81"
      ;;
    cerebrimbor-half)
      SEED="--seed 81"
      DS_Z2=$DS_Z2_HALF
      LR="--training_arguments.learning_rate 0.00015"
+     BETA2=$BETA2_999
      RUN_ID="--run_id cerebrimbor-half-gpt2-medium-x81"
+     ;;
+   cerebrimbor-prime)
+     SEED="--seed 81"
+     DS_Z2=$DS_Z2_HALF
+     LR="--training_arguments.learning_rate 0.00015"
+     BETA2=$BETA2_95
+     RUN_ID="--run_id cerebrimbor-prime-gpt2-medium-x81"
      ;;
    durin)
      SEED="--seed 343"
@@ -93,7 +107,7 @@ DISTRIBUTED_ARGS="--num_gpus 16 --num_nodes 1"
 # ---
 
 # Single-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Seed
-echo deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_4 $LR $SEED $RES $DS_Z2 $RUN_ID
-deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_4 $LR $SEED $RES $DS_Z2 $RUN_ID
+echo deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_4 $LR $BETA2 $SEED $RES $DS_Z2 $RUN_ID
+deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_4 $LR $BETA2 $SEED $RES $DS_Z2 $RUN_ID
 pkill -f "train.py"
 sleep 3
