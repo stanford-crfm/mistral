@@ -49,7 +49,7 @@ case $MODEL in
      ;;
    battlestar)
      SEED="--seed 49"
-     RUN_ID="--run_id battlestar-gpt2-small-x49"
+     RUN_ID="--run_id sphinx-battlestar-gpt2-small-x49"
      ;;
    caprica)
      SEED="--seed 81"
