@@ -1,5 +1,5 @@
 """
-gpt2_gc.py
+mistral_gpt2.py
 
 Custom Implementation of the GPT-2 LM-Head Model (and auxiliary classes) with support for adaptive/custom number of
 gradient checkpoints (for fine-grained tweaking of memory footprint vs. speed).
@@ -17,17 +17,17 @@ from transformers.modeling_outputs import BaseModelOutputWithPastAndCrossAttenti
 overwatch = logging.getLogger("mistral.models.gpt2_gc")
 
 
-class GCGPT2LMHeadModel(GPT2LMHeadModel):
+class MistralGPT2LMHeadModel(GPT2LMHeadModel):
     def __init__(self, config: GPT2Config):
         super().__init__(config)
 
     # @MERCURY =>> Reconfigure GPT2LMHead to take custom, partial checkpoint model instance!
     def create_checkpointed_model(self, gc_checkpoint_every: int):
         # Reinitalize GPT-2 Model w/ Custom GC Wrapper
-        self.transformer = GCGPT2Model(self.config, gc_checkpoint_every)
+        self.transformer = MistralGPT2Model(self.config, gc_checkpoint_every)
 
 
-class GCGPT2Model(GPT2Model):
+class MistralGPT2Model(GPT2Model):
     # @MERCURY =>> GPT-2 Model Instance now takes `gc_checkpoint_every` parameter.
     def __init__(self, config: GPT2Config, gc_checkpoint_every: int):
         super().__init__(config)
