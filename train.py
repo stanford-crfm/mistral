@@ -89,6 +89,7 @@ def train() -> None:
         gradient_checkpointing=quinfig.model.gradient_checkpointing,
         gc_checkpoint_every=quinfig.model.gc_checkpoint_every,
         use_pretrained_tokenizer=quinfig.model.pretrained_tokenizer,
+        initial_weights=quinfig.model.initial_weights,
     )
 
     # Load Dataset w/ Preprocessing, Batching, and Collating

@@ -10,6 +10,7 @@ import math
 from pathlib import Path
 from typing import Dict, Tuple
 
+import torch
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizer
 
 from ..util import REGISTRY
@@ -49,6 +50,7 @@ def get_auto_clm_tokenizer(
     gradient_checkpointing: bool = True,
     gc_checkpoint_every: int = -1,
     use_pretrained_tokenizer: bool = True,
+    initial_weights: str = None,
 ) -> Tuple[AutoModelForCausalLM, PreTrainedTokenizer]:
     """ Download/Load AutoConfig and Instantiate Corresponding Model and Tokenizer. """
 
@@ -92,5 +94,10 @@ def get_auto_clm_tokenizer(
     model.resize_token_embeddings(len(tokenizer))
     if "gpt" in model_id:
         gpt_initialize(model, initializer_range=config.initializer_range, n_layer=config.n_layer)
+
+    # If `initial_weights` is not None, load weights from path!
+    if initial_weights is not None:
+        overwatch.info(f"Initializing Weights from File: `{initial_weights}`...")
+        model.load_state_dict(torch.load(initial_weights, map_location=torch.device("cpu")))
 
     return model, tokenizer
