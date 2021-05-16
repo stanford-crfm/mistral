@@ -16,3 +16,6 @@ model:
 
     # Sequence Length
     seq_len: 1024
+
+    # Initialize Weights from File
+    initial_weights: null
