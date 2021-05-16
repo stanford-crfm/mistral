@@ -76,7 +76,7 @@ def get_auto_clm_tokenizer(
         raise NotImplementedError()
 
     # Partial Gradient Checkpointing (currently only supported for GPT-2 models)
-    if gradient_checkpointing and "gpt2" in model_id:
+    if "gpt2" in model_id:
         overwatch.info(
             f"Initializing Tabula Rasa GC-Checkpointed Model (Every {gc_checkpoint_every} Blocks) from Configuration:"
             f" `{REGISTRY[model_id]}`..."

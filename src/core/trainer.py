@@ -92,8 +92,11 @@ class OnlineBenchmarkTrainer(Trainer):
             self._globalstep_last_logged = self.state.global_step
 
             # Add activation logging
-            # This logging only works for MistralGPT2Model
-            for block_i, block in enumerate(model.h):
+            # This logging only works for MistralGPT2LMHeadModel
+            # Retrieve PyTorch module from DeepSpeedEngine
+            if self.deepspeed:
+                model = model.module
+            for block_i, block in enumerate(model.transformer.h):
                 layer_activation_stats = {
                     f"activations/layer{block_i}_" + k: v for k, v in block.attn.activation_stats.items()
                 }

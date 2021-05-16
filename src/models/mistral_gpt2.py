@@ -36,6 +36,8 @@ class MistralGPT2Model(GPT2Model):
         self.h = nn.ModuleList([MistralGPT2Block(config.n_ctx, config, scale=True) for _ in range(config.n_layer)])
         self.init_weights()
 
+        if getattr(self.config, "gradient_checkpointing", False):
+            assert 1 <= gc_checkpoint_every <= len(self.h)
         self.gc_checkpoint_every = gc_checkpoint_every
 
     def forward(
@@ -238,7 +240,7 @@ class MistralGPT2Model(GPT2Model):
 
 class MistralGPT2Attention(Attention):
     def __init__(self, nx, n_ctx, config, scale=False, is_cross_attention=False):
-        super(MistralGPT2Attention).__init__(nx, n_ctx, config, scale, is_cross_attention)
+        super().__init__(nx, n_ctx, config, scale, is_cross_attention)
 
         self.activation_stats = {
             "attention_weight_max": None,
