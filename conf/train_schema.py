@@ -39,6 +39,7 @@ def get_schema() -> Dict[str, Any]:
         "gc_checkpoint_every": merge(tinteger, default(-1)),
         "pretrained_tokenizer": merge(tboolean, default(True)),
         "seq_len": merge(tinteger, default(1024)),
+        "initial_weights": merge(tstring, nullable, default(None)),
     }
 
     # Schema for Huggingface Trainer and Training Arguments

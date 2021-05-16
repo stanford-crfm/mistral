@@ -49,7 +49,15 @@ case $MODEL in
      ;;
    battlestar)
      SEED="--seed 49"
-     RUN_ID="--run_id sphinx-battlestar-gpt2-small-x49"
+     RUN_ID="--run_id battlestar-gpt2-small-x49"
+     ;;
+   battlestar-replica)
+     SEED="--seed 49 --model.initial_weights /u/scr/nlp/data/mercury/community/gpt2-small/scifi/battlestar-gpt2-small-x49/checkpoint-0/pytorch_model.bin"
+     RUN_ID="--run_id replica-battlestar-gpt2-small-x49"
+     ;;
+   battlestar-replica-150k)
+     SEED="--seed 49 --model.initial_weights /u/scr/nlp/data/mercury/community/gpt2-small/scifi/battlestar-gpt2-small-x49/checkpoint-150000/pytorch_model.bin"
+     RUN_ID="--run_id replica-150k-battlestar-gpt2-small-x49"
      ;;
    caprica)
      SEED="--seed 81"
