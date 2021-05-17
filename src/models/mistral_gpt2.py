@@ -245,7 +245,6 @@ class MistralGPT2Attention(Attention):
         self.activation_stats = {
             "attention_weight_max": None,
             "attention_weight_min": None,
-            "attention_weight_median": None,
         }
 
     def _attn(self, q, k, v, attention_mask=None, head_mask=None, output_attentions=False):
@@ -258,7 +257,6 @@ class MistralGPT2Attention(Attention):
         with torch.no_grad():
             self.activation_stats["attention_weight_max"] = w.max().item()
             self.activation_stats["attention_weight_min"] = w.min().item()
-            self.activation_stats["attention_weight_mediam"] = w.median().item()
 
         if self.scale:
             w = w / (float(v.size(-1)) ** 0.5)
