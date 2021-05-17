@@ -1,5 +1,5 @@
 """
-gpt2_gc.py
+mistral_gpt2.py
 
 Custom Implementation of the GPT-2 LM-Head Model (and auxiliary classes) with support for adaptive/custom number of
 gradient checkpoints (for fine-grained tweaking of memory footprint vs. speed).
@@ -9,7 +9,9 @@ Reference: https://github.com/huggingface/transformers/blob/master/src/transform
 import logging
 
 import torch
+import torch.nn as nn
 from transformers import GPT2Config, GPT2LMHeadModel, GPT2Model
+from transformers.models.gpt2.modeling_gpt2 import Attention, Block, MLP
 from transformers.modeling_outputs import BaseModelOutputWithPastAndCrossAttentions
 
 
@@ -17,20 +19,25 @@ from transformers.modeling_outputs import BaseModelOutputWithPastAndCrossAttenti
 overwatch = logging.getLogger("mistral.models.gpt2_gc")
 
 
-class GCGPT2LMHeadModel(GPT2LMHeadModel):
+class MistralGPT2LMHeadModel(GPT2LMHeadModel):
     def __init__(self, config: GPT2Config):
         super().__init__(config)
 
     # @MERCURY =>> Reconfigure GPT2LMHead to take custom, partial checkpoint model instance!
     def create_checkpointed_model(self, gc_checkpoint_every: int):
         # Reinitalize GPT-2 Model w/ Custom GC Wrapper
-        self.transformer = GCGPT2Model(self.config, gc_checkpoint_every)
+        self.transformer = MistralGPT2Model(self.config, gc_checkpoint_every)
 
 
-class GCGPT2Model(GPT2Model):
+class MistralGPT2Model(GPT2Model):
     # @MERCURY =>> GPT-2 Model Instance now takes `gc_checkpoint_every` parameter.
     def __init__(self, config: GPT2Config, gc_checkpoint_every: int):
         super().__init__(config)
+        self.h = nn.ModuleList([MistralGPT2Block(config.n_ctx, config, scale=True) for _ in range(config.n_layer)])
+        self.init_weights()
+
+        if getattr(self.config, "gradient_checkpointing", False):
+            assert 1 <= gc_checkpoint_every <= len(self.h)
         self.gc_checkpoint_every = gc_checkpoint_every
 
     def forward(
@@ -229,3 +236,56 @@ class GCGPT2Model(GPT2Model):
             attentions=all_self_attentions,
             cross_attentions=all_cross_attentions,
         )
+
+
+class MistralGPT2Attention(Attention):
+    def __init__(self, nx, n_ctx, config, scale=False, is_cross_attention=False):
+        super().__init__(nx, n_ctx, config, scale, is_cross_attention)
+
+        self.activation_stats = {
+            "attention_weight_max": None,
+            "attention_weight_min": None,
+        }
+
+    def _attn(self, q, k, v, attention_mask=None, head_mask=None, output_attentions=False):
+        """
+        Taken from https://github.com/huggingface/transformers/blob/v4.5.0/src/transformers/models/gpt2/modeling_gpt2.py#L167
+        We log extra statistics about the attention weight
+        """
+        w = torch.matmul(q, k)
+        # Add extra logging of the attention weight
+        with torch.no_grad():
+            self.activation_stats["attention_weight_max"] = w.max().item()
+            self.activation_stats["attention_weight_min"] = w.min().item()
+
+        if self.scale:
+            w = w / (float(v.size(-1)) ** 0.5)
+        nd, ns = w.size(-2), w.size(-1)
+
+        if not self.is_cross_attention:
+            # if only "normal" attention layer implements causal mask
+            mask = self.bias[:, :, ns - nd : ns, :ns]
+            w = torch.where(mask.bool(), w, self.masked_bias.to(w.dtype))
+
+        if attention_mask is not None:
+            # Apply the attention mask
+            w = w + attention_mask
+
+        w = nn.Softmax(dim=-1)(w)
+        w = self.attn_dropout(w)
+
+        # Mask heads if we want to
+        if head_mask is not None:
+            w = w * head_mask
+
+        outputs = (torch.matmul(w, v),)
+        if output_attentions:
+            outputs += (w,)
+        return outputs
+
+
+class MistralGPT2Block(Block):
+    def __init__(self, n_ctx, config, scale=False):
+        super().__init__(n_ctx, config, scale)
+        hidden_size = config.n_embd
+        self.attn = MistralGPT2Attention(hidden_size, n_ctx, config, scale)

@@ -14,7 +14,7 @@ import torch
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizer
 
 from ..util import REGISTRY
-from .gpt2_gc import GCGPT2LMHeadModel
+from .mistral_gpt2 import MistralGPT2LMHeadModel
 
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
@@ -76,12 +76,12 @@ def get_auto_clm_tokenizer(
         raise NotImplementedError()
 
     # Partial Gradient Checkpointing (currently only supported for GPT-2 models)
-    if gradient_checkpointing and "gpt2" in model_id:
+    if "gpt2" in model_id:
         overwatch.info(
             f"Initializing Tabula Rasa GC-Checkpointed Model (Every {gc_checkpoint_every} Blocks) from Configuration:"
             f" `{REGISTRY[model_id]}`..."
         )
-        model = GCGPT2LMHeadModel(config)
+        model = MistralGPT2LMHeadModel(config)
         model.create_checkpointed_model(gc_checkpoint_every)
 
     # No Adaptive Gradient Checkpointing
