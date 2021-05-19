@@ -39,6 +39,8 @@ def get_schema() -> Dict[str, Any]:
         "gc_checkpoint_every": merge(tinteger, default(-1)),
         "pretrained_tokenizer": merge(tboolean, default(True)),
         "seq_len": merge(tinteger, default(1024)),
+        "reorder_attn": merge(tboolean, default(True)),
+        "upcast_attn": merge(tboolean, default(True)),
         "initial_weights": merge(tstring, nullable, default(None)),
     }
 
