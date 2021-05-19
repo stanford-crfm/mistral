@@ -218,21 +218,16 @@ class CustomWandbCallback(WandbCallback):
             # Get time taken in step
             within_time_taken = time.time() - self.within_time
 
-            # Log Step Information
+            # Aggregate Step Information
+            log_info = {
+                "info/global_step": state.global_step,
+                "train_info/time_within_train_step": within_time_taken,
+            }
             if hasattr(optimizer, "loss_scale"):
-                self._wandb.log(
-                    {
-                        "info/global_step": state.global_step,
-                        "train_info/time_within_train_step": within_time_taken,
-                        "train_info/loss_scale": optimizer.loss_scale,
-                    },
-                    step=state.global_step,
-                )
-            else:
-                self._wandb.log(
-                    {"info/global_step": state.global_step, "train_info/time_within_train_step": within_time_taken},
-                    step=state.global_step,
-                )
+                log_info["train_info/loss_scale"] = optimizer.loss_scale
+
+            # Log
+            self._wandb.log(log_info, step=state.global_step)
 
             if state.global_step > self._last_log_step:
                 self._append_jsonl(
