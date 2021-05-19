@@ -362,4 +362,6 @@ class MistralGPT2Block(Block):
     def __init__(self, n_ctx, config, scale=False, reorder_attn=True, upcast_attn=True):
         super().__init__(n_ctx, config, scale)
         hidden_size = config.n_embd
-        self.attn = MistralGPT2Attention(hidden_size, n_ctx, config, scale, reorder_attn, upcast_attn)
+        self.attn = MistralGPT2Attention(
+            hidden_size, n_ctx, config, scale=scale, reorder_attn=reorder_attn, upcast_attn=upcast_attn
+        )
