@@ -272,7 +272,7 @@ class MistralGPT2Attention(Attention):
         We log extra statistics about the attention weights!
         """
         # @MERCURY =>> Reorder Scaled Dot-Product Attention Computation, Upcast to FP32
-        # Q, K, V :: [bsz, num_heads, seq_len, dk]
+        # Q :: [bsz, num_heads, seq_len, dk], K :: [bsz, num_heads, dk, seq_len]
         if self.scale:
             # Get QKV Dimensions
             bsz, num_heads, seq_len, dk = q.size()
