@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-sleep 3h
+sleep 6h
 pkill -f "train.py"

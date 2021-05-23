@@ -36,7 +36,7 @@ fi
 INFRA="--nnodes 2 --nproc_per_node 8"
 
 # Batch Size
-D_BSZ_16="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 16"
+D_BSZ_16="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8"
 
 # DeepSpeed Training Configuration
 DS_Z2="--training_arguments.deepspeed conf/deepspeed/z2-conf.json"
@@ -63,6 +63,10 @@ case $MODEL in
      SEED="--seed 49 --model.initial_weights /u/scr/nlp/data/mercury/community/gpt2-small/scifi/battlestar-gpt2-small-x49/checkpoint-150000/pytorch_model.bin --training_arguments.logging_steps 10"
      RUN_ID="--run_id replica-150k-battlestar-activation-logging-gpt2-small-x49"
      ;;
+   galactica-stability-150k)
+    SEED="--seed 49 --model.initial_weights /u/scr/nlp/data/mercury/community/gpt2-small/scifi/battlestar-gpt2-small-x49/checkpoint-150000/pytorch_model.bin --training_arguments.logging_steps 10"
+    RUN_ID="--run_id galactica-stability-150k-gpt2-small-x49"
+    ;;
    caprica)
      SEED="--seed 81"
      RUN_ID="--run_id caprica-gpt2-small-x81"

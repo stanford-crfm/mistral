@@ -37,7 +37,7 @@ fi
 INFRA="--nnodes 1 --nproc_per_node 16"
 
 # Batch Size
-D_BSZ_16="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 16"
+D_BSZ_16="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8"
 
 # DeepSpeed Training Configuration
 DS_Z2="--training_arguments.deepspeed conf/deepspeed/z2-conf.json"

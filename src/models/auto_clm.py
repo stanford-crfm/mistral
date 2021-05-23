@@ -50,6 +50,8 @@ def get_auto_clm_tokenizer(
     gradient_checkpointing: bool = True,
     gc_checkpoint_every: int = -1,
     use_pretrained_tokenizer: bool = True,
+    reorder_attn: bool = True,
+    upcast_attn: bool = True,
     initial_weights: str = None,
 ) -> Tuple[AutoModelForCausalLM, PreTrainedTokenizer]:
     """ Download/Load AutoConfig and Instantiate Corresponding Model and Tokenizer. """
@@ -77,12 +79,14 @@ def get_auto_clm_tokenizer(
 
     # Partial Gradient Checkpointing (currently only supported for GPT-2 models)
     if "gpt2" in model_id:
-        overwatch.info(
-            f"Initializing Tabula Rasa GC-Checkpointed Model (Every {gc_checkpoint_every} Blocks) from Configuration:"
-            f" `{REGISTRY[model_id]}`..."
-        )
-        model = MistralGPT2LMHeadModel(config)
-        model.create_checkpointed_model(gc_checkpoint_every)
+        overwatch.info(f"Initializing Custom GPT-2 Model from Configuration: `{REGISTRY[model_id]}`...")
+        model = MistralGPT2LMHeadModel(config, reorder_attn, upcast_attn)
+
+        # Turn on Gradient Checkpointing if Necessary
+        if gradient_checkpointing:
+            model.create_checkpointed_model(gc_checkpoint_every)
+        else:
+            model.create_model()
 
     # No Adaptive Gradient Checkpointing
     else:
