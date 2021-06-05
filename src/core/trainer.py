@@ -96,11 +96,13 @@ class OnlineBenchmarkTrainer(Trainer):
             # Retrieve PyTorch module from DeepSpeedEngine
             if self.deepspeed:
                 model = model.module
-            for block_i, block in enumerate(model.transformer.h):
-                layer_activation_stats = {
-                    f"activations/layer{block_i}_" + k: v for k, v in block.attn.activation_stats.items()
-                }
-                logs.update(layer_activation_stats)
+
+            if hasattr(model.transformer.h[0].block.attn, "activation_stats"):
+                for block_i, block in enumerate(model.transformer.h):
+                    layer_activation_stats = {
+                        f"activations/layer{block_i}_" + k: v for k, v in block.attn.activation_stats.items()
+                    }
+                    logs.update(layer_activation_stats)
 
             self.log(logs)
 
