@@ -44,8 +44,10 @@ class MistralGPT2Model(GPT2Model):
         super().__init__(config)
         self.h = nn.ModuleList(
             [
-                MistralGPT2Block(config.n_ctx, config, scale=True, reorder_attn=reorder_attn, upcast_attn=upcast_attn)
-                for _ in range(config.n_layer)
+                MistralGPT2Block(
+                    config.n_ctx, config, i + 1, scale=True, reorder_attn=reorder_attn, upcast_attn=upcast_attn
+                )
+                for i in range(config.n_layer)
             ]
         )
         self.init_weights()
@@ -253,13 +255,17 @@ class MistralGPT2Model(GPT2Model):
 
 
 class MistralGPT2Attention(Attention):
-    def __init__(self, nx, n_ctx, config, scale=False, is_cross_attention=False, reorder_attn=True, upcast_attn=True):
+    def __init__(
+        self, nx, n_ctx, config, layer_num, scale=False, is_cross_attention=False, reorder_attn=True, upcast_attn=True
+    ):
         super().__init__(nx, n_ctx, config, scale, is_cross_attention)
 
         self.activation_stats = {
             "attention_weight_max": None,
             "attention_weight_min": None,
         }
+        assert layer_num > 0
+        self.layer_num = layer_num
 
         # Numerical Stability
         self.reorder_attn, self.upcast_attn = reorder_attn, upcast_attn
@@ -277,8 +283,9 @@ class MistralGPT2Attention(Attention):
             # Get QKV Dimensions
             bsz, num_heads, seq_len, dk = q.size()
 
+            # @MERCURY =>> Scale by SQRT(head_dim)*layer_number. Taken from MegatronLM.
             # Compute Scale Factor
-            scale_factor = 1 / float(v.size(-1)) ** 0.5
+            scale_factor = 1 / ((float(v.size(-1)) ** 0.5) * self.layer_num)
 
             if self.reorder_attn:
                 # Preallocate Scaled Dot-Product Tensor
@@ -359,9 +366,9 @@ class MistralGPT2Attention(Attention):
 
 
 class MistralGPT2Block(Block):
-    def __init__(self, n_ctx, config, scale=False, reorder_attn=True, upcast_attn=True):
+    def __init__(self, n_ctx, config, layer_num, scale=False, reorder_attn=True, upcast_attn=True):
         super().__init__(n_ctx, config, scale)
         hidden_size = config.n_embd
         self.attn = MistralGPT2Attention(
-            hidden_size, n_ctx, config, scale=scale, reorder_attn=reorder_attn, upcast_attn=upcast_attn
+            hidden_size, n_ctx, config, layer_num, scale=scale, reorder_attn=reorder_attn, upcast_attn=upcast_attn
         )
