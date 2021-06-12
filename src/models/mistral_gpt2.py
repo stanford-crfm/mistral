@@ -283,8 +283,7 @@ class MistralGPT2Attention(Attention):
             # Get QKV Dimensions
             bsz, num_heads, seq_len, dk = q.size()
 
-            # @MERCURY =>> Scale by SQRT(head_dim)*layer_number. Taken from MegatronLM.
-            # Compute Scale Factor
+            # @MERCURY =>> Scale by SQRT(head_dim) * layer_number -- taken from Megatron LM!
             scale_factor = 1 / ((float(v.size(-1)) ** 0.5) * self.layer_num)
 
             if self.reorder_attn:
