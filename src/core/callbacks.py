@@ -4,6 +4,7 @@ callbacks.py
 Custom Hugging Face Weights and Biases Callback that allows for writing custom metrics, better resuming functionality.
 """
 
+import datetime
 import logging
 import os
 import time
@@ -47,6 +48,7 @@ class CustomWandbCallback(WandbCallback):
         self,
         project: str,
         json_file: str,
+        crash_file: str,
         group: str = None,
         resume: bool = False,
         resume_run_id: str = None,
@@ -66,15 +68,40 @@ class CustomWandbCallback(WandbCallback):
         # Set up JSON Log File
         self.json_file = json_file
 
+        # Set up JSON Crash File
+        self.crash_file = crash_file
+
         # Wandb arguments
         self.group, self.resume, self.resume_run_id, self.wandb_dir = group, resume, resume_run_id, wandb_dir
 
         # Timers
         self.within_time, self.between_time = None, None
 
-    def _append_jsonl(self, data) -> None:
-        with jsonlines.open(self.json_file, mode="a") as writer:
+    def _append_jsonl(self, data, file) -> None:
+        with jsonlines.open(file, mode="a") as writer:
             writer.write(data)
+
+    def _mark_crash(self, global_step) -> None:
+        """Records the crash data including the desired restart checkpoint. We compute restart
+        checkpoint as 20K*2^(#restarts due to crashes)"""
+        # If model crashed before, find the first crashed checkpoint to resume from
+        num_crashes = 0
+        if os.path.exists(self.crash_file):
+            resume_reader = jsonlines.open(self.crash_file, mode="r")
+            for first_log in resume_reader:
+                if num_crashes == 0:
+                    first_crash_checkpoint = first_log["crash_step"]
+                num_crashes += 1
+            resume_reader.close()
+        else:
+            first_crash_checkpoint = global_step
+        resume_checkpoint = max(0, (first_crash_checkpoint - (20_000 * (2 ** num_crashes))))
+        crash_report = {
+            "timestamp": datetime.datetime.now().isoformat(),
+            "crash_step": global_step,
+            "resume_checkpoint": resume_checkpoint,
+        }
+        self._append_jsonl(crash_report, self.crash_file)
 
     def _log_memory(self, state, prefix="train_info"):
         """ Simple method to log memory usage at the end of every training batch. """
@@ -89,7 +116,7 @@ class CustomWandbCallback(WandbCallback):
             self._wandb.log(memory_usage, step=state.global_step)
 
             if state.global_step > self._last_log_step:
-                self._append_jsonl({"train_info": memory_usage, "step": state.global_step})
+                self._append_jsonl({"train_info": memory_usage, "step": state.global_step}, self.json_file)
 
     def setup(self, args, state, model, **kwargs):
         """
@@ -163,7 +190,7 @@ class CustomWandbCallback(WandbCallback):
             else:
                 self._last_log_step = -1
 
-            self.jsonl_writer = jsonlines.open(self.json_file, mode="w" if not self.resume else "a")
+            # self.jsonl_writer = jsonlines.open(self.json_file, mode="w" if not self.resume else "a")
 
     def on_step_begin(
         self,
@@ -192,7 +219,8 @@ class CustomWandbCallback(WandbCallback):
                     {
                         "train_info/time_between_train_steps": between_time_taken,
                         "step": state.global_step,
-                    }
+                    },
+                    self.json_file,
                 )
 
             # Start the timer within a step
@@ -225,7 +253,11 @@ class CustomWandbCallback(WandbCallback):
             }
             if hasattr(optimizer, "loss_scale"):
                 log_info["train_info/loss_scale"] = optimizer.loss_scale
-
+                # Crash
+                if optimizer.loss_scale <= 1:
+                    self._mark_crash(state.global_step)
+                    # Trigger Model Stop
+                    control.should_training_stop = True
             # Log
             self._wandb.log(log_info, step=state.global_step)
 
@@ -235,7 +267,8 @@ class CustomWandbCallback(WandbCallback):
                         "info/global_step": state.global_step,
                         "train_info/time_within_train_step": within_time_taken,
                         "step": state.global_step,
-                    }
+                    },
+                    self.json_file,
                 )
 
             # Start timer for measuring between-step time
@@ -282,7 +315,8 @@ class CustomWandbCallback(WandbCallback):
                         "num_parameters": model.num_parameters(),
                         "trainable_parameters": model.num_parameters(only_trainable=True),
                         "step": state.global_step,
-                    }
+                    },
+                    self.json_file,
                 )
 
             # Initialize the timers
@@ -321,7 +355,7 @@ class CustomWandbCallback(WandbCallback):
 
             # Append to the JSON Log
             if state.global_step > self._last_log_step:
-                self._append_jsonl({"logs": logs, "step": state.global_step})
+                self._append_jsonl({"logs": logs, "step": state.global_step}, self.json_file)
 
 
 class CustomCheckpointCallback(TrainerCallback):

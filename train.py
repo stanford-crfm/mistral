@@ -24,6 +24,7 @@ import os
 import random
 from datetime import datetime
 
+import jsonlines
 import numpy as np
 import torch
 from quinine import QuinineArgumentParser
@@ -37,6 +38,7 @@ from src.corpora import ONLINE_EVAL_DATA_REGISTRY, get_auto_dataset
 from src.models import get_auto_clm_tokenizer
 from src.overwatch import get_overwatch
 from src.util import create_paths, set_permissions
+from src.util.paths import get_nearest_checkpoint
 
 
 def train() -> None:
@@ -71,6 +73,17 @@ def train() -> None:
 
     last_checkpoint, resume_run_id = None, None
     if quinfig.resume:
+        # Check if Crash Report
+        if (paths["runs"] / "crashes.json").exists():
+            resume_reader = jsonlines.open(str(paths["runs"] / "crashes.json"), mode="r")
+            for last_log in resume_reader:
+                pass
+            crash_resume_checkpoint = last_log["resume_checkpoint"]
+            # Crash Checkpoint may not Exist --> Find Closest Minimal Checkpoint
+            nearest_resume_checkpoint = get_nearest_checkpoint(paths["runs"], crash_resume_checkpoint)
+            quinfig.resume_checkpoint = nearest_resume_checkpoint
+            # Set to NOT Skip Data
+            quinfig.training_arguments.ignore_data_skip = True
         if quinfig.resume_checkpoint is not None:
             last_checkpoint = quinfig.resume_checkpoint
         else:
@@ -164,6 +177,7 @@ def train() -> None:
             CustomWandbCallback(
                 quinfig.wandb,
                 json_file=str(paths["runs"] / "metrics.json"),
+                crash_file=str(paths["runs"] / "crashes.json"),
                 group=quinfig.group,
                 resume=quinfig.resume,
                 resume_run_id=resume_run_id,
