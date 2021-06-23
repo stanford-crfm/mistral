@@ -82,6 +82,8 @@ def train() -> None:
             for last_log in resume_reader:
                 num_crashes += 1
                 pass
+            # Change Seed ==> Will only impact data order
+            quinfig.seed = quinfig.seed + num_crashes
             crash_resume_checkpoint = last_log["resume_checkpoint"]
             # If the model crashed for natural reasons, it will not be the latest checkpoint
             if crash_latest_checkpoint(paths["runs"], last_log["crash_step"]):
@@ -90,8 +92,6 @@ def train() -> None:
                 quinfig.resume_checkpoint = nearest_resume_checkpoint
                 # Set to NOT Skip Data
                 quinfig.training_arguments.ignore_data_skip = True
-                # Change Seed ==> Will only impact data order
-                quinfig.seed = quinfig.seed + num_crashes
                 # Make New Run Folder
                 shutil.copytree(paths["runs"], f"{paths['runs']}_crash{num_crashes}", dirs_exist_ok=True)
                 # Wandb :: Sync Old Run with New Name, Remove Old Run with Old Name
