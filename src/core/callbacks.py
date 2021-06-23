@@ -253,11 +253,11 @@ class CustomWandbCallback(WandbCallback):
             }
             if hasattr(optimizer, "loss_scale"):
                 log_info["train_info/loss_scale"] = optimizer.loss_scale
-            # Crash
-            if state.global_step in [800]:
-                self._mark_crash(state.global_step)
-                # Trigger Model Stop
-                control.should_training_stop = True
+                # Crash
+                if optimizer.loss_scale <= 1:
+                    self._mark_crash(state.global_step)
+                    # Trigger Model Stop
+                    control.should_training_stop = True
             # Log
             self._wandb.log(log_info, step=state.global_step)
 
