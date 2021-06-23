@@ -75,8 +75,10 @@ def train() -> None:
     if quinfig.resume:
         # Check if Crash Report
         if (paths["runs"] / "crashes.json").exists():
+            num_crashes = 0
             resume_reader = jsonlines.open(str(paths["runs"] / "crashes.json"), mode="r")
             for last_log in resume_reader:
+                num_crashes += 1
                 pass
             crash_resume_checkpoint = last_log["resume_checkpoint"]
             # Crash Checkpoint may not Exist --> Find Closest Minimal Checkpoint
@@ -84,6 +86,8 @@ def train() -> None:
             quinfig.resume_checkpoint = nearest_resume_checkpoint
             # Set to NOT Skip Data
             quinfig.training_arguments.ignore_data_skip = True
+            # Change Seed ==> Will only impact data order
+            quinfig.seed = quinfig.seed + num_crashes
         if quinfig.resume_checkpoint is not None:
             last_checkpoint = quinfig.resume_checkpoint
         else:
