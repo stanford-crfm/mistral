@@ -7,6 +7,7 @@ GCP).
 """
 import os
 import re
+import shutil
 from pathlib import Path
 from typing import Dict
 
@@ -52,7 +53,7 @@ def set_permissions(paths: Dict[str, Path]) -> None:
         os.system(f"chmod -R 775 {paths[p]} >/dev/null 2>&1")
 
 
-def get_nearest_checkpoint(folder: Path, desired_checkpoint: str) -> str:
+def get_nearest_checkpoint(folder: Path, desired_checkpoint_step: str) -> str:
     """ Given the set of checkpoints in folder, find the maximum closest smaller checkpoint"""
     content = os.listdir(folder)
     checkpoints = [
@@ -62,14 +63,43 @@ def get_nearest_checkpoint(folder: Path, desired_checkpoint: str) -> str:
     ]
     if len(checkpoints) == 0:
         return None
-    desired_checkpoint_step = int(_re_checkpoint.search(desired_checkpoint).groups()[0])
     checkpoint_steps = list(map(lambda x: int(_re_checkpoint.search(x).groups()[0]), checkpoints))
     # Sort Smallest First
     checkpoint_steps, checkpoints = list(zip(*sorted(zip(checkpoint_steps, checkpoints), key=lambda x: x[0])))
 
+    # Get largest checkpoint such that desired_checkpoint_step < checkpoint+1
     i = 0
     while i < len(checkpoint_steps):
         if desired_checkpoint_step < checkpoint_steps[i]:
             break
         i += 1
-    return checkpoints[i]
+    i = max(0, i - 1)
+    return folder / checkpoints[i]
+
+
+def crash_latest_checkpoint(folder: Path, crash_checkpoint_step: str) -> bool:
+    """ Checks if the crash checkpoint is after the lastest saved checkpoint in Path """
+    content = os.listdir(folder)
+    checkpoints = [
+        path
+        for path in content
+        if _re_checkpoint.search(path) is not None and os.path.isdir(os.path.join(folder, path))
+    ]
+    checkpoint_steps = list(map(lambda x: int(_re_checkpoint.search(x).groups()[0]), checkpoints))
+    return max(checkpoint_steps) <= crash_checkpoint_step
+
+
+def remove_runs_after(folder: Path, resume_checkpoint: str) -> None:
+    """ Given a checkpoint. remove all later checkpoints in folder """
+    content = os.listdir(folder)
+    resume_checkpoint_step = int(_re_checkpoint.search(resume_checkpoint).groups()[0])
+    to_remove_checkpoints = [
+        path
+        for path in content
+        if _re_checkpoint.search(path) is not None
+        and os.path.isdir(os.path.join(folder, path))
+        and int(_re_checkpoint.search(path).groups()[0]) > resume_checkpoint_step
+    ]
+    for path in to_remove_checkpoints:
+        shutil.rmtree(folder / path, ignore_errors=True)
+    return

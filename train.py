@@ -22,11 +22,13 @@ Reference:
 """
 import os
 import random
+import shutil
 from datetime import datetime
 
 import jsonlines
 import numpy as np
 import torch
+import wandb
 from quinine import QuinineArgumentParser
 from transformers.data.data_collator import default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
@@ -38,7 +40,7 @@ from src.corpora import ONLINE_EVAL_DATA_REGISTRY, get_auto_dataset
 from src.models import get_auto_clm_tokenizer
 from src.overwatch import get_overwatch
 from src.util import create_paths, set_permissions
-from src.util.paths import get_nearest_checkpoint
+from src.util.paths import crash_latest_checkpoint, get_nearest_checkpoint, remove_runs_after
 
 
 def train() -> None:
@@ -81,13 +83,36 @@ def train() -> None:
                 num_crashes += 1
                 pass
             crash_resume_checkpoint = last_log["resume_checkpoint"]
-            # Crash Checkpoint may not Exist --> Find Closest Minimal Checkpoint
-            nearest_resume_checkpoint = get_nearest_checkpoint(paths["runs"], crash_resume_checkpoint)
-            quinfig.resume_checkpoint = nearest_resume_checkpoint
-            # Set to NOT Skip Data
-            quinfig.training_arguments.ignore_data_skip = True
-            # Change Seed ==> Will only impact data order
-            quinfig.seed = quinfig.seed + num_crashes
+            # If the model crashed for natural reasons, it will not be the latest checkpoint
+            if crash_latest_checkpoint(paths["runs"], last_log["crash_step"]):
+                # Crash Checkpoint may not Exist --> Find Closest Minimal Checkpoint
+                nearest_resume_checkpoint = get_nearest_checkpoint(paths["runs"], crash_resume_checkpoint)
+                quinfig.resume_checkpoint = nearest_resume_checkpoint
+                # Set to NOT Skip Data
+                quinfig.training_arguments.ignore_data_skip = True
+                # Change Seed ==> Will only impact data order
+                quinfig.seed = quinfig.seed + num_crashes
+                # Make New Run Folder
+                shutil.copytree(paths["runs"], f"{paths['runs']}_crash{num_crashes}", dirs_exist_ok=True)
+                # Wandb :: Sync Old Run with New Name, Remove Old Run with Old Name
+                try:
+                    api = wandb.Api()
+                    # subprocess.call(f"wandb sync {paths['runs']}_crash{num_crashes}/wandb", shell=True)
+                    last_wandb_run_id = os.readlink(paths["runs"] / "wandb" / "latest-run").split("-")[-1]
+                    old_run = (
+                        f"{api.settings['entity']}/{os.getenv('WANDB_PROJECT', quinfig.wandb)}/{last_wandb_run_id}"
+                    )
+                    run = api.run(old_run)
+                    run.delete()
+                except Exception:
+                    pass
+                # Remove Runs to be Overwritten. Required to resume a crash-resumed run normally.
+                remove_runs_after(paths["runs"], str(os.path.basename(nearest_resume_checkpoint)))
+                overwatch.info(
+                    f"Crash detected. Resuming from checkpoint {nearest_resume_checkpoint}. "
+                    f"Old run saved at {paths['runs']}_crash{num_crashes}. "
+                    f"Setting New Random Seed to {quinfig.seed}."
+                )
         if quinfig.resume_checkpoint is not None:
             last_checkpoint = quinfig.resume_checkpoint
         else:

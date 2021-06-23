@@ -95,7 +95,7 @@ class CustomWandbCallback(WandbCallback):
             resume_reader.close()
         else:
             first_crash_checkpoint = global_step
-        resume_checkpoint = max(0, (first_crash_checkpoint - (20_000 * (2 ** num_crashes))))
+        resume_checkpoint = max(0, (first_crash_checkpoint - (10 * (2 ** num_crashes))))
         crash_report = {
             "timestamp": datetime.datetime.now().isoformat(),
             "crash_step": global_step,
@@ -253,11 +253,11 @@ class CustomWandbCallback(WandbCallback):
             }
             if hasattr(optimizer, "loss_scale"):
                 log_info["train_info/loss_scale"] = optimizer.loss_scale
-                # Crash
-                if optimizer.loss_scale <= 1:
-                    self._mark_crash(state.global_step)
-                    # Trigger Model Stop
-                    control.should_training_stop = True
+            # Crash
+            if state.global_step in [800]:
+                self._mark_crash(state.global_step)
+                # Trigger Model Stop
+                control.should_training_stop = True
             # Log
             self._wandb.log(log_info, step=state.global_step)
 
