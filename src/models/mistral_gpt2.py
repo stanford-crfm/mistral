@@ -21,9 +21,22 @@ overwatch = logging.getLogger("mistral.models.gpt2_gc")
 
 
 class MistralGPT2LMHeadModel(GPT2LMHeadModel):
-    def __init__(self, config: GPT2Config, reorder_attn: bool = True, upcast_attn: bool = True):
+    def __init__(
+        self,
+        config: GPT2Config,
+        reorder_attn: bool = True,
+        upcast_attn: bool = True,
+        gradient_checkpointing: bool = True,
+        gc_checkpoint_every: int = 1,
+    ):
         super().__init__(config)
         self.reorder_attn, self.upcast_attn = reorder_attn, upcast_attn
+
+        # Turn on Gradient Checkpointing if Necessary
+        if gradient_checkpointing:
+            self.create_checkpointed_model(gc_checkpoint_every)
+        else:
+            self.create_model()
 
     # @MERCURY =>> Reconfigure GPT2LMHead to take custom, partial checkpoint model instance!
     def create_checkpointed_model(self, gc_checkpoint_every: int):
