@@ -36,7 +36,7 @@ fi
 INFRA="--nnodes 2 --nproc_per_node 8"
 
 # Batch Size
-D_BSZ_16="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 16"
+D_BSZ_8="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8"
 
 # DeepSpeed Training Configuration
 DS_Z2="--training_arguments.deepspeed conf/deepspeed/z2-conf.json"
@@ -45,35 +45,51 @@ DS_Z2="--training_arguments.deepspeed conf/deepspeed/z2-conf.json"
 case $MODEL in
    alias)
      SEED="--seed 21"
-     RUN_ID="--run_id alias-gpt2-small-x21"
+     RUN_ID="--run_id alias-prime-gpt2-small-x21"
      ;;
    battlestar)
      SEED="--seed 49"
-     RUN_ID="--run_id sphinx-battlestar-gpt2-small-x49"
+     RUN_ID="--run_id battlestar-prime-gpt2-small-x49"
      ;;
+   battlestar-replica)
+     SEED="--seed 49 --model.initial_weights /u/scr/nlp/data/mercury/community/gpt2-small/scifi/battlestar-gpt2-small-x49/checkpoint-0/pytorch_model.bin"
+     RUN_ID="--run_id replica-battlestar-gpt2-small-x49"
+     ;;
+   battlestar-replica-150k)
+     SEED="--seed 49 --model.initial_weights /u/scr/nlp/data/mercury/community/gpt2-small/scifi/battlestar-gpt2-small-x49/checkpoint-150000/pytorch_model.bin"
+     RUN_ID="--run_id replica-150k-battlestar-gpt2-small-x49"
+     ;;
+   battlestar-replica-150k-activation-logging)
+     SEED="--seed 49 --model.initial_weights /u/scr/nlp/data/mercury/community/gpt2-small/scifi/battlestar-gpt2-small-x49/checkpoint-150000/pytorch_model.bin --training_arguments.logging_steps 10"
+     RUN_ID="--run_id replica-150k-battlestar-activation-logging-gpt2-small-x49"
+     ;;
+   galactica-stability-150k)
+    SEED="--seed 49 --model.initial_weights /u/scr/nlp/data/mercury/community/gpt2-small/scifi/battlestar-gpt2-small-x49/checkpoint-150000/pytorch_model.bin --training_arguments.logging_steps 10"
+    RUN_ID="--run_id galactica-stability-150k-gpt2-small-x49"
+    ;;
    caprica)
      SEED="--seed 81"
-     RUN_ID="--run_id caprica-gpt2-small-x81"
+     RUN_ID="--run_id caprica-prime-gpt2-small-x81"
      ;;
    darkmatter)
      SEED="--seed 343"
-     RUN_ID="--run_id darkmatter-gpt2-small-x343"
+     RUN_ID="--run_id darkmatter-prime-gpt2-small-x343"
      ;;
    expanse)
      SEED="--seed 777"
-     RUN_ID="--run_id expanse-gpt2-small-x777"
+     RUN_ID="--run_id expanse-prime-gpt2-small-x777"
      ;;
    firefly)
      SEED="--seed 801"
-     RUN_ID="--run_id firefly-gpt2-small-x801"
+     RUN_ID="--run_id firefly-prime-gpt2-small-x801"
      ;;
    gundam)
      SEED="--seed 837"
-     RUN_ID="--run_id gundam-gpt2-small-x837"
+     RUN_ID="--run_id gundam-prime-gpt2-small-x837"
      ;;
    highlander)
      SEED="--seed 900"
-     RUN_ID="--run_id highlander-gpt2-small-x900"
+     RUN_ID="--run_id highlander-prime-gpt2-small-x900"
      ;;
    ?)
      usage
@@ -87,7 +103,7 @@ DISTRIBUTED_ARGS="--num_gpus 8 --num_nodes 2 --master_addr sphinx1.stanford.edu"
 # ---
 
 # Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Seed
-echo deepspeed $DISTRIBUTED_ARGS train.py $SPHINX_CONFIG $INFRA $D_BSZ_16 $SEED $RES $DS_Z2 $RUN_ID
-deepspeed $DISTRIBUTED_ARGS train.py $SPHINX_CONFIG $INFRA $D_BSZ_16 $SEED $RES $DS_Z2 $RUN_ID
+echo deepspeed $DISTRIBUTED_ARGS train.py $SPHINX_CONFIG $INFRA $D_BSZ_8 $SEED $RES $DS_Z2 $RUN_ID
+deepspeed $DISTRIBUTED_ARGS train.py $SPHINX_CONFIG $INFRA $D_BSZ_8 $SEED $RES $DS_Z2 $RUN_ID
 pkill -f "train.py"
 sleep 3

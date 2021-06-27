@@ -1,5 +1,5 @@
 """
-gpt2_gc.py
+mistral_gpt2.py
 
 Custom Implementation of the GPT-2 LM-Head Model (and auxiliary classes) with support for adaptive/custom number of
 gradient checkpoints (for fine-grained tweaking of memory footprint vs. speed).
@@ -9,29 +9,52 @@ Reference: https://github.com/huggingface/transformers/blob/master/src/transform
 import logging
 
 import torch
+import torch.nn as nn
+from torch.cuda.amp import autocast
 from transformers import GPT2Config, GPT2LMHeadModel, GPT2Model
 from transformers.modeling_outputs import BaseModelOutputWithPastAndCrossAttentions
+from transformers.models.gpt2.modeling_gpt2 import Attention, Block
 
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
 overwatch = logging.getLogger("mistral.models.gpt2_gc")
 
 
-class GCGPT2LMHeadModel(GPT2LMHeadModel):
-    def __init__(self, config: GPT2Config):
+class MistralGPT2LMHeadModel(GPT2LMHeadModel):
+    def __init__(self, config: GPT2Config, reorder_attn: bool = True, upcast_attn: bool = True):
         super().__init__(config)
+        self.reorder_attn, self.upcast_attn = reorder_attn, upcast_attn
 
     # @MERCURY =>> Reconfigure GPT2LMHead to take custom, partial checkpoint model instance!
     def create_checkpointed_model(self, gc_checkpoint_every: int):
         # Reinitalize GPT-2 Model w/ Custom GC Wrapper
-        self.transformer = GCGPT2Model(self.config, gc_checkpoint_every)
+        self.transformer = MistralGPT2Model(self.config, gc_checkpoint_every, self.reorder_attn, self.upcast_attn)
+
+    # @MERCURY =>> Reconfigure GPT2LMHead to Initialize Standard (non-checkpointed) model instance!
+    def create_model(self):
+        # Reinitialize Custom GPT-2 Model
+        self.transformer = MistralGPT2Model(
+            self.config, gc_checkpoint_every=-1, reorder_attn=self.reorder_attn, upcast_attn=self.upcast_attn
+        )
 
 
-class GCGPT2Model(GPT2Model):
+class MistralGPT2Model(GPT2Model):
     # @MERCURY =>> GPT-2 Model Instance now takes `gc_checkpoint_every` parameter.
-    def __init__(self, config: GPT2Config, gc_checkpoint_every: int):
+    def __init__(self, config: GPT2Config, gc_checkpoint_every: int, reorder_attn: bool, upcast_attn: bool):
         super().__init__(config)
-        self.gc_checkpoint_every = gc_checkpoint_every
+        self.h = nn.ModuleList(
+            [
+                MistralGPT2Block(
+                    config.n_ctx, config, i + 1, scale=True, reorder_attn=reorder_attn, upcast_attn=upcast_attn
+                )
+                for i in range(config.n_layer)
+            ]
+        )
+        self.init_weights()
+
+        if getattr(self.config, "gradient_checkpointing", False):
+            assert 1 <= gc_checkpoint_every <= len(self.h)
+            self.gc_checkpoint_every = gc_checkpoint_every
 
     def forward(
         self,
@@ -228,4 +251,123 @@ class GCGPT2Model(GPT2Model):
             hidden_states=all_hidden_states,
             attentions=all_self_attentions,
             cross_attentions=all_cross_attentions,
+        )
+
+
+class MistralGPT2Attention(Attention):
+    def __init__(
+        self, nx, n_ctx, config, layer_num, scale=False, is_cross_attention=False, reorder_attn=True, upcast_attn=True
+    ):
+        super().__init__(nx, n_ctx, config, scale, is_cross_attention)
+
+        self.activation_stats = {
+            "attention_weight_max": None,
+            "attention_weight_min": None,
+        }
+        assert layer_num > 0
+        self.layer_num = layer_num
+
+        # Numerical Stability
+        self.reorder_attn, self.upcast_attn = reorder_attn, upcast_attn
+
+    def _attn(self, q, k, v, attention_mask=None, head_mask=None, output_attentions=False):
+        """
+        Taken from:
+            https://github.com/huggingface/transformers/blob/v4.5.0/src/transformers/models/gpt2/modeling_gpt2.py#L167
+
+        We log extra statistics about the attention weights!
+        """
+        # @MERCURY =>> Reorder Scaled Dot-Product Attention Computation, Upcast to FP32
+        # Q :: [bsz, num_heads, seq_len, dk], K :: [bsz, num_heads, dk, seq_len]
+        if self.scale:
+            # Get QKV Dimensions
+            bsz, num_heads, seq_len, dk = q.size()
+
+            # @MERCURY =>> Scale by SQRT(head_dim) * layer_number -- taken from Megatron LM!
+            scale_factor = 1 / ((float(v.size(-1)) ** 0.5) * self.layer_num)
+
+            if self.reorder_attn:
+                # Preallocate Scaled Dot-Product Tensor
+                w = torch.empty(
+                    bsz * num_heads,
+                    seq_len,
+                    seq_len,
+                    dtype=q.dtype,
+                    device=torch.cuda.current_device(),
+                )
+
+                # Upcasting --> Disable autocast AND manually call .float()
+                if self.upcast_attn:
+                    # Reorder via `baddbmm` Time (Scale K by 1 / root(dk) first!)
+                    with autocast(enabled=False):
+                        q, k = q.reshape(-1, seq_len, dk), k.reshape(-1, dk, seq_len)
+                        w = torch.baddbmm(
+                            w.float(),
+                            q.float(),
+                            k.float(),
+                            beta=0.0,
+                            alpha=scale_factor,
+                        )
+                        w = w.reshape(bsz, num_heads, seq_len, seq_len)
+
+                # No Upcasting
+                else:
+                    q, k = q.reshape(-1, seq_len, dk), k.reshape(-1, dk, seq_len)
+                    w = torch.baddbmm(w, q, k, beta=0.0, alpha=scale_factor)
+                    w = w.reshape(bsz, num_heads, seq_len, seq_len)
+
+            else:
+                # Upcasting --> Disable autocast AND manually call .float()
+                if self.upcast_attn:
+                    with autocast(enabled=False):
+                        w = torch.matmul(q.float(), k.float())
+                        w *= scale_factor
+
+                # No Upcasting
+                else:
+                    w = torch.matmul(q, k)
+                    w *= scale_factor
+
+        else:
+            w = torch.matmul(q, k)
+
+        # Add extra logging of the attention weight
+        with torch.no_grad():
+            self.activation_stats["attention_weight_max"] = w.max().item()
+            self.activation_stats["attention_weight_min"] = w.min().item()
+
+        nd, ns = w.size(-2), w.size(-1)
+        if not self.is_cross_attention:
+            # if only "normal" attention layer implements causal mask
+            mask = self.bias[:, :, ns - nd : ns, :ns]
+            w = torch.where(mask.bool(), w, self.masked_bias.to(w.dtype))
+
+        if attention_mask is not None:
+            # Apply the attention mask
+            w = w + attention_mask
+
+        w = nn.Softmax(dim=-1)(w)
+
+        # @MERCURY =>> Downcast (if necessary) back to V dtype (fp16 if mixed-precision)!
+        # Note: This is a No-Op if Upcasting is disabled...
+        w = w.type(v.dtype)
+
+        w = self.attn_dropout(w)
+
+        # Mask heads if we want to
+        if head_mask is not None:
+            w = w * head_mask
+
+        outputs = (torch.matmul(w, v),)
+        if output_attentions:
+            outputs += (w,)
+        return outputs
+
+
+class MistralGPT2Block(Block):
+    def __init__(self, n_ctx, config, layer_num, scale=False, reorder_attn=True, upcast_attn=True):
+        super().__init__(n_ctx, config, scale)
+        hidden_size = config.n_embd
+        self.attn = MistralGPT2Attention(
+            hidden_size, n_ctx, config, layer_num, scale=scale, reorder_attn=reorder_attn, upcast_attn=upcast_attn
         )
