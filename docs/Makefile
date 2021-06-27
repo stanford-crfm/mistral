@@ -1,12 +1,11 @@
 # Minimal makefile for Sphinx documentation
-#
 
 # You can set these variables from the command line, and also
 # from the environment for the first two.
 SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
-SOURCEDIR     = source
-BUILDDIR      = build
+SOURCEDIR     = .
+BUILDDIR      = _build
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -16,5 +15,9 @@ help:
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
+
+# Note: Jupytext converts .py to .ipynb (Sphinx seems to execute Notebook..?)
 %: Makefile
+	rm -rf _build
+	rm -rf _autosummary
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
