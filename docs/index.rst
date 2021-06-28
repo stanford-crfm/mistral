@@ -15,7 +15,7 @@
    :caption: Tutorials
    
    Training With Multi-GPU <tutorials/multi-gpu>
-   Running Inference With Hugging Face <tutorials/hf>
+   Generate Text With A Trained Model <tutorials/generate>
 
 .. toctree::
    :hidden:
