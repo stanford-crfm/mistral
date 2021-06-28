@@ -82,12 +82,6 @@ def get_auto_clm_tokenizer(
         overwatch.info(f"Initializing Custom GPT-2 Model from Configuration: `{REGISTRY[model_id]}`...")
         model = MistralGPT2LMHeadModel(config, reorder_attn, upcast_attn)
 
-        # Turn on Gradient Checkpointing if Necessary
-        if gradient_checkpointing:
-            model.create_checkpointed_model(gc_checkpoint_every)
-        else:
-            model.create_model()
-
     # No Adaptive Gradient Checkpointing
     else:
         # Initialize Model
