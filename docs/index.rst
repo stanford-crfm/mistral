@@ -14,7 +14,7 @@
    :hidden:
    :caption: Tutorials
    
-   Training With Multi-GPU <tutorials/multi-gpu>
+   Training With Multiple GPU's <tutorials/multi-gpu>
    Generate Text With A Trained Model <tutorials/generate>
 
 .. toctree::
