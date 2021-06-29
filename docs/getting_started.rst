@@ -10,4 +10,4 @@ a language model with Mistral.
 
 :doc:`Training A Model With Mistral <getting_started/train>`
 
-After finishing this guide, there are some helpful :doc:`tutorials <tutorials>` and notes on :doc:`contributing <contributing>`.
+After finishing this guide, there are some helpful :doc:`tutorials <tutorials/multi-gpu>` and notes on :doc:`contributing <contributing>`.
