@@ -15,6 +15,7 @@
    :caption: Tutorials
    
    Training With Multiple GPU's <tutorials/multi-gpu>
+   Training On Multiple Nodes With DeepSpeed <tutorials/deepspeed>
    Generate Text With A Trained Model <tutorials/generate>
 
 .. toctree::
