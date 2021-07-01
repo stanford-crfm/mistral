@@ -14,7 +14,7 @@ you want to train on multiple nodes.
 One essential configuration for DeepSpeed is the hostfile, which contains lists of machines accessible
 via passwordless SSH and slot counts, which indicate the amount of available gpu's on each machine.
 
-For this tutorial, we will assume the main machine's address is ``machine1``, and that ``machine2`` is operating as a 
+For this tutorial, we will assume the main machine's address is ``machine1``, that ``machine2`` is operating as a 
 worker machine, and that both machines have 8 gpu's. The corresponding hostfile should look like this: ::
 
     machine1 slots=8
