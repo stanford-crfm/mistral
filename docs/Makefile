@@ -5,7 +5,7 @@
 SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = .
-BUILDDIR      = _build
+BUILDDIR      ?= _build
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -18,6 +18,6 @@ help:
 
 # Note: Jupytext converts .py to .ipynb (Sphinx seems to execute Notebook..?)
 %: Makefile
-	rm -rf _build
+	rm -rf $(BUILDDIR)
 	rm -rf _autosummary
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
