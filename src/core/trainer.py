@@ -10,6 +10,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
+from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data.dataset import Dataset
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.sampler import RandomSampler
@@ -94,7 +95,7 @@ class OnlineBenchmarkTrainer(Trainer):
             # Add activation logging
             # This logging only works for MistralGPT2LMHeadModel
             # Retrieve PyTorch module from DeepSpeedEngine
-            if self.deepspeed:
+            if self.deepspeed or isinstance(model, DistributedDataParallel):
                 model = model.module
 
             if hasattr(model.transformer.h[0].attn, "activation_stats"):
