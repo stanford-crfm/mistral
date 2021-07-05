@@ -39,7 +39,7 @@ from src.overwatch import get_overwatch
 from src.util import create_paths, set_permissions
 
 
-def train() -> None:
+def train() -> OnlineBenchmarkTrainer:
     # Parse Quinfig (via Quinine Argparse Binding)
     print("[*] Mercury :: Launching =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
     print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)')
@@ -181,6 +181,9 @@ def train() -> None:
     trainer.train(resume_from_checkpoint=last_checkpoint)
     trainer.save_model()
     overwatch.info("...and that's all folks!")
+
+    # return trainer as record of training process
+    return trainer
 
 
 if __name__ == "__main__":
