@@ -60,6 +60,7 @@ def get_schema() -> Dict[str, Any]:
         "adam_epsilon": merge(tfloat, default(1.0e-8)),
         "max_grad_norm": merge(tfloat, default(1.0)),
         "max_steps": merge(tinteger, default(-1)),
+        "num_train_epochs": merge(tinteger, default(-1)),
         "lr_scheduler_type": merge(tstring, default("cosine")),
         "warmup_steps": merge(tinteger, default(1000)),
         "run_name": merge(tstring, nullable, default(None)),
