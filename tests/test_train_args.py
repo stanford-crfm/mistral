@@ -12,7 +12,7 @@ from train import train
 # paths
 CACHE_DIR = f"{MISTRAL_TEST_DIR}/artifacts"
 RUNS_DIR = f"{MISTRAL_TEST_DIR}/runs"
-RUN_ID = "train_test"
+RUN_ID = "train_args_test"
 RUN_ID_DIR = f"{RUNS_DIR}/{RUN_ID}"
 LAST_CHECKPOINT = "checkpoint-2"
 
@@ -57,6 +57,7 @@ TRAIN_ARGS_DIFF = [
     "--log_level",
     "50",
 ]
+RUN_ID = "train_args_diff_test"
 trainer_w_train_diff = run_train_process(cl_args=TRAIN_ARGS_DIFF, runs_dir=RUNS_DIR, run_id=RUN_ID)
 
 
