@@ -1,7 +1,7 @@
 name: Run Tests
 on: [push]
 jobs:
-  Run Mistral Tests:
+  Run-Mistral-Tests:
     runs-on: self-hosted
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
