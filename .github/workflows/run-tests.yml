@@ -18,5 +18,5 @@ jobs:
           . /home/stanzabuild/miniconda3/etc/profile.d/conda.sh
           conda activate mistral
           cd tests
-          python test_train.py
+          CUDA_VISIBLE_DEVICES=0 python test_train.py
       - run: echo "🍏 This job's status is ${{ job.status }}."
