@@ -18,5 +18,6 @@ jobs:
           conda activate mistral
           cd tests
           nvidia-smi
+          conda info --envs
           ls ${{ github.workspace }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
