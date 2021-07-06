@@ -23,5 +23,5 @@ jobs:
           export MISTRAL_TEST_DIR=/home/stanzabuild/mistral-test-dir
           cd tests
           wandb offline
-          CUDA_VISIBLE_DEVICES=0 pytest
+          CUDA_VISIBLE_DEVICES=0 pytest test_train.py
       - run: echo "🍏 This job's status is ${{ job.status }}."
