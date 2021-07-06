@@ -24,4 +24,5 @@ jobs:
           cd tests
           wandb offline
           CUDA_VISIBLE_DEVICES=0 pytest test_train.py
+          CUDA_VISIBLE_DEVICES=0 pytest test_train_args.py
       - run: echo "🍏 This job's status is ${{ job.status }}."
