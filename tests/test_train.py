@@ -65,9 +65,9 @@ def test_checkpoint_forward_pass() -> None:
     # run forward with loaded model
     loaded_model.eval()
     outputs_loaded = loaded_model(**inputs)
-    #loaded_model.to(torch.device("cpu"))
+    loaded_model.to(torch.device("cpu"))
     # run forward with original model
-    #torch.cuda.empty_cache()
+    torch.cuda.empty_cache()
     model.eval()
     outputs = model(**inputs)
     assert torch.equal(outputs["logits"], outputs_loaded["logits"])
