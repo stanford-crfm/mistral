@@ -49,6 +49,7 @@ def test_checkpoint_weights() -> None:
     assert model.state_dict().keys() == loaded_model.state_dict().keys()
     for key in model.state_dict().keys():
         assert torch.equal(model.state_dict()[key], loaded_model.state_dict()[key])
+    loaded_model.to(torch.device("cpu"))
 
 
 def test_checkpoint_forward_pass() -> None:
@@ -56,22 +57,17 @@ def test_checkpoint_forward_pass() -> None:
     Test that loaded model correctly calculate forward pass
     """
     model = trainer_after_training.model
-    model.to(torch.device("cpu"))
     loaded_model = MistralGPT2LMHeadModel.from_pretrained(f"{RUN_ID_DIR}/{LAST_CHECKPOINT}")
-    loaded_model.to(torch.device("cpu"))
     train_dataloader = trainer_after_training.get_train_dataloader()
     inputs = next(iter(train_dataloader))
     inputs = trainer_after_training._prepare_inputs(inputs)
-    # run forward with original model
-    model.eval()
-    model.to(torch.device("cuda"))
-    outputs = model(**inputs)
-    model.to(torch.device("cpu"))
     # run forward with loaded model
     loaded_model.eval()
-    loaded_model.to(torch.device("cuda"))
     outputs_loaded = loaded_model(**inputs)
     loaded_model.to(torch.device("cpu"))
+    # run forward with original model
+    model.eval()
+    outputs = model(**inputs)
     assert torch.equal(outputs["logits"], outputs_loaded["logits"])
     assert torch.equal(outputs["loss"], outputs_loaded["loss"])
 
