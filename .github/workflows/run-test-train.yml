@@ -1,4 +1,4 @@
-name: Run Tests: Train
+name: Run Tests - Train
 on: [push]
 jobs:
   Run-Mistral-Tests-Train:
