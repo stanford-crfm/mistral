@@ -58,6 +58,7 @@ def test_checkpoint_forward_pass() -> None:
     """
     model = trainer_after_training.model
     loaded_model = MistralGPT2LMHeadModel.from_pretrained(f"{RUN_ID_DIR}/{LAST_CHECKPOINT}")
+    loaded_model.to(torch.device("cuda"))
     train_dataloader = trainer_after_training.get_train_dataloader()
     inputs = next(iter(train_dataloader))
     inputs = trainer_after_training._prepare_inputs(inputs)
