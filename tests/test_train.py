@@ -49,7 +49,6 @@ def test_checkpoint_weights() -> None:
     assert model.state_dict().keys() == loaded_model.state_dict().keys()
     for key in model.state_dict().keys():
         assert torch.equal(model.state_dict()[key], loaded_model.state_dict()[key])
-    loaded_model.to(torch.device("cpu"))
 
 
 def test_checkpoint_forward_pass() -> None:
@@ -65,13 +64,9 @@ def test_checkpoint_forward_pass() -> None:
     # run forward with loaded model
     loaded_model.eval()
     outputs_loaded = loaded_model(**inputs)
-    loaded_model.to(torch.device("cpu"))
-    outputs_loaded["logits"].to(torch.device("cpu"))
     # run forward with original model
-    torch.cuda.empty_cache()
     model.eval()
     outputs = model(**inputs)
-    outputs["logits"].to(torch.device("cpu"))
     assert torch.equal(outputs["logits"], outputs_loaded["logits"])
     #assert torch.equal(outputs["loss"], outputs_loaded["loss"])
 
