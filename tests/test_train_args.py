@@ -33,6 +33,8 @@ TRAIN_ARGS = [
     "1",
     "--artifacts.cache_dir",
     CACHE_DIR,
+    "--training_arguments.max_steps",
+    "0",
     "--log_level",
     "50",
 ]
@@ -54,6 +56,8 @@ TRAIN_ARGS_DIFF = [
     "1",
     "--artifacts.cache_dir",
     CACHE_DIR,
+    "--training_arguments.max_steps",
+    "0",
     "--log_level",
     "50",
 ]

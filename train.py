@@ -177,10 +177,11 @@ def train() -> OnlineBenchmarkTrainer:
         trainer.save_model(output_dir=str(paths["runs"] / "checkpoint-0"))
 
     # Training Time!
-    overwatch.info("Training...")
-    trainer.train(resume_from_checkpoint=last_checkpoint)
-    trainer.save_model()
-    overwatch.info("...and that's all folks!")
+    if trainer.args.max_steps > 0:
+        overwatch.info("Training...")
+        trainer.train(resume_from_checkpoint=last_checkpoint)
+        trainer.save_model()
+        overwatch.info("...and that's all folks!")
 
     # return trainer as record of training process
     return trainer
