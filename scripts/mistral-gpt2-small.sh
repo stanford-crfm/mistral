@@ -39,7 +39,7 @@ INFRA="--nnodes 2 --nproc_per_node 8"
 D_BSZ_8="--training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8"
 
 # DeepSpeed Training Configuration
-DS_Z2="--training_arguments.deepspeed conf/deepspeed/z2-conf.json"
+DS_Z2="--training_arguments.deepspeed conf/deepspeed/z2-small-conf.json"
 
 # Random Seeds -- Alias :: 21, Battlestar :: 49, Caprica :: 81, Darkmatter :: 343, Expanse :: 777
 case $MODEL in
