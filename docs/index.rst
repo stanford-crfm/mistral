@@ -32,8 +32,9 @@ Mistral is a framework for fast and efficient large-scale language model trainin
 
 Mistral combines Hugging Face 🤗, DeepSpeed, and Weights & Biases with additional tools , helpful scripts, and documentation to facilitate:
 
+* incorporating new pre-training datasets
+* dataset preprocessing
 * training large models with multiple GPU's and nodes
 * monitoring and logging of model training
-* incorporating new pre-training datasets
 * performing evaluation and measuring bias
 
