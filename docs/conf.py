@@ -17,7 +17,8 @@ sys.path.insert(0, os.path.abspath('..'))  # Source code dir relative to this fi
 # -- Project information -----------------------------------------------------
 
 project = 'Mistral'
-author = 'JB'
+author = 'Project Mercury'
+copyright = '2021 The Board of Trustees of The Leland Stanford Junior University'
 
 # The full version, including alpha/beta/rc tags
 release = '0.1.0'
