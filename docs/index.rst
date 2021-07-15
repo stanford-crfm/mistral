@@ -25,10 +25,15 @@
    Contributing <contributing>
    API reference <_autosummary/src>
 
-Welcome to Mistral Docs
+Mistral - Large Scale Language Modeling Made Easy
 =====================================================
 
-A framework for fast and efficient large-scale language model training, built with Hugging Face 🤗. Includes tools and helpful scripts for incorporating new pre-training datasets, various schemes for single node and distributed training, and importantly, scripts for evaluation and measuring bias.
+Mistral is a framework for fast and efficient large-scale language model training. The goal of Mistral is to integrate the various best components of the language modeling stack into an easy to use system for researchers who wish to train their own models on the scale of GPT-2. 
 
-A Project Mercury Endeavor.
+Mistral combines Hugging Face 🤗, DeepSpeed, and Weights & Biases with additional tools and helpful scripts to facilitate:
+
+* training large models with multiple GPU's and nodes
+* monitoring and logging of model training
+* incorporating new pre-training datasets
+* performing evaluation and measuring bias
 
