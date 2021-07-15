@@ -1,35 +1,22 @@
-# Configuring Sphinx to build API documentation
+# Install Sphinx
 
-See `requirements.txt` for required libraries.
+If you don't already have Sphinx set up install it with `pip`.
 
-See `conf.py` for Sphinx extensions and settings.
+```bash
+pip install sphinx
+```
 
-See `index.rst` and `api.rst` for the placement of the `.. autosummary::` directive and its `:recursive:` option.
+The documentation has been built with version 4.0.2.
 
-# Configuring Sphinx to integrate Jupyter Notebooks
+```bash
+$ sphinx-build --version
+sphinx-build 4.0.2
+```
 
-For more information, see `notebooks/README`.
+# Build The Docs
 
-# Building this HTML doc set locally
+From `docs` directory run:
 
-You can clone this repo and build and view the API and tutorial documentation locally:
-   
-1. Change to the `docs` directory:
-
-   `cd docs`
-
-2. Assuming a Python 3.x environment, install dependencies:
-
-   `pip install -r requirements.txt`
-
-3. Build the documentation:
-
-   `make html`
-
-4. Run a web server:
-
-   `python -m http.server`
-
-5. View the doc set locally in a browser at:
-
-   http://localhost:8000/_build/html/
+```bash
+$ BUILDDIR=/path/to/build make html
+```
