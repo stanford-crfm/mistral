@@ -1,5 +1,5 @@
 name: Run Test Args
-on: [push]
+on: [push, pull_request]
 jobs:
   Run-Mistral-Test-Args:
     runs-on: self-hosted
