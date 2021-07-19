@@ -13,7 +13,7 @@
 .. toctree::
    :hidden:
    :caption: Tutorials
-   
+
    Training With Multiple GPU's <tutorials/multi-gpu>
    Training On Multiple Nodes With DeepSpeed <tutorials/deepspeed>
    Generate Text With A Trained Model <tutorials/generate>
@@ -28,9 +28,9 @@
 Mistral - Large Scale Language Modeling Made Easy
 =====================================================
 
-Mistral is a framework for fast and efficient large-scale language model training. The goal of Mistral is to integrate the best components of the language modeling stack into an easy to use system for researchers who wish to train their own models on the scale of GPT-2. 
+Mistral_ is a framework for fast and efficient large-scale language model training. The goal of Mistral is to integrate the best components of the language modeling stack into an easy to use system for researchers who wish to train their own models at scale.
 
-Mistral combines Hugging Face 🤗, DeepSpeed, and Weights & Biases with additional tools , helpful scripts, and documentation to facilitate:
+Mistral combines `Hugging Face <https://huggingface.co/>`_ 🤗, `DeepSpeed <https://www.deepspeed.ai/>`_, and `Weights & Biases <https://wandb.ai/site>`_ ,  with additional tools, helpful scripts, and documentation to facilitate:
 
 * incorporating new pre-training datasets
 * dataset preprocessing
@@ -38,3 +38,4 @@ Mistral combines Hugging Face 🤗, DeepSpeed, and Weights & Biases with additio
 * monitoring and logging of model training
 * performing evaluation and measuring bias
 
+.. _Mistral: https://github.com/stanford-mercury/mistral

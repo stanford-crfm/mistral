@@ -14,20 +14,20 @@ you want to train on multiple nodes.
 One essential configuration for DeepSpeed is the hostfile, which contains lists of machines accessible
 via passwordless SSH and slot counts, which indicate the amount of available gpu's on each machine.
 
-For this tutorial, we will assume the main machine's address is ``machine1``, that ``machine2`` is operating as a 
+For this tutorial, we will assume the main machine's address is ``machine1``, that ``machine2`` is operating as a
 worker machine, and that both machines have 8 gpu's. The corresponding hostfile should look like this: ::
 
     machine1 slots=8
     machine2 slots=8
 
-DeepSpeed will look for the hostfile at ``/job/hostfile`` on ``machine1`` if a hostfile is not specified with the 
+DeepSpeed will look for the hostfile at ``/job/hostfile`` on ``machine1`` if a hostfile is not specified with the
 ``--hostfile`` argument. An example hostfile can be viewed at ``conf/deepspeed/hostfile``.
 
 Configuring Training
---------------------
+---------------------
 
 When running Deep Speed and Hugging Face, it is necessary to specify a collection of training settings in a DeepSpeed
-json config file. These settings will be used to create the final ``TrainingArguments`` object for model training,
+json config file. These settings will be used to create the final ``TrainingArguments`` object for model training
 and include such things as what optimizer or scheduler to use.
 
 An example json config file is available at ``conf/deepspeed/z1-conf.json``: ::
@@ -45,7 +45,7 @@ An example json config file is available at ``conf/deepspeed/z1-conf.json``: ::
           "weight_decay": 0.1
         }
       },
-    
+
       "scheduler": {
         "type": "WarmupDecayLR",
         "params": {
@@ -54,7 +54,7 @@ An example json config file is available at ``conf/deepspeed/z1-conf.json``: ::
           "warmup_num_steps": 4000
         }
       },
-    
+
       "zero_optimization": {
         "stage": 1,
         "allgather_partitions": true,
@@ -143,4 +143,3 @@ You should see the following output in ``hello-world-multi-node.out`` if trainin
     machine1: [2021-07-01 01:26:03,039] [INFO] [timer.py:154:stop] 0/1570, SamplesPerSec=467.1410597602756
     machine1: [2021-07-01 01:26:04,376] [INFO] [timer.py:154:stop] 0/1580, SamplesPerSec=467.2457988670264
     machine1: [2021-07-01 01:26:05,739] [INFO] [timer.py:154:stop] 0/1590, SamplesPerSec=467.2957462415879
-

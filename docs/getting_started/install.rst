@@ -2,7 +2,7 @@ Installation
 ============
 
 Basic Installation
-------------
+--------------------
 
 Get the code ::
 
@@ -12,24 +12,19 @@ Set up the mistral conda env ::
 
     cd mistral
     conda env create -f environments/environment-gpu.yaml
+    conda activate mistral
 
 You may need to alter this environment depending on your CUDA set up.
 
-Install pre-commit ::
-
-    conda activate mistral
-    cd mistral
-    pre-commit install
-
 Setting Up Weights And Biases
-------------------
+-------------------------------
 
 Training runs transmit logs to `Weights & Biases <https://wandb.ai/>`_.
 
 First make sure to set up an account on their web site.
 
-Before doing training runs, set up your wandb credentials on your machine :: 
-    
+Before doing training runs, set up your wandb credentials on your machine ::
+
     conda activate mistral
     cd mistral
     wandb init
