@@ -1,13 +1,13 @@
 Configuration
-=============
+==============
 
 Quinine
--------
+---------
 
 Configurations are specified using the `Quinine <https://github.com/krandiash/quinine>`_ library.
 
 Quinine allows users to integrate multiple config files and layer configs on top of each other.
-It is designed for machine learning projects with large sets of nested hyperparameters. 
+It is designed for machine learning projects with large sets of nested hyperparameters.
 
 The easiest way to understand Quinine is to study ``conf/hello-world.yaml`` which is presented below.
 
@@ -35,26 +35,26 @@ Example config: hello-world.yaml
         - datasets/wikitext103.yaml
         - models/gpt2-small.yaml
         - trainers/gpt2-small.yaml
-    
+
     # Run ID -- make sure to override!
     run_id: null
-    
+
     # Weights & Biases
     wandb: hello-world
     group: gpt2-small
-    
+
     # Artifacts & Caching
     artifacts:
         cache_dir:
-        run_dir: 
-    
+        run_dir:
+
     # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
     effective_bsz: 512
-    
+
     # Resume from Checkpoint
     resume: false
     resume_checkpoint: null
-    
+
     # List of frequencies at which to save checkpoints, provided as a list of two-element tuples:
     #   - Frequency (`freq`) at which to save checkpoints (# steps)
     #   - Bound (`until`) on global step for given frequency (checkpoint every `freq` steps until global step = `until`)
@@ -63,19 +63,19 @@ Example config: hello-world.yaml
         - [50, 2000]
         - [100, 20000]
         - [1000, 400000]
-    
+
     # `torch.distributed` Default Infra Parameters -- to be overwritten by call to `torch.distributed.launch`
     local_rank: -1
     nnodes: -1
     nproc_per_node: -1
-    
+
     # DeepSpeed Default Infra Parameters -- to be overwritten by call to `DeepSpeed`
     num_gpus: -1
     num_nodes: -1
     world_size: -1
-    
+
     # Logging Parameters -- 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL
     log_level: 20
-    
+
     # Random Seed
     seed: 21

@@ -4,10 +4,9 @@ Training With Multiple GPU's
 Once you've got training working with a single node/single gpu, you can easily move on to training
 with multiple GPU's if your machine has them.
 
-This can be facilitated with `torch.distributed.launch <https://pytorch.org/docs/stable/distributed.html#launch-utility>`_ ,
-a utility for launching multiple processes per node for distributed training.
+This can be done two ways. The first, which we show here, uses `torch.distributed.launch <https://pytorch.org/docs/stable/distributed.html#launch-utility>`_ , a utility for launching multiple processes per node for distributed training. The second uses DeepSpeed, which we go over in our :doc:`multi node training <deepspeed>`.
 
-Just run this command with ``--nproc_per_node`` set to the number of GPU's you want to use (in this example we'll go with 2) ::
+To use torch, run this command with ``--nproc_per_node`` set to the number of GPU's you want to use (in this example we'll go with 2) ::
 
     conda activate mistral
     cd mistral
@@ -17,4 +16,3 @@ You should see similar output as when running :doc:`single node/single gpu train
 run twice as fast!
 
 As noted with single node/single gpu training, you may need to adjust the batch size to avoid OOM memories.
-
