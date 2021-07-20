@@ -28,6 +28,8 @@
 Mistral - Large Scale Language Modeling Made Easy
 =====================================================
 
+.. image:: mistral_components.png
+
 Mistral is a framework for fast and efficient large-scale language model training. The goal of Mistral is to integrate the best components of the language modeling stack into an easy to use system for researchers who wish to train their own models on the scale of GPT-2. 
 
 Mistral combines Hugging Face 🤗, DeepSpeed, and Weights & Biases with additional tools , helpful scripts, and documentation to facilitate:
