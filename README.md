@@ -12,7 +12,7 @@ A Project Mercury Endeavor.
 
 ## Quickstart
 
-# Installation
+### Installation
 
 ```bash
 git clone https://github.com/stanford-mercury/mistral.git
