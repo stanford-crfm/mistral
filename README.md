@@ -25,7 +25,7 @@ Note: The provided environment assumes CUDA 11.0, you may need to adjust this en
 
 ### Run Training
 
-Update `conf/hello-world.yaml` with directories for storing the Hugging Face cache and model runs.
+First make sure to update `conf/hello-world.yaml` with directories for storing the Hugging Face cache and model runs.
 
 ```
 # Artifacts & Caching
@@ -34,7 +34,7 @@ artifacts:
     run_dir: /path/to/runs
 ```
 
-Run training (single node/single gpu)
+**Run training (single node/single gpu)**
 
 ```bash
 cd mistral
@@ -42,7 +42,7 @@ conda activate mistral
 CUDA_VISIBLE_DEVICES=0 python train.py --config conf/hello-world.yaml --nnodes 1 --nproc_per_node 1 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8
 ```
 
-Run training (multi-node/multi-gpu with DeepSpeed)
+**Run training (multi-node/multi-gpu with DeepSpeed)**
 
 Assuming you want to run on `machine1` and `machine2`, add the following content to `/job/hostfile`
 
