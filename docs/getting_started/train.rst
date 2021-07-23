@@ -8,7 +8,8 @@ You should now be ready to launch a demo training run. There are example
 configurations for training on WikiText-103 in ``conf/hello-world.yaml``
 
 To launch a training run, use this command (found in ``scripts/run/single-node.sh``) ::
-    
+
+    cd mistral
     conda activate mistral
     CUDA_VISIBLE_DEVICES=0 python train.py --config conf/hello-world.yaml --nnodes 1 --nproc_per_node 1 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8
 
@@ -33,12 +34,11 @@ If all is successful, you should see output similar to this: ::
     wandb: 🚀 View run at https://wandb.ai/my-team/hello-world/runs/3mrlgblq
     wandb: Run data is saved locally in mistral-hello-world/runs/gpt2-small-d=wikitext-n=1-g=1-w=1+2021-06-25-23:57:32/wandb/run-20210625_235915-3mrlgblq
     wandb: Run `wandb offline` to turn off syncing.
-    
+
                                                            {'loss': 11.0023, 'learning_rate': 1.5e-07, 'activations/layer0_attention_weight_max': 1.9394148588180542, 'activations/layer0_attention_weight_min': -1.7338905334472656, 'activations/layer1_attention_weight_max': 1.7617545127868652, 'activations/layer1_attention_weight_min': -1.7682685852050781, 'activations/layer2_attention_weight_max': 1.7848472595214844, 'activations/layer2_attention_weight_min': -1.9004961252212524, 'activations/layer3_attention_weight_max': 1.8493074178695679, 'activations/layer3_attention_weight_min': -1.838200330734253, 'activations/layer4_attention_weight_max': 1.8895012140274048, 'activations/layer4_attention_weight_min': -1.7738912105560303, 'activations/layer5_attention_weight_max': 1.7461622953414917, 'activations/layer5_attention_weight_min': -1.758669376373291, 'activations/layer6_attention_weight_max': 1.9132049083709717, 'activations/layer6_attention_weight_min': -1.9518122673034668, 'activations/layer7_attention_weight_max': 1.8657881021499634, 'activations/layer7_attention_weight_min': -1.8033781051635742, 'activations/layer8_attention_weight_max': 2.0741305351257324, 'activations/layer8_attention_weight_min': -1.925511360168457, 'activations/layer9_attention_weight_max': 1.8003664016723633, 'activations/layer9_attention_weight_min': -1.7981972694396973, 'activations/layer10_attention_weight_max': 1.7417181730270386, 'activations/layer10_attention_weight_min': -1.6902594566345215, 'activations/layer11_attention_weight_max': 1.9806346893310547, 'activations/layer11_attention_weight_min': -1.731971025466919, 'epoch': 0.0}
-    
+
       0%|          | 100/400000 [1:06:43<4789:29:34, 43.12s/it]
 
 If you sign in to Weights & Biases you should see a variety of logs for your training run, including an active graph of the training loss.
 
 .. image:: wandb_example.png
-

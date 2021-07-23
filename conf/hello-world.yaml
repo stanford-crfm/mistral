@@ -19,8 +19,8 @@ group: gpt2-small
 
 # Artifacts & Caching
 artifacts:
-    cache_dir:  
-    run_dir: 
+    cache_dir:
+    run_dir:
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
 effective_bsz: 512

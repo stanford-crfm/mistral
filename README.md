@@ -30,7 +30,7 @@ First make sure to update `conf/hello-world.yaml` with directories for storing t
 ```
 # Artifacts & Caching
 artifacts:
-    cache_dir: /path/to/artifacts  
+    cache_dir: /path/to/artifacts
     run_dir: /path/to/runs
 ```
 

@@ -72,8 +72,8 @@ Launching A Training Run
 
 The following command (run on machine1) will launch training across your cluster: ::
 
-    conda activate mistral
     cd mistral
+    conda activate mistral
     deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config conf/hello-world.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4 --training_arguments.deepspeed conf/deepspeed/z1-conf.json --run_id hello-world-multi-node > hello-world-multi-node.out 2> hello-world-multi-node.err
 
 This assumes that the appropriate hostfile is set up at ``/job/hostfile`` on ``machine1``.
