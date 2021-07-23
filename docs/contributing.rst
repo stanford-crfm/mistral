@@ -8,9 +8,7 @@ Dev Installation
 
 First follow the same instructions as provided for the :doc:`quickstart <getting_started/install>`
 
-The main addition for a dev environment is to install `pre-commit <https://pre-commit.com/>`_.
-
-Install pre-commit ::
+The main addition for a dev environment is to install `pre-commit <https://pre-commit.com/>`_ ::
 
     pre-commit install
 
