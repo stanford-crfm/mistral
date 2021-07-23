@@ -32,9 +32,9 @@ Mistral - Large Scale Language Modeling Made Easy
 
 Mistral combines `Hugging Face <https://huggingface.co/>`_ 🤗, `DeepSpeed <https://www.deepspeed.ai/>`_, and `Weights & Biases <https://wandb.ai/site>`_ ,  with additional tools, helpful scripts, and documentation to facilitate:
 
+* training large models with multiple GPU's and nodes
 * incorporating new pre-training datasets
 * dataset preprocessing
-* training large models with multiple GPU's and nodes
 * monitoring and logging of model training
 * performing evaluation and measuring bias
 
