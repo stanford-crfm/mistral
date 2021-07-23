@@ -43,4 +43,3 @@ Enter an example prompt, and the script will generate a text completion for you 
     Setting `pad_token_id` to `eos_token_id`:50256 for open-end generation.
     === GENERATED SEQUENCE 1 ===
     Hello world. This is a prompt. This is no ‘say what, say it’ stuff, it’s all on
-
