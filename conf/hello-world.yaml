@@ -14,8 +14,8 @@ inherit:
 run_id: null
 
 # Weights & Biases
-wandb: hello-world
-group: gpt2-small
+wandb:
+group:
 
 # Artifacts & Caching
 artifacts:
