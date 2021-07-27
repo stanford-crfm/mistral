@@ -269,14 +269,25 @@ class MistralGPT2Model(GPT2Model):
 
 class MistralGPT2Attention(Attention):
     def __init__(
-        self, nx, n_ctx, config, layer_num, scale=False, is_cross_attention=False, reorder_attn=True, upcast_attn=True
+        self,
+        nx,
+        n_ctx,
+        config,
+        layer_num,
+        scale=False,
+        is_cross_attention=False,
+        reorder_attn=True,
+        upcast_attn=True,
+        log_activations=False,
     ):
         super().__init__(nx, n_ctx, config, scale, is_cross_attention)
 
-        self.activation_stats = {
-            "attention_weight_max": None,
-            "attention_weight_min": None,
-        }
+        self.log_activations = log_activations
+        if self.log_activations:
+            self.activation_stats = {
+                "attention_weight_max": None,
+                "attention_weight_min": None,
+            }
         assert layer_num > 0
         self.layer_num = layer_num
 
@@ -345,9 +356,10 @@ class MistralGPT2Attention(Attention):
             w = torch.matmul(q, k)
 
         # Add extra logging of the attention weight
-        with torch.no_grad():
-            self.activation_stats["attention_weight_max"] = w.max().item()
-            self.activation_stats["attention_weight_min"] = w.min().item()
+        if self.log_activations:
+            with torch.no_grad():
+                self.activation_stats["attention_weight_max"] = w.max().item()
+                self.activation_stats["attention_weight_min"] = w.min().item()
 
         nd, ns = w.size(-2), w.size(-1)
         if not self.is_cross_attention:
