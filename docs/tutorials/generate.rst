@@ -3,12 +3,12 @@ Generate Text With A Trained Model
 
 Once you've completed :doc:`training <../getting_started/train>`, you can use your model to generate text.
 
-In this tutorial we'll walk through getting Hugging Face set up and generating text with a trained GPT-2 Small model.
+In this tutorial we'll walk through getting 🤗 Transformers  et up and generating text with a trained GPT-2 Small model.
 
 Set Up Hugging Face
 -------------------
 
-The Hugging Face ``transformers`` repo provides a helpful script for generating text with a GPT-2 model.
+Hugging Face's ``transformers`` repo provides a helpful script for generating text with a GPT-2 model.
 
 To access these scripts, clone the repo ::
 
