@@ -2,7 +2,7 @@ Training With Multiple GPU's
 =======================================
 
 Once you've got training working with a single node/single gpu, you can easily move on to training
-with multiple GPU's if your machine has them.
+with multiple GPUs if your machine has them.
 
 This can be done two ways. The first, which we show here, uses `torch.distributed.launch <https://pytorch.org/docs/stable/distributed.html#launch-utility>`_ , a utility for launching multiple processes per node for distributed training. The second uses DeepSpeed, which we go over in our :doc:`multi node training <deepspeed>`.
 
