@@ -6,6 +6,8 @@ A framework for fast and efficient large-scale language model training, built wi
 and helpful scripts for incorporating new pre-training datasets, various schemes for single node and distributed
 training, and importantly, scripts for evaluation and measuring bias.
 
+Full documentation can be found on our [Read The Docs](https://nlp.stanford.edu/local/mistral/docs/_build/html/index.html) site.
+
 A Project Mercury Endeavor.
 
 ---
