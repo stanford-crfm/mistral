@@ -20,4 +20,6 @@ help:
 %: Makefile
 	rm -rf $(BUILDDIR)
 	rm -rf _autosummary
+	python scripts/build_download_tables.py >> getting_started/download.rst
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	git checkout getting_started/download.rst
