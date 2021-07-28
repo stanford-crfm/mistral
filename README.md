@@ -56,9 +56,9 @@ machine2 slots=8
 Note: This assumes each machine has 8 GPU's. Adjust accordingly.
 
 ```bash
-    cd mistral
-    conda activate mistral
-    deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config conf/hello-world.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4 --training_arguments.deepspeed conf/deepspeed/z1-conf.json --run_id hello-world-multi-node > hello-world-multi-node.out 2> hello-world-multi-node.err
+cd mistral
+conda activate mistral
+deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config conf/hello-world.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4 --training_arguments.deepspeed conf/deepspeed/z1-conf.json --run_id hello-world-multi-node > hello-world-multi-node.out 2> hello-world-multi-node.err
 ```
 
 Note: You may need to adjust your batch size depending on the capacity of your GPU.
