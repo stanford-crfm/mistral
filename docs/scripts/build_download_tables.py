@@ -60,6 +60,7 @@ def produce_download_tables():
 
 
 if __name__ == "__main__":
+    print("")
     for table in produce_download_tables():
         print(table)
     print("")
