@@ -9,6 +9,7 @@
    Installation <getting_started/install.rst>
    Configuration <getting_started/config.rst>
    Training <getting_started/train.rst>
+   Download Models <getting_started/download.rst>
 
 .. toctree::
    :hidden:
