@@ -63,6 +63,21 @@ deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config co
 
 Note: You may need to adjust your batch size depending on the capacity of your GPU.
 
+### Using The Model
+
+Model checkpoints will be stored in the directory specified by the `artifacts.run_dir`. An example checkpoint might be in `tutorial-gpt2-micro/runs/run-1/checkpoint-1000`.
+
+Mistral stores model checkpoints in the Hugging Face format, so models can be loaded and used in the same manner as if one had trained the model with Hugging Face.
+
+
+For instance, to generate text with 🤗 Transformers (you will need to clone the [transformers](https://github.com/huggingface/transformers) repo):
+
+```bash
+conda activate mistral
+cd transformers/examples/pytorch/text-generation
+python run_generation.py --model_type=gpt2 --model_name_or_path=tutorial-gpt2-micro/runs/run-1/checkpoint-1000
+```
+
 ---
 
 ## Resources
