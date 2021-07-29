@@ -14,13 +14,13 @@ inherit:
 run_id: null
 
 # Weights & Biases
-wandb: hello-world
-group: gpt2-small
+wandb:
+group:
 
 # Artifacts & Caching
 artifacts:
-    cache_dir: /nlp/scr/jebolton/mistral-test-dir/artifacts
-    run_dir: /nlp/scr/jebolton/mistral-test-dir/runs
+    cache_dir:
+    run_dir:
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
 effective_bsz: 2
