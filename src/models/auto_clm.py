@@ -12,6 +12,7 @@ from typing import Dict, Tuple
 
 import torch
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizer
+from transformers.models.gpt2 import GPT2Config
 
 from ..util import REGISTRY
 from .mistral_gpt2 import MistralGPT2LMHeadModel
@@ -47,6 +48,7 @@ def gpt_initialize(model: AutoModelForCausalLM, initializer_range: float = 0.02,
 def get_auto_clm_tokenizer(
     model_id: str,
     paths: Dict[str, Path],
+    model_configs: dict = None,
     gradient_checkpointing: bool = True,
     gc_checkpoint_every: int = -1,
     use_pretrained_tokenizer: bool = True,
@@ -57,8 +59,12 @@ def get_auto_clm_tokenizer(
     """ Download/Load AutoConfig and Instantiate Corresponding Model and Tokenizer. """
 
     # Create Configuration
-    overwatch.info(f"Fetching Hugging Face AutoConfig for Model: `{REGISTRY[model_id]}`...")
-    config = AutoConfig.from_pretrained(REGISTRY[model_id], cache_dir=paths["configs"])
+    if "gpt2" in model_id and model_configs:
+        overwatch.info(f"Building Hugging Face GPT2Config from provided configs: {model_configs} ...")
+        config = GPT2Config.from_dict(model_configs)
+    else:
+        overwatch.info(f"Fetching Hugging Face AutoConfig for Model: `{REGISTRY[model_id]}`...")
+        config = AutoConfig.from_pretrained(REGISTRY[model_id], cache_dir=paths["configs"])
 
     # IMPORTANT :: Set `use_cache` to False -- we don't need it ever and it conflicts with gradient checkpointing!
     config.use_cache = False
