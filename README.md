@@ -65,6 +65,18 @@ Note: You may need to adjust your batch size depending on the capacity of your G
 
 ---
 
+## Resources
+
+The Mistral team has trained 5 GPT-2 Medium models and 5 GPT-2 Small models on the OpenWebText corpus.
+
+Checkpoints can be loaded as Hugging Face models. For each model, checkpoints at 100k, 200k, and 400k steps
+are provided.
+
+| Run | Type | Checkpoint | Size | Link |
+| Arwen | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/arwen-gpt2-medium-x21/arwen-checkpoint-400000.zip) |
+
+---
+
 ## Contributing
 
 Please see our [Read The Docs](https://nlp.stanford.edu/local/mistral/docs/_build/html/contributing.html) page for info on contributing.
