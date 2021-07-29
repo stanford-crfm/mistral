@@ -73,7 +73,7 @@ Checkpoints can be loaded as Hugging Face models. For each model, checkpoints at
 are provided.
 
 | Run | Type | Checkpoint | Size | Link |
-| --- | --- | --- | --- | --- | --- |
+| --- | --- | --- | --- | --- |
 | Arwen | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/arwen-gpt2-medium-x21/arwen-checkpoint-400000.zip) |
 
 | Run | Link | Size |
