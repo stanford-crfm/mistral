@@ -78,6 +78,14 @@ cd transformers/examples/pytorch/text-generation
 python run_generation.py --model_type=gpt2 --model_name_or_path=tutorial-gpt2-micro/runs/run-1/checkpoint-1000
 ```
 
+Or to load the model in Python code (make sure `/path/to/mistral` is in your `PYTHONPATH`):
+
+```python
+from src.models.mistral_gpt2 import MistralGPT2LMHeadModel
+
+model = MistralGPT2LMHeadModel.from_pretrained("tutorial-gpt2-micro/runs/run-1/checkpoint-1000")
+```
+
 ---
 
 ## Resources
