@@ -27,7 +27,7 @@ Note: The provided environment assumes CUDA 11.0, you may need to adjust this en
 
 ### Run Training
 
-First make sure to update `conf/hello-world.yaml` with directories for storing the Hugging Face cache and model runs.
+First make sure to update `conf/tutorial-gpt2-micro.yaml` with directories for storing the Hugging Face cache and model runs.
 
 ```
 # Artifacts & Caching
@@ -41,7 +41,7 @@ artifacts:
 ```bash
 cd mistral
 conda activate mistral
-CUDA_VISIBLE_DEVICES=0 python train.py --config conf/hello-world.yaml --nnodes 1 --nproc_per_node 1 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8
+CUDA_VISIBLE_DEVICES=0 python train.py --config conf/tutorial-gpt2-micro.yaml --nnodes 1 --nproc_per_node 1 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 2 --run_id tutorial-gpt2-micro
 ```
 
 **Run training (multi-node/multi-gpu with DeepSpeed)**
@@ -58,24 +58,23 @@ Note: This assumes each machine has 8 GPU's. Adjust accordingly.
 ```bash
 cd mistral
 conda activate mistral
-deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config conf/hello-world.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4 --training_arguments.deepspeed conf/deepspeed/z1-conf.json --run_id hello-world-multi-node > hello-world-multi-node.out 2> hello-world-multi-node.err
+deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config conf/tutorial-gpt2-micro.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4 --training_arguments.deepspeed conf/deepspeed/z1-conf.json --run_id tutorial-gpt2-micro-multi-node > tutorial-gpt2-micro-multi-node.out 2> tutorial-gpt2-micro-multi-node.err
 ```
 
 Note: You may need to adjust your batch size depending on the capacity of your GPU.
 
 ### Using The Model
 
-Model checkpoints will be stored in the directory specified by the `artifacts.run_dir`. An example checkpoint might be in `tutorial-gpt2-micro/runs/run-1/checkpoint-1000`.
+Model checkpoints will be stored in the directory specified by the `artifacts.run_dir`. An example checkpoint might be in `/path/to/runs/tutorial-gpt2-micro/checkpoint-1000`.
 
 Mistral stores model checkpoints in the Hugging Face format, so models can be loaded and used in the same manner as if one had trained the model with Hugging Face.
-
 
 For instance, to generate text with 🤗 Transformers (you will need to clone the [transformers](https://github.com/huggingface/transformers) repo):
 
 ```bash
 conda activate mistral
 cd transformers/examples/pytorch/text-generation
-python run_generation.py --model_type=gpt2 --model_name_or_path=tutorial-gpt2-micro/runs/run-1/checkpoint-1000
+python run_generation.py --model_type=gpt2 --model_name_or_path=/path/to/runs/tutorial-gpt2-micro/checkpoint-1000
 ```
 
 Or to load the model in Python code (make sure `/path/to/mistral` is in your `PYTHONPATH`):
@@ -83,7 +82,7 @@ Or to load the model in Python code (make sure `/path/to/mistral` is in your `PY
 ```python
 from src.models.mistral_gpt2 import MistralGPT2LMHeadModel
 
-model = MistralGPT2LMHeadModel.from_pretrained("tutorial-gpt2-micro/runs/run-1/checkpoint-1000")
+model = MistralGPT2LMHeadModel.from_pretrained("/path/to/runs/tutorial-gpt2-micro/checkpoint-1000")
 ```
 
 ---
@@ -92,8 +91,7 @@ model = MistralGPT2LMHeadModel.from_pretrained("tutorial-gpt2-micro/runs/run-1/c
 
 The Mistral team has trained 5 GPT-2 Medium models and 5 GPT-2 Small models on the OpenWebText corpus.
 
-Checkpoints can be loaded as Hugging Face models. For each model, checkpoints at 100k, 200k, and 400k steps
-are provided.
+Checkpoints can be loaded as Hugging Face models. For each model, checkpoints at 100k, 200k, and 400k steps are provided.
 
 GPT-2 Medium
 
@@ -135,6 +133,12 @@ GPT-2 Small
 | Expanse | GPT-2 Small | 400000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/expanse-gpt2-small-x777/expanse-checkpoint-400000.zip) |
 | Expanse | GPT-2 Small | 200000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/expanse-gpt2-small-x777/expanse-checkpoint-200000.zip) |
 | Expanse | GPT-2 Small | 100000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/expanse-gpt2-small-x777/expanse-checkpoint-100000.zip) |
+
+---
+
+## Issues
+
+To ask questions, report issues, or request features, please use the [GitHub Issue Tracker](https://github.com/stanford-mercury/mistral/issues). Before creating a new issue, please make sure to search for existing issues that may solve your problem.
 
 ---
 
