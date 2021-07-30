@@ -15,7 +15,7 @@ model:
     pretrained_tokenizer: true
 
     # Sequence Length
-    seq_len: 1024
+    seq_len: 256
 
     # Stability -- Upcasting and Scaled Dot-Product Reordering
     reorder_attn: true
