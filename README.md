@@ -36,7 +36,6 @@ First make sure to update `conf/tutorial-gpt2-micro.yaml` with directories for s
 artifacts:
     cache_dir: /path/to/artifacts
     run_dir: /path/to/runs
-
 ```
 
 Next, make sure that `/path/to/mistral` is on your `PYTHONPATH`.
