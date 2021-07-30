@@ -20,8 +20,8 @@ Run run_generation.py With Your Model
 As your model training runs, it should save checkpoints with all of the model resources in the directory
 you specified with ``articfacts.run_dir`` in the ``conf/tutorial-gpt2-micro.yaml`` config file.
 
-For this example, lets assume you have saved the checkpoints in ``hello-world/runs/run-1``. If you trained
-for 400000 steps, you should have a corresponding checkpoint at ``hello-world/runs/run-1/checkpoint-400000``.
+For this example, lets assume you have saved the checkpoints in ``/home/tutorial-gpt2-micro/runs/run-1``. If you trained
+for 400000 steps, you should have a corresponding checkpoint at ``/home/tutorial-gpt2-micro/runs/run-1/checkpoint-400000``.
 This directory contains all the resources for your model, with files such as ``pytorch_model.bin`` containing
 the actual model and ``vocab.json`` which maps word pieces to their indices among others.
 
@@ -29,7 +29,7 @@ To run text generation, issue the following command: ::
 
     conda activate mistral
     cd transformers/examples/pytorch/text-generation
-    python run_generation.py --model_type=gpt2 --model_name_or_path=hello-world/runs/run-1/checkpoint-400000
+    python run_generation.py --model_type=gpt2 --model_name_or_path=/home/tutorial-gpt2-micro/runs/run-1/checkpoint-400000
 
 This will create the following output requesting a text prompt. ::
 

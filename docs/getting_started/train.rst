@@ -5,7 +5,9 @@ Training "Hello World"
 ----------------------
 
 You should now be ready to launch a demo training run. There are example
-configurations for training on WikiText-103 in ``conf/tutorial-gpt2-micro.yaml``
+configurations for training on WikiText-103 in ``conf/tutorial-gpt2-micro.yaml``. You
+will need to update the artifacts directories and the wandb settings in this file before
+running training.
 
 To launch a training run, use this command (found in ``scripts/run/single-node.sh``) ::
 
