@@ -48,7 +48,7 @@ def produce_download_tables(mode="rst"):
         "medium": ["Arwen", "Beren", "Cerebrimbor", "Durin", "Eowyn"],
     }
 
-    run_to_id = {
+    run_to_seed = {
         "Alias": "x21",
         "Battlestar": "x49",
         "Caprica": "x81",
@@ -71,7 +71,7 @@ def produce_download_tables(mode="rst"):
         for run in sorted(runs[size]):
             for checkpoint in sorted(checkpoints, reverse=True):
                 # build and verify download link
-                download_link = f"https://storage.googleapis.com/mistral-models/gpt2-{size}/{run.lower()}-gpt2-{size}-{run_to_id[run]}/{run.lower()}-checkpoint-{checkpoint}.zip"
+                download_link = f"https://storage.googleapis.com/mistral-models/gpt2-{size}/{run.lower()}-gpt2-{size}-{run_to_seed[run]}/{run.lower()}-{run_to_seed[run]}-checkpoint-{checkpoint}.zip"
                 # assert verify_download_link(download_link), f"link failed: {download_link}"
                 # add row
                 table += row_creators[mode](run, size, checkpoint, download_sizes[size], download_link)
