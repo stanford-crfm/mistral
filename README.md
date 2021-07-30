@@ -25,6 +25,8 @@ conda activate mistral
 
 Note: The provided environment assumes CUDA 11.0, you may need to adjust this environment accordingly based on your set up.
 
+Note: Use `environments/environment-cpu.yaml` if you want to run on the CPU instead.
+
 ### Run Training
 
 First make sure to update `conf/tutorial-gpt2-micro.yaml` with directories for storing the Hugging Face cache and model runs.
@@ -34,7 +36,10 @@ First make sure to update `conf/tutorial-gpt2-micro.yaml` with directories for s
 artifacts:
     cache_dir: /path/to/artifacts
     run_dir: /path/to/runs
+
 ```
+
+Next, make sure that `/path/to/mistral` is on your `PYTHONPATH`.
 
 **Run training (single node/single gpu)**
 
