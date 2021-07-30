@@ -77,7 +77,7 @@ For instance, to generate text with 🤗 Transformers (you will need to clone th
 
 ```bash
 conda activate mistral
-cd transformers/examples/pytorch/text-generation
+cd transformers/examples/text-generation
 python run_generation.py --model_type=gpt2 --model_name_or_path=/path/to/runs/tutorial-gpt2-micro/checkpoint-1000
 ```
 

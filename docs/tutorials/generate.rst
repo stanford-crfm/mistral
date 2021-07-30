@@ -28,7 +28,7 @@ the actual model and ``vocab.json`` which maps word pieces to their indices amon
 To run text generation, issue the following command: ::
 
     conda activate mistral
-    cd transformers/examples/pytorch/text-generation
+    cd transformers/examples/text-generation
     python run_generation.py --model_type=gpt2 --model_name_or_path=/home/tutorial-gpt2-micro/runs/run-1/checkpoint-400000
 
 This will create the following output requesting a text prompt. ::
