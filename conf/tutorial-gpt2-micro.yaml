@@ -54,3 +54,7 @@ log_level: 20
 
 # Random Seed
 seed: 21
+
+# Set Eval Stride
+online_eval:
+    stride: 256
