@@ -42,6 +42,7 @@ def get_schema() -> Dict[str, Any]:
         "reorder_attn": merge(tboolean, default(True)),
         "upcast_attn": merge(tboolean, default(True)),
         "initial_weights": merge(tstring, nullable, default(None)),
+        "config_path": merge(tstring, nullable, default(None)),
     }
 
     # Schema for Huggingface Trainer and Training Arguments

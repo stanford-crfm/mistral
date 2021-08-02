@@ -6,119 +6,145 @@ A framework for fast and efficient large-scale language model training, built wi
 and helpful scripts for incorporating new pre-training datasets, various schemes for single node and distributed
 training, and importantly, scripts for evaluation and measuring bias.
 
+Full documentation can be found on our [Read The Docs](https://nlp.stanford.edu/local/mistral/docs/_build/html/index.html) site.
+
 A Project Mercury Endeavor.
-
-## Contributing
-
-If contributing to this repository, please make sure to do the following:
-
-+ Read the instructions in [`CONTRIBUTING.md`](./CONTRIBUTING.md) - Notably, before committing to the repository, *make
-sure to set up your dev environment and pre-commit install (`pre-commit install`)!*
-
-+ Install and activate the Conda Environment using the `QUICKSTART` instructions below.
-
-+ On installing new dependencies (via `pip` or `conda`), please make sure to update the `environment-<ID>.yaml` files
-  via the following command (note that you need to separately create the `environment-cpu.yaml` file by exporting from
-  your local development environment!):
-
-  `make serialize-env arch=<cpu | gpu>`
 
 ---
 
 ## Quickstart
 
-Clones `mistral` to the working directory, then walks through dependency setup, mostly leveraging the
-`environment.yaml` files. Note, however, that because most of this work depends on bleeding edge updates to the main
-`transformers` repo, you may have to refresh the `transformers` install via `pip install git+https://github.com
-/huggingface/transformers`. On any shared resources (NLP Cluster, DGX Boxes) @Sidd will monitor this.
-
-### Shared NLP Environment (Stanford Folks)
-
-Note for @Stanford folks - the NLP Cluster (with the DGX Boxes pending) have all of the following Conda environments
-already set up - the only necessary steps are cloning the repo, activating the appropriate env, and running the
-`pre-commit install` command.
-
-#### Interactive Session (from a Jagupard Machine) -- Direct Development on Cluster
-
-```bash
-cd /nlp/scr/$USER  # Replace $USER with you!
-git clone https://github.com/stanford-mercury/mistral.git
-cd mistral
-conda activate mistral
-pre-commit install  # Important!
-```
-
-### Local Development - Linux w/ GPU & CUDA 11.0
-
-Note: Assumes that `conda` (Miniconda or Anaconda are both fine) is installed and on your path.
-
-Ensure that you're using the appropriate `environment-<gpu | cpu>.yaml` file --> if PyTorch doesn't build properly for
-your setup, checking the CUDA Toolkit is usually a good place to start. We have `environment-<gpu>.yaml` files for CUDA
-11.0 (and any additional CUDA Toolkit support can be added -- file an issue if necessary).
+### Installation
 
 ```bash
 git clone https://github.com/stanford-mercury/mistral.git
 cd mistral
 conda env create -f environments/environment-gpu.yaml  # Choose CUDA Kernel based on Hardware!
 conda activate mistral
-pre-commit install  # Important!
 ```
 
-### Local Development - CPU (Mac OS & Linux)
+Note: The provided environment assumes CUDA 11.0, you may need to adjust this environment accordingly based on your set up.
 
-Note: Assumes that `conda` (Miniconda or Anaconda are both fine) is installed and on your path. Use the `-cpu`
-environment file.
+Note: Use `environments/environment-cpu.yaml` if you want to run on the CPU instead.
+
+### Run Training
+
+First make sure to update `conf/tutorial-gpt2-micro.yaml` with directories for storing the Hugging Face cache and model runs.
+
+```
+# Artifacts & Caching
+artifacts:
+    cache_dir: /path/to/artifacts
+    run_dir: /path/to/runs
+```
+
+Next, make sure that `/path/to/mistral` is on your `PYTHONPATH`.
+
+**Run training (single node/single gpu)**
 
 ```bash
-git clone https://github.com/stanford-mercury/mistral.git
 cd mistral
-conda env create -f environments/environment-cpu.yaml
 conda activate mistral
-pre-commit install  # Important!
+CUDA_VISIBLE_DEVICES=0 python train.py --config conf/tutorial-gpt2-micro.yaml --nnodes 1 --nproc_per_node 1 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 2 --run_id tutorial-gpt2-micro
+```
+
+**Run training (multi-node/multi-gpu with DeepSpeed)**
+
+Assuming you want to run on `machine1` and `machine2`, add the following content to `/job/hostfile`
+
+```
+machine1 slots=8
+machine2 slots=8
+```
+
+Note: This assumes each machine has 8 GPU's. Adjust accordingly.
+
+```bash
+cd mistral
+conda activate mistral
+deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config conf/tutorial-gpt2-micro.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4 --training_arguments.deepspeed conf/deepspeed/z1-conf.json --run_id tutorial-gpt2-micro-multi-node > tutorial-gpt2-micro-multi-node.out 2> tutorial-gpt2-micro-multi-node.err
+```
+
+Note: You may need to adjust your batch size depending on the capacity of your GPU.
+
+### Using The Model
+
+Model checkpoints will be stored in the directory specified by the `artifacts.run_dir`. An example checkpoint might be in `/path/to/runs/tutorial-gpt2-micro/checkpoint-1000`.
+
+Mistral stores model checkpoints in the Hugging Face format, so models can be loaded and used in the same manner as if one had trained the model with Hugging Face.
+
+For instance, to generate text with 🤗 Transformers (you will need to clone the [transformers](https://github.com/huggingface/transformers) repo):
+
+```bash
+conda activate mistral
+cd transformers/examples/text-generation
+python run_generation.py --model_type=gpt2 --model_name_or_path=/path/to/runs/tutorial-gpt2-micro/checkpoint-1000
+```
+
+Or to load the model in Python code (make sure `/path/to/mistral` is in your `PYTHONPATH`):
+
+```python
+from src.models.mistral_gpt2 import MistralGPT2LMHeadModel
+
+model = MistralGPT2LMHeadModel.from_pretrained("/path/to/runs/tutorial-gpt2-micro/checkpoint-1000")
 ```
 
 ---
 
-## Start-Up (from Scratch)
+## Resources
 
-Use these commands if you're starting a repository from scratch (this shouldn't be necessary to use this repo, but is
-included for completeness). If you're just trying to run/use this code, look at the Quickstart section above.
+The Mistral team has trained 5 GPT-2 Medium models and 5 GPT-2 Small models on the OpenWebText corpus.
 
-### GPU & Cluster Environments (CUDA 11.0)
+Checkpoints can be loaded as Hugging Face models. For each model, checkpoints at 100k, 200k, and 400k steps are provided.
 
-```bash
-conda create --name mistral python=3.8
-conda install pytorch torchvision torchaudio cudatoolkit=11.0 -c pytorch   # CUDA=11.0 on most of Cluster!
-conda install ipython jupyter
+GPT-2 Medium
 
-pip install black datasets flake8 h5py isort matplotlib pre-commit
+| Run | Type | Checkpoint | Size | Link |
+| --- | --- | --- | --- | --- |
+| Arwen | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/arwen-gpt2-medium-x21/arwen-x21-checkpoint-400000.zip) |
+| Arwen | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/arwen-gpt2-medium-x21/arwen-x21-checkpoint-200000.zip) |
+| Arwen | GPT-2 Medium | 100000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/arwen-gpt2-medium-x21/arwen-x21-checkpoint-100000.zip) |
+| Beren | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/beren-gpt2-medium-x49/beren-x49-checkpoint-400000.zip) |
+| Beren | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/beren-gpt2-medium-x49/beren-x49-checkpoint-200000.zip) |
+| Beren | GPT-2 Medium | 100000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/beren-gpt2-medium-x49/beren-x49-checkpoint-100000.zip) |
+| Cerebrimbor | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-400000.zip) |
+| Cerebrimbor | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-200000.zip) |
+| Cerebrimbor | GPT-2 Medium | 100000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-100000.zip) |
+| Durin | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/durin-gpt2-medium-x343/durin-x343-checkpoint-400000.zip) |
+| Durin | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/durin-gpt2-medium-x343/durin-x343-checkpoint-200000.zip) |
+| Durin | GPT-2 Medium | 100000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/durin-gpt2-medium-x343/durin-x343-checkpoint-100000.zip) |
+| Eowyn | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/eowyn-gpt2-medium-x777/eowyn-x777-checkpoint-400000.zip) |
+| Eowyn | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/eowyn-gpt2-medium-x777/eowyn-x777-checkpoint-200000.zip) |
+| Eowyn | GPT-2 Medium | 100000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/eowyn-gpt2-medium-x777/eowyn-x777-checkpoint-100000.zip) |
 
-# Install Bleeding-Edge Quinine Library!
-pip install git+https://github.com/krandiash/quinine.git
+GPT-2 Small
 
-# Install Bleeding-Edge Transformers Library!
-pip install git+https://github.com/huggingface/transformers
-```
+| Run | Type | Checkpoint | Size | Link |
+| --- | --- | --- | --- | --- |
+| Alias | GPT-2 Small | 400000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/alias-gpt2-small-x21/alias-x21-checkpoint-400000.zip) |
+| Alias | GPT-2 Small | 200000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/alias-gpt2-small-x21/alias-x21-checkpoint-200000.zip) |
+| Alias | GPT-2 Small | 100000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/alias-gpt2-small-x21/alias-x21-checkpoint-100000.zip) |
+| Battlestar | GPT-2 Small | 400000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/battlestar-gpt2-small-x49/battlestar-x49-checkpoint-400000.zip) |
+| Battlestar | GPT-2 Small | 200000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/battlestar-gpt2-small-x49/battlestar-x49-checkpoint-200000.zip) |
+| Battlestar | GPT-2 Small | 100000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/battlestar-gpt2-small-x49/battlestar-x49-checkpoint-100000.zip) |
+| Caprica | GPT-2 Small | 400000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/caprica-gpt2-small-x81/caprica-x81-checkpoint-400000.zip) |
+| Caprica | GPT-2 Small | 200000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/caprica-gpt2-small-x81/caprica-x81-checkpoint-200000.zip) |
+| Caprica | GPT-2 Small | 100000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/caprica-gpt2-small-x81/caprica-x81-checkpoint-100000.zip) |
+| Darkmatter | GPT-2 Small | 400000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/darkmatter-gpt2-small-x343/darkmatter-x343-checkpoint-400000.zip) |
+| Darkmatter | GPT-2 Small | 200000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/darkmatter-gpt2-small-x343/darkmatter-x343-checkpoint-200000.zip) |
+| Darkmatter | GPT-2 Small | 100000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/darkmatter-gpt2-small-x343/darkmatter-x343-checkpoint-100000.zip) |
+| Expanse | GPT-2 Small | 400000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/expanse-gpt2-small-x777/expanse-x777-checkpoint-400000.zip) |
+| Expanse | GPT-2 Small | 200000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/expanse-gpt2-small-x777/expanse-x777-checkpoint-200000.zip) |
+| Expanse | GPT-2 Small | 100000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/expanse-gpt2-small-x777/expanse-x777-checkpoint-100000.zip) |
 
-### CPU Environments (Usually for Local Development -- Geared for Mac OS & Linux)
+---
 
-Similar to the above, but installs the CPU-only versions of Torch and similar dependencies.
+## Issues
 
-```bash
-conda create --name mistral python=3.8
-conda install pytorch torchvision torchaudio -c pytorch
-conda install ipython jupyter
+To ask questions, report issues, or request features, please use the [GitHub Issue Tracker](https://github.com/stanford-mercury/mistral/issues). Before creating a new issue, please make sure to search for existing issues that may solve your problem.
 
-pip install black datasets flake8 h5py isort matplotlib pre-commit
+---
 
-# Install Bleeding-Edge Quinine Library!
-pip install git+https://github.com/krandiash/quinine.git
+## Contributing
 
-# Install Bleeding-Edge Transformers Library!
-pip install git+https://github.com/huggingface/transformers
-```
-
-### Containerized Setup
-
-Support for running `mistral` inside of a Docker or Singularity container is TBD. If this support is urgently required,
-please file an issue!
+Please see our [Read The Docs](https://nlp.stanford.edu/local/mistral/docs/_build/html/contributing.html) page for info on contributing.

@@ -188,6 +188,7 @@ dependencies:
   - shortuuid==1.0.1
   - smmap==3.0.5
   - soupsieve==2.2
+  - sphinx==4.0.2
   - subprocess32==3.5.4
   - tokenizers==0.10.1
   - toml==0.10.2

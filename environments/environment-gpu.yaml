@@ -197,6 +197,7 @@ dependencies:
   - shortuuid==1.0.1
   - smmap==3.0.5
   - soupsieve==2.2
+  - sphinx==4.0.2
   - subprocess32==3.5.4
   - tensorboardx==1.8
   - tokenizers==0.10.1
@@ -204,7 +205,7 @@ dependencies:
   - toolz==0.11.1
   - toposort==1.5
   - tqdm==4.49.0
-  - git+https://github.com/huggingface/transformers
+  - transformers==4.5.0
   - typed-ast==1.4.2
   - ujson==4.0.2
   - urllib3==1.26.3

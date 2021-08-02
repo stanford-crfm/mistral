@@ -20,6 +20,7 @@ Reference:
 
 |=>> A Project Mercury Endeavor
 """
+import json
 import os
 import random
 from datetime import datetime
@@ -83,9 +84,16 @@ def train() -> None:
 
     # Instantiate Pretrained Tokenizer and Initialize AutoModel (GPT-2) from Arguments
     overwatch.info(f"Building Tokenize and Initializing `{quinfig.model.id}` via AutoModel/AutoConfig...")
+    if quinfig.model.config_path:
+        overwatch.info(f"Using Configs For Model From: {quinfig.model.config_path} ...")
+        with open(quinfig.model.config_path) as f:
+            model_configs = json.load(f)
+    else:
+        model_configs = None
     model, tokenizer = get_auto_clm_tokenizer(
         quinfig.model.id,
         paths,
+        model_configs=model_configs,
         gradient_checkpointing=quinfig.model.gradient_checkpointing,
         gc_checkpoint_every=quinfig.model.gc_checkpoint_every,
         use_pretrained_tokenizer=quinfig.model.pretrained_tokenizer,
