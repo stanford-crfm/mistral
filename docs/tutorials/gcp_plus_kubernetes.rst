@@ -175,6 +175,10 @@ commands to set up Mistral and Weights and Biases: ::
     cd mistral
     wandb init
 
+Add the API key from `https://wandb.ai/authorize<https://wandb.ai/site>`_ to the file ``/home/.wandb/auth``
+to allow communication with Weights and Biases. If you don't want to store your API key on the persistent
+volume, you can look into using `Kubernetes Secrets<https://cloud.google.com/kubernetes-engine/docs/concepts/secret>`_.
+
 Follow the instructions for authorizing Weights and Biases, as in the :doc:`installation <../getting_started/install>` section.
 
 Running A Training Job
