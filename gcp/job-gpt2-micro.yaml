@@ -13,7 +13,7 @@ spec:
         - /bin/zsh
         - -c
         image: gcr.io/hai-gcp-models/img-torch1.8
-        name: job-battlestar
+        name: job-gpt2-micro
         resources:
           limits:
             nvidia.com/gpu: 2
