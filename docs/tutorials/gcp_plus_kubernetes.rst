@@ -208,6 +208,30 @@ To launch the job, run this command: ::
 
     kubectl apply -f gcp/job-gpt2-micro.yaml
 
+You should see output like this: ::
+
+    $ kubectl get jobs
+
+    NAME             COMPLETIONS   DURATION   AGE
+    job-gpt2-micro   0/1           3s         3s
+
+    $ kubectl get pods
+
+    NAME                          READY   STATUS    RESTARTS   AGE
+    job-gpt2-micro-6jxck          1/1     Running   0          101s
+    nfs-server-55d497bd9b-z5bhp   1/1     Running   0          29h
+    pod-1                         1/1     Running   0          107m
+
+Sometimes a pod will not start promptly. So you will see ``0/1`` in the "READY"
+column and ``Pending`` in the "STATUS" column. If you want to see details
+of the status of your pod, run this command: ::
+
+    kubectl describe pod job-gpt2-micro-6jxck
+
+If you want to stop the job, run this command: ::
+
+    kubectl delete job job-gpt2-micro
+
 Uploading Models To A GCP Bucket
 --------------------------------
 
