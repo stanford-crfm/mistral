@@ -18,6 +18,7 @@
    Training With Multiple GPU's <tutorials/multi-gpu>
    Training On Multiple Nodes With DeepSpeed <tutorials/deepspeed>
    Generate Text With A Trained Model <tutorials/generate>
+   Training A Model With Google Cloud + Kubernetes <tutorials/gcp_plus_kubernetes>
 
 .. toctree::
    :hidden:
