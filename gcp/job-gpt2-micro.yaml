@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-gpt2-micro
+spec:
+  template:
+    spec:
+      containers:
+      - args:
+        - export HOME=/home && pip install git+https://github.com/krandiash/quinine.git --upgrade &&
+          cd /home/mistral && bash gcp/run-demo-job.sh
+        command:
+        - /bin/zsh
+        - -c
+        image: gcr.io/hai-gcp-models/img-torch1.8
+        name: job-battlestar
+        resources:
+          limits:
+            nvidia.com/gpu: 2
+          requests:
+            nvidia.com/gpu: 2
+        volumeMounts:
+        - mountPath: /home
+          name: pv-tutorial
+        - mountPath: /dev/shm
+          name: dshm
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-tesla-a100
+        cloud.google.com/gke-nodepool: pool-1
+      restartPolicy: Never
+      tolerations:
+      - effect: NoSchedule
+        key: nvidia.com/gpu
+        operator: Equal
+        value: present
+      volumes:
+      - name: pv-tutorial
+        persistentVolumeClaim:
+          claimName: pvc-tutorial
+      - emptyDir:
+          medium: Memory
+        name: dshm
