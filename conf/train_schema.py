@@ -108,6 +108,9 @@ def get_schema() -> Dict[str, Any]:
         "wandb": merge(tstring, nullable, default(None)),
         "group": merge(tstring, nullable, default(None)),
         "seed": merge(tinteger, default(42)),
+        "run_training": merge(tboolean, default(True)),
+        "run_final_eval": merge(tboolean, default(True)),
+        "use_gpu": merge(tboolean, default(True)),
         # Infra Params - Passed in from `torch.distributed`
         "local_rank": merge(tinteger, default(-1)),
         "nnodes": merge(tinteger, default(-1)),
