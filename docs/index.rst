@@ -10,6 +10,7 @@
    Configuration <getting_started/config.rst>
    Training <getting_started/train.rst>
    Download Models <getting_started/download.rst>
+   Evaluation <getting_started/evaluate.rst>
 
 .. toctree::
    :hidden:
@@ -31,6 +32,7 @@ Mistral - Large Scale Language Modeling Made Easy
 =====================================================
 
 .. image:: mistral_components.png
+
 
 Mistral combines `Hugging Face <https://huggingface.co/>`_ 🤗, `DeepSpeed <https://www.deepspeed.ai/>`_, and `Weights & Biases <https://wandb.ai/site>`_ ,  with additional tools, helpful scripts, and documentation to facilitate:
 
