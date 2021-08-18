@@ -185,10 +185,18 @@ def train() -> None:
         trainer.save_model(output_dir=str(paths["runs"] / "checkpoint-0"))
 
     # Training Time!
-    overwatch.info("Training...")
-    trainer.train(resume_from_checkpoint=last_checkpoint)
-    trainer.save_model()
-    overwatch.info("...and that's all folks!")
+    if quinfig.run_training:
+        overwatch.info("Training...")
+        trainer.train(resume_from_checkpoint=last_checkpoint)
+        trainer.save_model()
+        overwatch.info("...and that's all folks!")
+
+    # Evaluation Time!
+    if quinfig.run_final_eval:
+        overwatch.info("Running final evaluation...")
+        trainer.model.to(torch.device("cuda"))
+        metrics = trainer.evaluate()
+        print(metrics)
 
 
 if __name__ == "__main__":
