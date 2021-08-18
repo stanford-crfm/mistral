@@ -97,6 +97,8 @@ The Mistral team has trained 5 GPT-2 Medium models and 5 GPT-2 Small models on t
 
 Checkpoints can be loaded as Hugging Face models. For each model, checkpoints at 100k, 200k, and 400k steps are provided.
 
+Internally we have stored over 600 checkpoints for each model. If you are interested in acquiring additional checkpoints, please contact Laurel (lorr1) or Sidd (skaramcheti) at their @stanford.edu addresses.
+
 GPT-2 Medium
 
 | Run | Type | Checkpoint | Size | Link |
