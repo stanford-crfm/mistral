@@ -3,7 +3,6 @@
 > *Mistral*: A strong and cool northwesterly wind that builds as it moves, bringing good health and clear skies.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
-
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-green.svg)](https://pre-commit.com/)
 
 A framework for fast and efficient large-scale language model training, built with Hugging Face :hugs:. Includes tools
