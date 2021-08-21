@@ -71,8 +71,7 @@ deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config co
 
 Note: You may need to adjust your batch size depending on the capacity of your GPU.
 
-If you are interested in training a model on Google Cloud, we have created a thorough tutorial
-[here](https://nlp.stanford.edu/local/mistral/docs/_build/html/tutorials/gcp_plus_kubernetes.html).
+If you are interested in training a model on Google Cloud, check out our [Google Cloud + Kubernetes Tutorial](https://nlp.stanford.edu/local/mistral/docs/_build/html/tutorials/gcp_plus_kubernetes.html).
 
 ### Using The Model
 
