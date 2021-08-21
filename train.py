@@ -194,7 +194,8 @@ def train() -> None:
     # Evaluation Time!
     if quinfig.run_final_eval:
         overwatch.info("Running final evaluation...")
-        trainer.model.to(torch.device("cuda"))
+        if quinfig.nproc_per_node > 0:
+            trainer.model.to(torch.device("cuda"))
         metrics = trainer.evaluate()
         print(metrics)
 
