@@ -185,7 +185,7 @@ dependencies:
   - pylatex==1.4.1
   - pytz==2021.1
   - pyyaml==5.3.1
-  - quinine==0.2.3
+  - quinine==0.3.0
   - ratelim==0.1.6
   - regex==2020.11.13
   - requests==2.25.1
