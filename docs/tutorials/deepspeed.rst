@@ -30,42 +30,10 @@ When running Deep Speed and Hugging Face, it is necessary to specify a collectio
 json config file. These settings will be used to create the final ``TrainingArguments`` object for model training
 and include such things as what optimizer or scheduler to use.
 
-An example json config file is available at ``conf/deepspeed/z1-conf.json``: ::
+.. include:: ../../conf/deepspeed/z2-conf.json
+   :literal:
 
-    {
-      "optimizer": {
-        "type": "AdamW",
-        "params": {
-          "lr": 0.0006,
-          "betas": [
-            0.9,
-            0.95
-          ],
-          "eps": 1e-8,
-          "weight_decay": 0.1
-        }
-      },
-
-      "scheduler": {
-        "type": "WarmupDecayLR",
-        "params": {
-          "total_num_steps": 400000,
-          "warmup_max_lr": 0.0006,
-          "warmup_num_steps": 4000
-        }
-      },
-
-      "zero_optimization": {
-        "stage": 1,
-        "allgather_partitions": true,
-        "allgather_bucket_size": 2e8,
-        "reduce_scatter": true,
-        "reduce_bucket_size": 2e8,
-        "overlap_comm": true,
-        "contiguous_gradients": true,
-        "cpu_offload": false
-      }
-    }
+An example json config file is available at ``conf/deepspeed/z2-conf.json``: ::
 
 Launching A Training Run
 ------------------------
@@ -74,7 +42,7 @@ The following command (run on machine1) will launch training across your cluster
 
     cd mistral
     conda activate mistral
-    deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config conf/tutorial-gpt2-micro.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4 --training_arguments.deepspeed conf/deepspeed/z1-conf.json --run_id tutorial-gpt2-micro-multi-node > tutorial-gpt2-micro-multi-node.out 2> tutorial-gpt2-micro-multi-node.err
+    deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config conf/tutorial-gpt2-micro.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4 --training_arguments.deepspeed conf/deepspeed/z2-conf.json --run_id tutorial-gpt2-micro-multi-node > tutorial-gpt2-micro-multi-node.out 2> tutorial-gpt2-micro-multi-node.err
 
 This assumes that the appropriate hostfile is set up at ``/job/hostfile`` on ``machine1``.
 
