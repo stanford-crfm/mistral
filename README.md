@@ -10,7 +10,8 @@ A framework for fast and efficient large-scale language model training, built wi
 and helpful scripts for incorporating new pre-training datasets, various schemes for single node and distributed
 training, and importantly, scripts for evaluation and measuring bias.
 
-Full documentation can be found on our [Read The Docs](https://nlp.stanford.edu/local/mistral/docs/_build/html/index.html) site.
+Visit our [Read the Docs site](https://nlp.stanford.edu/local/mistral/docs/_build/html/index.html) for the full
+documentation.
 
 A Project Mercury Endeavor.
 
@@ -20,20 +21,24 @@ A Project Mercury Endeavor.
 
 ### Installation
 
+The dependencies for Mistral can be installed using Conda. Note that the provided environment assumes that CUDA 11.0
+is installed. You may need to adjust the environment YAML file depending on your set up.
+
 ```bash
 git clone https://github.com/stanford-mercury/mistral.git
 cd mistral
-conda env create -f environments/environment-gpu.yaml  # Choose CUDA Kernel based on Hardware!
-conda activate mistral
+conda env create -f environments/environment-gpu.yaml  # Choose CUDA kernel based on the hardware!
 ```
 
-Note: The provided environment assumes CUDA 11.0, you may need to adjust this environment accordingly based on your set up.
+If you are training on the CPU only, run `conda env create -f environments/environment-cpu.yaml` instead.
 
-Note: Use `environments/environment-cpu.yaml` if you want to run on the CPU instead.
 
-### Run Training
+### Training GPT-2 Micro
 
-First make sure to update `conf/tutorial-gpt2-micro.yaml` with directories for storing the Hugging Face cache and model runs.
+#### Prerequisites
+
+First, make sure to update `conf/tutorial-gpt2-micro.yaml` with the directories you want to store the Hugging Face
+cache and model runs.
 
 ```
 # Artifacts & Caching
@@ -44,42 +49,57 @@ artifacts:
 
 Next, make sure that `/path/to/mistral` is on your `PYTHONPATH`.
 
-**Run training (single node/single gpu)**
+#### Single-node single-GPU training
+
+For single-node single-gpu training, run:
 
 ```bash
-cd mistral
 conda activate mistral
+cd mistral
 CUDA_VISIBLE_DEVICES=0 python train.py --config conf/tutorial-gpt2-micro.yaml --nnodes 1 --nproc_per_node 1 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 2 --run_id tutorial-gpt2-micro
 ```
 
-**Run training (multi-node/multi-gpu with DeepSpeed)**
+#### Multi-node multi-GPU training with DeepSpeed
 
-Assuming you want to run on `machine1` and `machine2`, add the following content to `/job/hostfile`
+Modify `/job/hostfile` in the following way:
+
+```
+<Hostname of first machine> slots=<Number of GPUs>
+<Hostname of second machine> slots=<Number of GPUs>
+...
+<Hostname of the nth machine> slots=<Number of GPUs>
+```
+
+Below is an example hostfile where we train on `machine1` and `machine2` with 8 GPUs each:
 
 ```
 machine1 slots=8
 machine2 slots=8
 ```
 
-Note: This assumes each machine has 8 GPU's. Adjust accordingly.
+To start distributed training, run:
 
 ```bash
-cd mistral
 conda activate mistral
+cd mistral
 deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config conf/tutorial-gpt2-micro.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4 --training_arguments.deepspeed conf/deepspeed/z1-conf.json --run_id tutorial-gpt2-micro-multi-node > tutorial-gpt2-micro-multi-node.out 2> tutorial-gpt2-micro-multi-node.err
 ```
 
-Note: You may need to adjust your batch size depending on the capacity of your GPU.
+Note: You may need to adjust your batch size depending on the capacity of your GPUs.
 
-If you are interested in training a model on Google Cloud, check out our [Google Cloud + Kubernetes Tutorial](https://nlp.stanford.edu/local/mistral/docs/_build/html/tutorials/gcp_plus_kubernetes.html).
+If you are interested in training a model on Google Cloud, check out our
+[Google Cloud + Kubernetes Tutorial](https://nlp.stanford.edu/local/mistral/docs/_build/html/tutorials/gcp_plus_kubernetes.html).
 
-### Using The Model
+### Using the model
 
-Model checkpoints will be stored in the directory specified by the `artifacts.run_dir`. An example checkpoint might be in `/path/to/runs/tutorial-gpt2-micro/checkpoint-1000`.
+Model checkpoints will be stored in the directory specified by the `artifacts.run_dir`. An example checkpoint might be
+in `/path/to/runs/tutorial-gpt2-micro/checkpoint-1000`.
 
-Mistral stores model checkpoints in the Hugging Face format, so models can be loaded and used in the same manner as if one had trained the model with Hugging Face.
+Mistral stores model checkpoints in the Hugging Face format, so models can be loaded and used in the same manner as if
+one had trained the model with Hugging Face.
 
-For instance, to generate text with 🤗 Transformers (you will need to clone the [transformers](https://github.com/huggingface/transformers) repo):
+For instance, to generate text with 🤗 Transformers (you will need to clone the
+[transformers](https://github.com/huggingface/transformers) repo):
 
 ```bash
 conda activate mistral
@@ -101,9 +121,10 @@ model = MistralGPT2LMHeadModel.from_pretrained("/path/to/runs/tutorial-gpt2-micr
 
 The Mistral team has trained 5 GPT-2 Medium models and 5 GPT-2 Small models on the OpenWebText corpus.
 
-Checkpoints can be loaded as Hugging Face models. For each model, checkpoints at 100k, 200k, and 400k steps are provided.
+Checkpoints can be loaded as Hugging Face models. For each model, we provide checkpoints at 100k, 200k, and 400k steps.
 
-Internally we have stored over 600 checkpoints for each model. If you are interested in acquiring additional checkpoints, please contact Laurel (lorr1) or Sidd (skaramcheti) at their @stanford.edu addresses.
+Internally we have stored over 600 checkpoints for each model. If you are interested in acquiring additional checkpoints,
+please contact Laurel (lorr1) or Sidd (skaramcheti) at their @stanford.edu email addresses.
 
 GPT-2 Medium
 
@@ -149,10 +170,13 @@ GPT-2 Small
 
 ## Issues
 
-To ask questions, report issues, or request features, please use the [GitHub Issue Tracker](https://github.com/stanford-mercury/mistral/issues). Before creating a new issue, please make sure to search for existing issues that may solve your problem.
+To ask questions, report issues, or request features, please use the
+[GitHub Issue Tracker](https://github.com/stanford-mercury/mistral/issues). Before creating a new issue, please make
+sure to search for existing issues that may solve your problem.
 
 ---
 
 ## Contributing
 
-Please see our [Read The Docs](https://nlp.stanford.edu/local/mistral/docs/_build/html/contributing.html) page for info on contributing.
+Please see the [following page](https://nlp.stanford.edu/local/mistral/docs/_build/html/contributing.html) for
+information on contributing.
