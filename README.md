@@ -2,6 +2,10 @@
 
 > *Mistral*: A strong and cool northwesterly wind that builds as it moves, bringing good health and clear skies.
 
+[![license](https://img.shields.io/badge/license-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-green?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+
+
 A framework for fast and efficient large-scale language model training, built with Hugging Face :hugs:. Includes tools
 and helpful scripts for incorporating new pre-training datasets, various schemes for single node and distributed
 training, and importantly, scripts for evaluation and measuring bias.
@@ -67,6 +71,8 @@ deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config co
 
 Note: You may need to adjust your batch size depending on the capacity of your GPU.
 
+If you are interested in training a model on Google Cloud, check out our [Google Cloud + Kubernetes Tutorial](https://nlp.stanford.edu/local/mistral/docs/_build/html/tutorials/gcp_plus_kubernetes.html).
+
 ### Using The Model
 
 Model checkpoints will be stored in the directory specified by the `artifacts.run_dir`. An example checkpoint might be in `/path/to/runs/tutorial-gpt2-micro/checkpoint-1000`.
@@ -96,6 +102,8 @@ model = MistralGPT2LMHeadModel.from_pretrained("/path/to/runs/tutorial-gpt2-micr
 The Mistral team has trained 5 GPT-2 Medium models and 5 GPT-2 Small models on the OpenWebText corpus.
 
 Checkpoints can be loaded as Hugging Face models. For each model, checkpoints at 100k, 200k, and 400k steps are provided.
+
+Internally we have stored over 600 checkpoints for each model. If you are interested in acquiring additional checkpoints, please contact Laurel (lorr1) or Sidd (skaramcheti) at their @stanford.edu addresses.
 
 GPT-2 Medium
 

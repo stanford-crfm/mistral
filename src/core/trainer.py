@@ -133,7 +133,7 @@ class OnlineBenchmarkTrainer(Trainer):
             "eval_openwebtext_ppl": np.exp(metrics["eval_loss"]),
             "eval_openwebtext_runtime": metrics["eval_runtime"],
             "eval_openwebtext_samples_per_second": metrics["eval_samples_per_second"],
-            "epoch": metrics["epoch"],
+            "epoch": metrics.get("epoch"),
         }
         self.log(metrics)
         if not eval_ppl_datasets:
