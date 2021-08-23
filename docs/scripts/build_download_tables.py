@@ -61,7 +61,7 @@ def produce_download_tables(mode="rst"):
         "Eowyn": "x777",
     }
 
-    checkpoints = [100000, 200000, 400000]
+    checkpoints = [100000, 200000, 300000, 400000]
 
     download_sizes = {"small": "1.8G", "medium": "4.9G"}
 

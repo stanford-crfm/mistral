@@ -121,7 +121,7 @@ model = MistralGPT2LMHeadModel.from_pretrained("/path/to/runs/tutorial-gpt2-micr
 
 The Mistral team has trained 5 GPT-2 Medium models and 5 GPT-2 Small models on the OpenWebText corpus.
 
-Checkpoints can be loaded as Hugging Face models. For each model, we provide checkpoints at 100k, 200k, and 400k steps.
+Checkpoints can be loaded as Hugging Face models. For each model, we provide checkpoints at 100k, 200k, 300k and 400k steps.
 
 Internally we have stored over 600 checkpoints for each model. If you are interested in acquiring additional checkpoints,
 please contact Laurel (lorr1) or Sidd (skaramcheti) at their @stanford.edu email addresses.
@@ -131,18 +131,23 @@ GPT-2 Medium
 | Run | Type | Checkpoint | Size | Link |
 | --- | --- | --- | --- | --- |
 | Arwen | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/arwen-gpt2-medium-x21/arwen-x21-checkpoint-400000.zip) |
+| Arwen | GPT-2 Medium | 300000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/arwen-gpt2-medium-x21/arwen-x21-checkpoint-300000.zip) |
 | Arwen | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/arwen-gpt2-medium-x21/arwen-x21-checkpoint-200000.zip) |
 | Arwen | GPT-2 Medium | 100000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/arwen-gpt2-medium-x21/arwen-x21-checkpoint-100000.zip) |
 | Beren | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/beren-gpt2-medium-x49/beren-x49-checkpoint-400000.zip) |
+| Beren | GPT-2 Medium | 300000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/beren-gpt2-medium-x49/beren-x49-checkpoint-300000.zip) |
 | Beren | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/beren-gpt2-medium-x49/beren-x49-checkpoint-200000.zip) |
 | Beren | GPT-2 Medium | 100000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/beren-gpt2-medium-x49/beren-x49-checkpoint-100000.zip) |
 | Cerebrimbor | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-400000.zip) |
+| Cerebrimbor | GPT-2 Medium | 300000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-300000.zip) |
 | Cerebrimbor | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-200000.zip) |
 | Cerebrimbor | GPT-2 Medium | 100000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-100000.zip) |
 | Durin | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/durin-gpt2-medium-x343/durin-x343-checkpoint-400000.zip) |
+| Durin | GPT-2 Medium | 300000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/durin-gpt2-medium-x343/durin-x343-checkpoint-300000.zip) |
 | Durin | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/durin-gpt2-medium-x343/durin-x343-checkpoint-200000.zip) |
 | Durin | GPT-2 Medium | 100000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/durin-gpt2-medium-x343/durin-x343-checkpoint-100000.zip) |
 | Eowyn | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/eowyn-gpt2-medium-x777/eowyn-x777-checkpoint-400000.zip) |
+| Eowyn | GPT-2 Medium | 300000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/eowyn-gpt2-medium-x777/eowyn-x777-checkpoint-300000.zip) |
 | Eowyn | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/eowyn-gpt2-medium-x777/eowyn-x777-checkpoint-200000.zip) |
 | Eowyn | GPT-2 Medium | 100000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/eowyn-gpt2-medium-x777/eowyn-x777-checkpoint-100000.zip) |
 
@@ -151,18 +156,23 @@ GPT-2 Small
 | Run | Type | Checkpoint | Size | Link |
 | --- | --- | --- | --- | --- |
 | Alias | GPT-2 Small | 400000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/alias-gpt2-small-x21/alias-x21-checkpoint-400000.zip) |
+| Alias | GPT-2 Small | 300000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/alias-gpt2-small-x21/alias-x21-checkpoint-300000.zip) |
 | Alias | GPT-2 Small | 200000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/alias-gpt2-small-x21/alias-x21-checkpoint-200000.zip) |
 | Alias | GPT-2 Small | 100000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/alias-gpt2-small-x21/alias-x21-checkpoint-100000.zip) |
 | Battlestar | GPT-2 Small | 400000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/battlestar-gpt2-small-x49/battlestar-x49-checkpoint-400000.zip) |
+| Battlestar | GPT-2 Small | 300000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/battlestar-gpt2-small-x49/battlestar-x49-checkpoint-300000.zip) |
 | Battlestar | GPT-2 Small | 200000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/battlestar-gpt2-small-x49/battlestar-x49-checkpoint-200000.zip) |
 | Battlestar | GPT-2 Small | 100000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/battlestar-gpt2-small-x49/battlestar-x49-checkpoint-100000.zip) |
 | Caprica | GPT-2 Small | 400000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/caprica-gpt2-small-x81/caprica-x81-checkpoint-400000.zip) |
+| Caprica | GPT-2 Small | 300000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/caprica-gpt2-small-x81/caprica-x81-checkpoint-300000.zip) |
 | Caprica | GPT-2 Small | 200000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/caprica-gpt2-small-x81/caprica-x81-checkpoint-200000.zip) |
 | Caprica | GPT-2 Small | 100000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/caprica-gpt2-small-x81/caprica-x81-checkpoint-100000.zip) |
 | Darkmatter | GPT-2 Small | 400000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/darkmatter-gpt2-small-x343/darkmatter-x343-checkpoint-400000.zip) |
+| Darkmatter | GPT-2 Small | 300000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/darkmatter-gpt2-small-x343/darkmatter-x343-checkpoint-300000.zip) |
 | Darkmatter | GPT-2 Small | 200000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/darkmatter-gpt2-small-x343/darkmatter-x343-checkpoint-200000.zip) |
 | Darkmatter | GPT-2 Small | 100000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/darkmatter-gpt2-small-x343/darkmatter-x343-checkpoint-100000.zip) |
 | Expanse | GPT-2 Small | 400000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/expanse-gpt2-small-x777/expanse-x777-checkpoint-400000.zip) |
+| Expanse | GPT-2 Small | 300000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/expanse-gpt2-small-x777/expanse-x777-checkpoint-300000.zip) |
 | Expanse | GPT-2 Small | 200000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/expanse-gpt2-small-x777/expanse-x777-checkpoint-200000.zip) |
 | Expanse | GPT-2 Small | 100000 | 1.8G | [download](https://storage.googleapis.com/mistral-models/gpt2-small/expanse-gpt2-small-x777/expanse-x777-checkpoint-100000.zip) |
 
