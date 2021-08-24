@@ -1,4 +1,4 @@
-<div align="center"><img src="https://github.com/stanford-crfm/mistral/raw/main/docs/mistral_components.png" height="100px"/></div>
+<div align="center"><img src="https://github.com/stanford-crfm/mistral/raw/main/docs/mistral_components.png" height="500px"/></div>
 
 # Mistral
 
