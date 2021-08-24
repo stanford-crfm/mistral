@@ -6,7 +6,7 @@ Basic Installation
 
 Get the code ::
 
-    git clone https://github.com/stanford-mercury/mistral.git
+    git clone https://github.com/stanford-crfm/mistral.git
 
 Set up the mistral conda env ::
 
