@@ -138,10 +138,10 @@ GPT-2 Medium
 | Beren | GPT-2 Medium | 300000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/beren-gpt2-medium-x49/beren-x49-checkpoint-300000.zip) |
 | Beren | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/beren-gpt2-medium-x49/beren-x49-checkpoint-200000.zip) |
 | Beren | GPT-2 Medium | 100000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/beren-gpt2-medium-x49/beren-x49-checkpoint-100000.zip) |
-| Cerebrimbor | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-400000.zip) |
-| Cerebrimbor | GPT-2 Medium | 300000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-300000.zip) |
-| Cerebrimbor | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-200000.zip) |
-| Cerebrimbor | GPT-2 Medium | 100000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-100000.zip) |
+| Celebrimbor | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-400000.zip) |
+| Celebrimbor | GPT-2 Medium | 300000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-300000.zip) |
+| Celebrimbor | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-200000.zip) |
+| Celebrimbor | GPT-2 Medium | 100000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-100000.zip) |
 | Durin | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/durin-gpt2-medium-x343/durin-x343-checkpoint-400000.zip) |
 | Durin | GPT-2 Medium | 300000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/durin-gpt2-medium-x343/durin-x343-checkpoint-300000.zip) |
 | Durin | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/durin-gpt2-medium-x343/durin-x343-checkpoint-200000.zip) |
