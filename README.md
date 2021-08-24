@@ -21,10 +21,11 @@ A Propulsion Endeavor.
 twice a month** we'll give updates as to where we're at and what we're working on, _and more importantly, hear from you as to how we can help
 and possibly work together._
 
-We would love for folks from academia, other community efforts, as well as those in industry to join -- all are welcome. The first meeting will
+We would love for folks from academia, other community efforts, as well as those in industry to join - all are welcome. The first meeting will
 be on [Monday, August 30th at 4 PM PT](https://www.google.com/url?q=https://stanford.zoom.us/j/93555216759?pwd%3DSkd2eURyS0NWTGthWjVGNEJiMXJ3QT09). 
 
-We'll post the future dates (and times -- which we hope to move around through the day to maximally engage) after the first meeting!
+We'll post the future dates (and times - which we hope to move around through the day to maximally engage folks in varied timezones) 
+after the first meeting!
 
 ---
 
