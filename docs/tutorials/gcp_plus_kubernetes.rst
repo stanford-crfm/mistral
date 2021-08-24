@@ -171,7 +171,7 @@ While in the bash session on pod-1 (see last section), run the following
 commands to set up Mistral and Weights and Biases: ::
 
     export HOME=/home
-    git clone https://github.com/stanford-mercury/mistral.git
+    git clone https://github.com/stanford-crfm/mistral.git
     cd mistral
     wandb init
 

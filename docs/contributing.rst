@@ -25,12 +25,12 @@ There are two easy ways to fork the repo.
 
 If you have installed the `GitHub CLI <https://cli.github.com/>`_ you can issue this command ::
 
-    gh repo fork stanford-mercury/mistral --clone=true
+    gh repo fork stanford-crfm/mistral --clone=true
 
 This will create the fork and clone the repo into your current directory.
 
 Alternatively you can fork the repo in your browser. While logged in to your GitHub account,
-go to the `Mistral repo <https://github.com/stanford-mercury/mistral>`_ and click on the Fork
+go to the `Mistral repo <https://github.com/stanford-crfm/mistral>`_ and click on the Fork
 button in the upper left hand corner.
 
 .. image:: fork.png
@@ -86,11 +86,11 @@ Detailed instructions for submtting a pull request from a fork can be found on `
 The steps basically are:
 
 
-1. While logged in to your GitHub, go to the original `Mistral repo pull request page <https://github.com/stanford-mercury/mistral/pulls>`_.
+1. While logged in to your GitHub, go to the original `Mistral repo pull request page <https://github.com/stanford-crfm/mistral/pulls>`_.
 
 2. Click on the highlighted text stating "compare across forks".
 
-3. Set the base repository to ``stanford-mercury/mistral`` and the base branch to ``dev``.
+3. Set the base repository to ``stanford-crfm/mistral`` and the base branch to ``dev``.
 
 4. Set the head repository to ``your-org/mistral`` and the compare branch to ``your-feature-branch``.
 

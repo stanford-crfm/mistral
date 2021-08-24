@@ -42,4 +42,4 @@ Mistral combines `Hugging Face <https://huggingface.co/>`_ 🤗, `DeepSpeed <htt
 * monitoring and logging of model training
 * performing evaluation and measuring bias
 
-.. _Mistral: https://github.com/stanford-mercury/mistral
+.. _Mistral: https://github.com/stanford-crfm/mistral
