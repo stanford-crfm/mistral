@@ -7,14 +7,13 @@
 [![license](https://img.shields.io/badge/license-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-green?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
-A framework for fast and efficient large-scale language model training, built with Hugging Face :hugs:. Includes tools
-and helpful scripts for incorporating new pre-training datasets, various schemes for single node and distributed
-training -- including on cloud providers like GCP, and importantly, scripts for evaluation.
+A framework for fast and efficient large-scale language model training, built with [Hugging Face 🤗](https://huggingface.co/) . Includes tools
+and helpful scripts for incorporating new pre-training datasets, various schemes for single node and distributed training - including on 
+cloud providers like GCP, and importantly, scripts for evaluation.
 
-Visit our [Read the Docs](https://nlp.stanford.edu/mistral) for the full
-documentation.
+Visit our [Read the Docs](https://nlp.stanford.edu/mistral) for the full documentation.
 
-A 🚀 Propulsion Endeavor 🚀
+A Propulsion Endeavor 🚀
 
 ---
 ## Community
@@ -112,7 +111,7 @@ in `/path/to/runs/tutorial-gpt2-micro/checkpoint-1000`.
 Mistral stores model checkpoints in the Hugging Face format, so models can be loaded and used in the same manner as if
 one had trained the model with Hugging Face.
 
-For instance, to generate text with 🤗 Transformers (you will need to clone the
+For instance, to generate text with 🤗  Transformers (you will need to clone the
 [transformers](https://github.com/huggingface/transformers) repo):
 
 ```bash
@@ -133,12 +132,20 @@ model = MistralGPT2LMHeadModel.from_pretrained("/path/to/runs/tutorial-gpt2-micr
 
 ## Resources
 
-The Mistral team has trained 5 GPT-2 Medium models and 5 GPT-2 Small models on the OpenWebText corpus.
+The Propulsion team has trained 5 GPT-2 Medium models and 5 GPT-2 Small models on the [OpenWebText corpus](https://huggingface.co/datasets/openwebtext),
+as found in [🤗  datasets](https://huggingface.co/datasets).
 
 Checkpoints can be loaded as Hugging Face models. For each model, we provide checkpoints at 100k, 200k, 300k and 400k steps.
 
-Internally we have stored over 600 checkpoints for each model. If you are interested in acquiring additional checkpoints,
-please contact Laurel (lorr1) or Sidd (skaramcheti) at their @stanford.edu email addresses.
+We have also stored over 600 checkpoints for each model, subject to the following checkpoint schedule:
+- Every 10 Steps, for the first 0 - 100 Steps.
+- Every 50 Steps, from 100 - 2000 Steps.
+- Every 100 Steps, from 2000 - 20,000 Steps.
+- Every 1000 Steps, from 20,000 - 400,000 Steps.
+
+This comes out to _610 checkpoints per run, taking up ~22TB for all 10 models_ (making it pretty expensive to host!) If you are interested in acquiring 
+these additional checkpoints, please [file an issue](https://github.com/stanford-crfm/mistral/issues) or contact Laurel (lorr1) and Sidd (skaramcheti) 
+at their @cs.stanford.edu email addresses, and we'll be happy to figure out a cost-effective solution to sharing them.
 
 GPT-2 Medium
 
@@ -194,13 +201,11 @@ GPT-2 Small
 
 ## Issues
 
-To ask questions, report issues, or request features, please use the
-[GitHub Issue Tracker](https://github.com/stanford-crfm/mistral/issues). Before creating a new issue, please make
-sure to search for existing issues that may solve your problem.
+To ask questions, report issues, or request features, please use the [GitHub Issue Tracker](https://github.com/stanford-crfm/mistral/issues). 
+Before creating a new issue, please make sure to search for existing issues that may solve your problem.
 
 ---
 
 ## Contributing
 
-Please see the [following page](https://nlp.stanford.edu/mistral/contributing.html) for
-information on contributing.
+Please see the [following page](https://nlp.stanford.edu/mistral/contributing.html) for information on contributing.
