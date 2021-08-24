@@ -9,7 +9,7 @@ A framework for fast and efficient large-scale language model training, built wi
 and helpful scripts for incorporating new pre-training datasets, various schemes for single node and distributed
 training -- including on cloud providers like GCP, and importantly, scripts for evaluation.
 
-Visit our [Read the Docs](https://nlp.stanford.edu/local/mistral/docs/_build/html/index.html) for the full
+Visit our [Read the Docs](https://nlp.stanford.edu/mistral/index.html) for the full
 documentation.
 
 A Propulsion Endeavor.
@@ -17,14 +17,14 @@ A Propulsion Endeavor.
 ---
 ## Community
 
-`Mistral` is built to facilitate transparent and accessible training. To do our best to reach this goal, **we will hold community meetings 
+`Mistral` is built to facilitate transparent and accessible training. To do our best to reach this goal, **we will hold community meetings
 twice a month** we'll give updates as to where we're at and what we're working on, _and more importantly, hear from you as to how we can help
 and possibly work together._
 
 We would love for folks from academia, other community efforts, as well as those in industry to join - all are welcome. The first meeting will
-be on [Monday, August 30th at 4 PM PT](https://www.google.com/url?q=https://stanford.zoom.us/j/93555216759?pwd%3DSkd2eURyS0NWTGthWjVGNEJiMXJ3QT09). 
+be on [Monday, August 30th at 4 PM PT](https://www.google.com/url?q=https://stanford.zoom.us/j/93555216759?pwd%3DSkd2eURyS0NWTGthWjVGNEJiMXJ3QT09).
 
-We'll post the future dates (and times - which we hope to move around through the day to maximally engage folks in varied timezones) 
+We'll post the future dates (and times - which we hope to move around through the day to maximally engage folks in varied timezones)
 after the first meeting!
 
 ---
@@ -100,7 +100,7 @@ deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config co
 Note: You may need to adjust your batch size depending on the capacity of your GPUs.
 
 If you are interested in training a model on Google Cloud, check out our
-[Google Cloud + Kubernetes Tutorial](https://nlp.stanford.edu/local/mistral/docs/_build/html/tutorials/gcp_plus_kubernetes.html).
+[Google Cloud + Kubernetes Tutorial](https://nlp.stanford.edu/mistral/tutorials/gcp_plus_kubernetes.html).
 
 ### Using the model
 
@@ -200,5 +200,5 @@ sure to search for existing issues that may solve your problem.
 
 ## Contributing
 
-Please see the [following page](https://nlp.stanford.edu/local/mistral/docs/_build/html/contributing.html) for
+Please see the [following page](https://nlp.stanford.edu/mistral/contributing.html) for
 information on contributing.
