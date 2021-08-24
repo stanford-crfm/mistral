@@ -5,15 +5,26 @@
 [![license](https://img.shields.io/badge/license-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-green?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
-
 A framework for fast and efficient large-scale language model training, built with Hugging Face :hugs:. Includes tools
 and helpful scripts for incorporating new pre-training datasets, various schemes for single node and distributed
-training, and importantly, scripts for evaluation and measuring bias.
+training -- including on cloud providers like GCP, and importantly, scripts for evaluation.
 
-Visit our [Read the Docs site](https://nlp.stanford.edu/local/mistral/docs/_build/html/index.html) for the full
+Visit our [Read the Docs](https://nlp.stanford.edu/local/mistral/docs/_build/html/index.html) for the full
 documentation.
 
-A Project Mercury Endeavor.
+A Propulsion Endeavor.
+
+---
+## Community
+
+`Mistral` is built to facilitate transparent and accessible training. To do our best to reach this goal, **we will hold community meetings 
+twice a month** we'll give updates as to where we're at and what we're working on, _and more importantly, hear from you as to how we can help
+and possibly work together._
+
+We would love for folks from academia, other community efforts, as well as those in industry to join -- all are welcome. The first meeting will
+be on [Monday, August 30th at 4 PM PT](https://www.google.com/url?q=https://stanford.zoom.us/j/93555216759?pwd%3DSkd2eURyS0NWTGthWjVGNEJiMXJ3QT09). 
+
+We'll post the future dates (and times -- which we hope to move around through the day to maximally engage) after the first meeting!
 
 ---
 
