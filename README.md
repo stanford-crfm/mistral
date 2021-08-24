@@ -14,7 +14,7 @@ training -- including on cloud providers like GCP, and importantly, scripts for 
 Visit our [Read the Docs](https://nlp.stanford.edu/mistral) for the full
 documentation.
 
-A Propulsion Endeavor.
+A 🚀 Propulsion Endeavor 🚀
 
 ---
 ## Community
