@@ -7,7 +7,7 @@
 [![license](https://img.shields.io/badge/license-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-green?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
-A framework for fast and efficient large-scale language model training, built with [Hugging Face 🤗](https://huggingface.co/) . Includes tools
+A framework for transparent and accessible large-scale language model training, built with [Hugging Face 🤗](https://huggingface.co/) . Includes tools
 and helpful scripts for incorporating new pre-training datasets, various schemes for single node and distributed training - including on 
 cloud providers like GCP, and importantly, scripts for evaluation.
 
