@@ -9,7 +9,7 @@ A framework for fast and efficient large-scale language model training, built wi
 and helpful scripts for incorporating new pre-training datasets, various schemes for single node and distributed
 training -- including on cloud providers like GCP, and importantly, scripts for evaluation.
 
-Visit our [Read the Docs](https://nlp.stanford.edu/mistral/index.html) for the full
+Visit our [Read the Docs](https://nlp.stanford.edu/mistral) for the full
 documentation.
 
 A Propulsion Endeavor.
@@ -37,7 +37,7 @@ The dependencies for Mistral can be installed using Conda. Note that the provide
 is installed. You may need to adjust the environment YAML file depending on your set up.
 
 ```bash
-git clone https://github.com/stanford-mercury/mistral.git
+git clone https://github.com/stanford-crfm/mistral.git
 cd mistral
 conda env create -f environments/environment-gpu.yaml  # Choose CUDA kernel based on the hardware!
 ```
@@ -193,7 +193,7 @@ GPT-2 Small
 ## Issues
 
 To ask questions, report issues, or request features, please use the
-[GitHub Issue Tracker](https://github.com/stanford-mercury/mistral/issues). Before creating a new issue, please make
+[GitHub Issue Tracker](https://github.com/stanford-crfm/mistral/issues). Before creating a new issue, please make
 sure to search for existing issues that may solve your problem.
 
 ---
