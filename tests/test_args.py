@@ -13,11 +13,9 @@ TRAIN_ARGS = {
     "training_arguments.per_device_train_batch_size": "1",
     "artifacts.cache_dir": CACHE_DIR,
     "log_level": "50",
-    "run_training": "false",
-    "run_final_eval": "false",
 }
 
-trainer_w_train = run_train_process(cl_args=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id="train_args_test")
+trainer_w_train = run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id="train_args_test")
 
 TRAIN_ARGS_DIFF = {
     "nnodes": "1",
@@ -27,11 +25,11 @@ TRAIN_ARGS_DIFF = {
     "training_arguments.per_device_train_batch_size": "1",
     "artifacts.cache_dir": CACHE_DIR,
     "log_level": "50",
-    "run_training": "false",
-    "run_final_eval": "false",
 }
 
-trainer_w_train_diff = run_train_process(cl_args=TRAIN_ARGS_DIFF, runs_dir=RUNS_DIR, run_id="train_args_diff_test")
+trainer_w_train_diff = run_train_process(
+    cl_args_dict=TRAIN_ARGS_DIFF, runs_dir=RUNS_DIR, run_id="train_args_diff_test"
+)
 
 
 def test_train_args() -> None:
