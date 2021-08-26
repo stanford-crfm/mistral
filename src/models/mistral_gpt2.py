@@ -373,6 +373,12 @@ class MistralGPT2Attention(Attention):
 
         w = nn.Softmax(dim=-1)(w)
 
+        # verify upcasting is happening
+        if self.upcast_attn:
+            if w.dtype != torch.float32:
+                overwatch.critical("Upcasting Error. w does not have dtype torch.float32")
+                raise RuntimeError("Upcasting Error. w does not have dtype torch.float32")
+
         # @MERCURY =>> Downcast (if necessary) back to V dtype (fp16 if mixed-precision)!
         # Note: This is a No-Op if Upcasting is disabled...
         w = w.type(v.dtype)
