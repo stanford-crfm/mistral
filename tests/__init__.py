@@ -65,17 +65,15 @@ def deepspeed_launch_info():
     return {"nodes": int(num_nodes), "gpus": int(num_gpus)}
 
 
-def deepspeedify(cl_args):
+def deepspeedify(cl_args_dict):
     """
     Alter standard test args to have deepspeed info
     """
     info = deepspeed_launch_info()
-    if "--nproc_per_node" in cl_args:
-        cl_args[cl_args.index("--nproc_per_node") + 1] = str(info["gpus"])
-    if "--nnodes" in cl_args:
-        cl_args[cl_args.index("--nnodes") + 1] = str(info["nodes"])
-    if "--training_arguments.deepspeed" not in cl_args:
-        cl_args += ["--training_arguments.deepspeed", "conf/deepspeed/z1-conf.json"]
+    cl_args_dict["nproc_per_node"] = str(info["gpus"])
+    cl_args_dict["nnodes"] = str(info["nodes"])
+    # cl_args_dict["training_arguments.deepspeed"] = "conf/deepspeed/z2-small-conf.json"
+    cl_args_dict["training_arguments.deepspeed"] = "conf/deepspeed/z1-conf.json"
 
 
 def run_train_process(cl_args_dict, runs_dir, run_id, use_deepspeed=DEEPSPEED_MODE) -> OnlineBenchmarkTrainer:
@@ -83,16 +81,15 @@ def run_train_process(cl_args_dict, runs_dir, run_id, use_deepspeed=DEEPSPEED_MO
     Run training with given cl args and run dir.
     """
     # clear training dir
+    cl_args_dict["artifacts.run_dir"] = runs_dir
+    cl_args_dict["run_id"] = run_id
+    if use_deepspeed:
+        deepspeedify(cl_args_dict)
     cl_args = [""] + to_cl_args(cl_args_dict)
     run_id_dir = f"{runs_dir}/{run_id}"
-    cl_args += ["--artifacts.run_dir", f"{runs_dir}"]
-    cl_args += ["--run_id", f"{run_id}"]
-    if not DEEPSPEED_MODE or am_first_deepspeed_child():
+    if not use_deepspeed or am_first_deepspeed_child():
         print(f"Removing {run_id_dir}...")
         shutil.rmtree(run_id_dir) if os.path.exists(run_id_dir) else None
-    # make deepspeed modifications
-    if use_deepspeed:
-        deepspeedify(cl_args)
     # log cl args used
     print(f"Using following command line args for training: {cl_args}")
     with patch.object(sys, "argv", cl_args):
