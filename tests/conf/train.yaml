@@ -57,6 +57,3 @@ seed: 21
 
 online_eval:
     stride: 256
-
-run_training: false
-run_final_eval: false
