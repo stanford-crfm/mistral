@@ -6,7 +6,7 @@ from tests import MISTRAL_TEST_DIR, run_tests, run_train_process
 # paths
 CACHE_DIR = f"{MISTRAL_TEST_DIR}/artifacts"
 RUNS_DIR = f"{MISTRAL_TEST_DIR}/runs"
-RUN_ID = "checkpoint_test"
+RUN_ID = "upcasting_test"
 RUN_ID_DIR = f"{RUNS_DIR}/{RUN_ID}"
 LAST_CHECKPOINT = "checkpoint-18"
 
