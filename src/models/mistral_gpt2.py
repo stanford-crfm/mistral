@@ -7,6 +7,7 @@ gradient checkpoints (for fine-grained tweaking of memory footprint vs. speed).
 Reference: https://github.com/huggingface/transformers/blob/master/src/transformers/models/gpt2/modeling_gpt2.py
 """
 import logging
+from typing import Tuple
 
 import torch
 import torch.nn as nn
@@ -169,10 +170,10 @@ class MistralGPT2Model(GPT2Model):
 
         output_shape = input_shape + (hidden_states.size(-1),)
 
-        presents = () if use_cache else None
-        all_self_attentions = () if output_attentions else None
-        all_cross_attentions = () if output_attentions and self.config.add_cross_attention else None
-        all_hidden_states = () if output_hidden_states else None
+        presents: Tuple = () if use_cache else None
+        all_self_attentions: Tuple = () if output_attentions else None
+        all_cross_attentions: Tuple = () if output_attentions and self.config.add_cross_attention else None
+        all_hidden_states: Tuple = () if output_hidden_states else None
 
         for i, (block, layer_past) in enumerate(zip(self.h, past_key_values)):
 
@@ -211,7 +212,7 @@ class MistralGPT2Model(GPT2Model):
 
                     return custom_forward
 
-                outputs = torch.utils.checkpoint.checkpoint(
+                outputs = torch.utils.checkpoint.checkpoint(  # type:ignore[attr-defined]
                     create_custom_forward(block),
                     hidden_states,
                     None,
@@ -312,7 +313,7 @@ class MistralGPT2Attention(Attention):
 
             if self.reorder_attn:
                 # Preallocate Scaled Dot-Product Tensor
-                w = torch.empty(
+                w = torch.empty(  # type: ignore
                     bsz * num_heads,
                     seq_len,
                     seq_len,
@@ -389,7 +390,7 @@ class MistralGPT2Attention(Attention):
         if head_mask is not None:
             w = w * head_mask
 
-        outputs = (torch.matmul(w, v),)
+        outputs: Tuple = (torch.matmul(w, v),)
         if output_attentions:
             outputs += (w,)
         return outputs

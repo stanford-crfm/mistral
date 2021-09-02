@@ -21,7 +21,7 @@ from quinine.common.cerberus import (
 
 
 def get_schema() -> Dict[str, Any]:
-    """ Get the Cerberus schema for the Quinine config used in train.py. """
+    """Get the Cerberus schema for the Quinine config used in train.py."""
 
     # Schema for Dataset
     data_schema = {
