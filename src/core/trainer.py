@@ -13,7 +13,6 @@ import torch
 from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data.dataset import Dataset
 from torch.utils.data.distributed import DistributedSampler
-from torch.utils.data.sampler import RandomSampler
 from transformers import AutoModelForCausalLM, PreTrainedModel, PreTrainedTokenizerBase, Trainer, TrainingArguments
 from transformers.data.data_collator import DataCollator
 from transformers.file_utils import is_datasets_available
@@ -223,7 +222,7 @@ class OnlineBenchmarkTrainer(Trainer):
 
         else:
             if self.args.world_size <= 1:
-                return RandomSampler(self.train_dataset)
+                return DistributedSampler(self.train_dataset, num_replicas=1, rank=0, seed=self.args.seed)
             elif (
                 self.args.parallel_mode in [ParallelMode.TPU, ParallelMode.SAGEMAKER_MODEL_PARALLEL]
                 and not self.args.dataloader_drop_last
