@@ -18,14 +18,18 @@ jobs:
           wandb offline
       - name: Tests for arguments (single node/single GPU)
         run: |
-          CUDA_VISIBLE_DEVICES=0 pytest tests/test_args.py
+          cd tests
+          CUDA_VISIBLE_DEVICES=0 pytest test_args.py
       - name: Tests for checkpoints (single node/single GPU)
         run: |
-          CUDA_VISIBLE_DEVICES=0 pytest tests/test_checkpoint.py
+          cd tests
+          CUDA_VISIBLE_DEVICES=0 pytest test_checkpoint.py
       - name: Tests for upcasting (single node/single GPU)
         run: |
-          CUDA_VISIBLE_DEVICES=0 pytest tests/test_fp.py
+          cd tests
+          CUDA_VISIBLE_DEVICES=0 pytest test_fp.py
       - name: Tests for random seed (single node/single GPU)
         run: |
-          CUDA_VISIBLE_DEVICES=0 pytest tests/test_seed.py
+          cd tests
+          CUDA_VISIBLE_DEVICES=0 pytest test_seed.py
       - run: echo "🍏 This job's status is ${{ job.status }}."
