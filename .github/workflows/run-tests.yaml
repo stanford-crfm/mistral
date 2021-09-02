@@ -12,20 +12,21 @@ jobs:
         uses: actions/checkout@v2
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
       - run: echo "🖥️ The workflow is now ready to test your code on the runner."
-      - name: Run test_args.py
+      - name: Setup
         run: |
-          # set up test environment
-          bash
-          . /home/stanzabuild/miniconda3/etc/profile.d/conda.sh
-          conda activate mistral
-          # set up wandb in recent checkout dir
           cp -r /home/stanzabuild/mistral/wandb .
           cd tests
           wandb offline
-          CUDA_VISIBLE_DEVICES=0 pytest test_args.py
-      - name: Run mistral tests
+      - name: Tests for arguments (single node/single GPU)
         run: |
-          # set up test environment
-          echo $PYTHONPATH
-          pwd
+          CUDA_VISIBLE_DEVICES=0 pytest test_args.py
+      - name: Tests for checkpoints (single node/single GPU)
+        run: |
+          CUDA_VISIBLE_DEVICES=0 pytest test_checkpoint.py
+      - name: Tests for upcasting (single node/single GPU)
+        run: |
+          CUDA_VISIBLE_DEVICES=0 pytest test_fp.py
+      - name: Tests for random seed (single node/single GPU)
+        run: |
+          CUDA_VISIBLE_DEVICES=0 pytest test_seed.py
       - run: echo "🍏 This job's status is ${{ job.status }}."
