@@ -17,18 +17,22 @@ jobs:
           cp -r /home/stanzabuild/mistral/wandb .
           wandb offline
       - name: Tests for arguments (single node/single GPU)
+        if: always()
         run: |
           cd tests
           CUDA_VISIBLE_DEVICES=0 pytest test_args.py
       - name: Tests for checkpoints (single node/single GPU)
+        if: always()
         run: |
           cd tests
           CUDA_VISIBLE_DEVICES=0 pytest test_checkpoint.py
       - name: Tests for upcasting (single node/single GPU)
+        if: always()
         run: |
           cd tests
           CUDA_VISIBLE_DEVICES=0 pytest test_fp.py
       - name: Tests for random seed (single node/single GPU)
+        if: always()
         run: |
           cd tests
           CUDA_VISIBLE_DEVICES=0 pytest test_seed.py
