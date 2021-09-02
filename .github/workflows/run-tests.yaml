@@ -15,18 +15,17 @@ jobs:
       - name: Setup
         run: |
           cp -r /home/stanzabuild/mistral/wandb .
-          cd tests
           wandb offline
       - name: Tests for arguments (single node/single GPU)
         run: |
-          CUDA_VISIBLE_DEVICES=0 pytest test_args.py
+          CUDA_VISIBLE_DEVICES=0 pytest tests/test_args.py
       - name: Tests for checkpoints (single node/single GPU)
         run: |
-          CUDA_VISIBLE_DEVICES=0 pytest test_checkpoint.py
+          CUDA_VISIBLE_DEVICES=0 pytest tests/test_checkpoint.py
       - name: Tests for upcasting (single node/single GPU)
         run: |
-          CUDA_VISIBLE_DEVICES=0 pytest test_fp.py
+          CUDA_VISIBLE_DEVICES=0 pytest tests/test_fp.py
       - name: Tests for random seed (single node/single GPU)
         run: |
-          CUDA_VISIBLE_DEVICES=0 pytest test_seed.py
+          CUDA_VISIBLE_DEVICES=0 pytest tests/test_seed.py
       - run: echo "🍏 This job's status is ${{ job.status }}."
