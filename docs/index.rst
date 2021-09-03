@@ -27,6 +27,7 @@
 
    Contributing <contributing>
    API reference <_autosummary/src>
+   Differences between Mistral and Hugging Face <hugging_face_differences>
 
 Mistral - Large Scale Language Modeling Made Easy
 =====================================================

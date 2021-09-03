@@ -206,6 +206,13 @@ Before creating a new issue, please make sure to search for existing issues that
 
 ---
 
+## Differences between Mistral and Hugging Face
+
+Please visit the [following page](https://nlp.stanford.edu/mistral/hugging_face_differences.html) that outlines the
+differences between the two codebases.
+
+---
+
 ## Contributing
 
 Please see the [following page](https://nlp.stanford.edu/mistral/contributing.html) for information on contributing.
