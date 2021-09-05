@@ -1,3 +1,4 @@
+#!/bin/bash
 # ddp-multi.sh
 #   Benchmarking Script for Multi-Node DDP Trainer, verifying distributed data parallel training with and without
 #   gradient checkpointing as well as with different batch sizes. As with `ddp-single` choice of batch size is

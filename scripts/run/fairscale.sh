@@ -1,3 +1,4 @@
+#!/bin/bash
 # Sphinx1 Private IP: 172.24.67.75
 # Sphinx2 Private IP: 172.24.67.78
 
@@ -11,7 +12,7 @@ GPUS_PER=8
 # Assumes `sphinx1` is the main node - node rank must be 0 on sphinx1!
 MASTER_ADDR=sphinx1.stanford.edu
 MASTER_PORT=7000
-WORLD_SIZE=$((${nnodes}*${node_rank}))
+WORLD_SIZE=$((nnodes*node_rank))
 
 # `torch.distributed.launch` Parameters
 DISTRIBUTED_ARGS="--nproc_per_node $GPUS_PER --nnodes ${nnodes} --node_rank ${node_rank} --master_addr $MASTER_ADDR"
@@ -28,7 +29,7 @@ FAIRSCALE_Z3_OFF="--training_arguments.sharded_ddp zero_dp_3+auto_wrap+offload"
 
 # export NCCL_DEBUG=INFO; \
 # =>> ZeRO-1 (Simple)
-python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $FAIRSCALE_Z1
+python -m torch.distributed.launch "$DISTRIBUTED_ARGS" train.py "$CONFIG_ARGS" "$FAIRSCALE_Z1"
 
 # =>> ZeRO-2
 # python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $FAIRSCALE_Z2

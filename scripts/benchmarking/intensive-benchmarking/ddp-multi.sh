@@ -1,3 +1,4 @@
+#!/bin/bash
 # ddp-multi.sh
 #   Benchmarking Script for Intense Multi-Node DDP, running FP 16 with and without gradient checkpointing.
 #

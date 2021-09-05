@@ -1,3 +1,4 @@
+#!/bin/bash
 # ddp-single.sh
 #   Benchmarking Script for Single-Node DDP Trainer, verifying distributed data parallel training with and without
 #   gradient checkpointing as well as with different batch sizes. The choice of batch size in this script were derived
@@ -23,21 +24,21 @@ LAUNCHER="torch.distributed.launch"
 # ---
 
 # Single Node DDP, No GC, FP32, Device BSZ = 8 --> Cleanup (`torch.distributed.launch` doesn't like cleanup) --> Sleep
-python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_8 --run_id 21-ddp-n=1-g=8-fp32-dbsz=8
+python -m $LAUNCHER "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_8" --run_id 21-ddp-n=1-g=8-fp32-dbsz=8
 pkill -f "train.py"
 sleep 3
 
 # Single Node DDP, ++GC, FP32, Device BSZ = 32 --> Cleanup (`torch.distributed.launch` doesn't like cleanup) --> Sleep
-python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC $D_BSZ_32 --run_id 22-ddp-n=1-g=8-gc-fp32-dbsz=32
+python -m $LAUNCHER "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$GC" "$D_BSZ_32" --run_id 22-ddp-n=1-g=8-gc-fp32-dbsz=32
 pkill -f "train.py"
 sleep 3
 
 # Single Node DDP, No GC, FP16, Device BSZ = 8 --> Cleanup (`torch.distributed.launch` doesn't like cleanup) --> Sleep
-python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $FP16 $D_BSZ_8 --run_id 23-ddp-n=1-g=8-fp16-dbsz=8
+python -m $LAUNCHER "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$FP16" "$D_BSZ_8" --run_id 23-ddp-n=1-g=8-fp16-dbsz=8
 pkill -f "train.py"
 sleep 3
 
 # Single Node DDP, ++GC, FP32, Device BSZ = 32 --> Cleanup (`torch.distributed.launch` doesn't like cleanup) --> Sleep
-python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC $FP16 $D_BSZ_32 --run_id 24-ddp-n=1-g=8-gc-fp16-dbsz=32
+python -m $LAUNCHER "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$GC" "$FP16" "$D_BSZ_32" --run_id 24-ddp-n=1-g=8-gc-fp16-dbsz=32
 pkill -f "train.py"
 sleep 3

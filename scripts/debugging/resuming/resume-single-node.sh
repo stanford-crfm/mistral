@@ -1,3 +1,4 @@
+#!/bin/bash
 # resume-single-node.sh
 #   Single Node GPT-2 Small `Resume from Checkpoint` Debugging. Uses the DeepSpeed ZeRO-2 Optimizer,
 #   Per-Device Batch Size of 16.
@@ -18,6 +19,6 @@ DISTRIBUTED_ARGS="--num_gpus 8 --num_nodes 1"
 # ---
 
 # Single-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $DS_Z2
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_16" "$DS_Z2"
 pkill -f "train.py"
 sleep 3

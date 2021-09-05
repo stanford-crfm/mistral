@@ -15,6 +15,8 @@ repos:
     -   id: check-toml
     -   id: check-merge-conflict
     -   id: check-added-large-files
+    -   id: mixed-line-ending
+        args: ['--fix=lf']
 
 -   repo: https://github.com/psf/black
     rev: 21.8b0
@@ -26,6 +28,13 @@ repos:
     hooks:
     -   id: isort
 
+-   repo: https://github.com/myint/autoflake
+    rev: v1.4
+    hooks:
+    -   id: autoflake
+        args: ['--expand-star-imports', '--ignore-init-module-imports', '--in-place']
+        exclude: docs/
+
 -   repo: https://gitlab.com/pycqa/flake8
     rev: 3.9.2
     hooks:
@@ -36,3 +45,11 @@ repos:
     rev: 'v0.910'
     hooks:
     -   id: mypy
+        pass_filenames: false
+
+-   repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.7.2.1
+    hooks:
+    -   id: shellcheck
+        args: ["--severity=error"]
+        #TODO Reduce to warnings after fixing unused env variables

@@ -1,3 +1,4 @@
+#!/bin/bash
 # deepspeed-multi.sh
 #   Benchmarking Script for Intensive Multi-Node DeepSpeed Trainer, verifying multi-stage sharded training (ZeRO 1, 2)
 #   without gradient checkpointing.
@@ -22,21 +23,21 @@ DISTRIBUTED_ARGS="--num_gpus 8 --num_nodes 2 --master_addr $MASTER_ADDR"
 # ---
 
 # Multi-Node Node DS-Z1, No GC, Device BSZ = 8 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_8 $DS_Z1 --run_id echo-ds=z1-n=2-g=8-fp16-dbsz=8
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_8" "$DS_Z1" --run_id echo-ds=z1-n=2-g=8-fp16-dbsz=8
 pkill -f "train.py"
 sleep 3
 
 # Multi-Node DS-Z1, No GC, Device BSZ = 16 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $DS_Z1 --run_id foxtrot-ds=z1-n=2-g=8-fp16-dbsz=16
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_16" "$DS_Z1" --run_id foxtrot-ds=z1-n=2-g=8-fp16-dbsz=16
 pkill -f "train.py"
 sleep 3
 
 # Multi-Node DS-Z2, No GC, Device BSZ = 8 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_8 $DS_Z2 --run_id golf-ds=z2-n=2-g=8-fp16-dbsz=8
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_8" "$DS_Z2" --run_id golf-ds=z2-n=2-g=8-fp16-dbsz=8
 pkill -f "train.py"
 sleep 3
 
 # Multi-Node DS-Z2, No GC, Device BSZ = 16 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $DS_Z2 --run_id hotel-ds=z2-n=1-g=8-fp16-dbsz=16
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_16" "$DS_Z2" --run_id hotel-ds=z2-n=1-g=8-fp16-dbsz=16
 pkill -f "train.py"
 sleep 3

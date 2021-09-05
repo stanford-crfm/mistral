@@ -1,3 +1,4 @@
+#!/bin/bash
 # mistral-gcp-gpt2-medium.sh
 #   Mistral GPT-2 Medium Full Run with the DeepSpeed ZeRO-2 Optimizer, Per-Device Batch Size of 4 on Google Cloud with
 #   MegaGPU Instances.
@@ -7,8 +8,8 @@
 for ARGUMENT in "$@"
 do
 
-    KEY=$(echo $ARGUMENT | cut -f1 -d=)
-    VALUE=$(echo $ARGUMENT | cut -f2 -d=)
+    KEY=$(echo "$ARGUMENT" | cut -f1 -d=)
+    VALUE=$(echo "$ARGUMENT" | cut -f2 -d=)
 
     case "$KEY" in
             MODEL)              MODEL=${VALUE} ;;
@@ -76,7 +77,7 @@ DISTRIBUTED_ARGS="--num_gpus 16 --num_nodes 1"
 # ---
 
 # Single-Node DS-Z2, Linear LR Schedule, Device BSZ = 4 --> Cleanup --> Seed
-echo deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_4 $SEED $RES $DS_Z2 $RUN_ID
-deepspeed $DISTRIBUTED_ARGS train.py $GCP_CONFIG $INFRA $D_BSZ_4 $SEED $RES $DS_Z2 $RUN_ID
+echo deepspeed "$DISTRIBUTED_ARGS" train.py "$GCP_CONFIG" "$INFRA" "$D_BSZ_4" "$SEED" "$RES" "$DS_Z2" "$RUN_ID"
+deepspeed "$DISTRIBUTED_ARGS" train.py "$GCP_CONFIG" "$INFRA" "$D_BSZ_4" "$SEED" "$RES" "$DS_Z2" "$RUN_ID"
 pkill -f "train.py"
 sleep 3

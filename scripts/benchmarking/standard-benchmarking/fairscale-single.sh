@@ -1,3 +1,4 @@
+#!/bin/bash
 # fairscale-single.sh
 #   Benchmarking Script for Single-Node FairScale Trainer, verifying multi-stage sharded training (ZeRO 1, 2, and 3)
 #   with and without gradient checkpointing.
@@ -37,36 +38,36 @@ LAUNCHER="torch.distributed.launch"
 #sleep 3
 
 # Single Node FS-Z1, ++GC, Device BSZ = 32 --> Cleanup --> Sleep
-python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC $D_BSZ_32 $FS_Z1 --run_id 31-fs=z1-n=1-g=8-gc-fp16-dbsz=32
+python -m $LAUNCHER "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$GC" "$D_BSZ_32" "$FS_Z1" --run_id 31-fs=z1-n=1-g=8-gc-fp16-dbsz=32
 pkill -f "train.py"
 sleep 3
 
 # Single Node FS-Z2, No GC, Device BSZ = 8 --> Cleanup --> Sleep
-python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_8 $FS_Z2 --run_id 32-fs=z2-n=1-g=8-fp16-dbsz=8
+python -m $LAUNCHER "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_8" "$FS_Z2" --run_id 32-fs=z2-n=1-g=8-fp16-dbsz=8
 pkill -f "train.py"
 sleep 3
 
 # Single Node FS-Z2, No GC, Device BSZ = 16 --> Cleanup --> Sleep
-python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $FS_Z2 --run_id 33-fs=z2-n=1-g=8-fp16-dbsz=16
+python -m $LAUNCHER "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_16" "$FS_Z2" --run_id 33-fs=z2-n=1-g=8-fp16-dbsz=16
 pkill -f "train.py"
 sleep 3
 
 # Single Node FS-Z2, ++GC, Device BSZ = 32 --> Cleanup --> Sleep
-python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC $D_BSZ_32 $FS_Z2 --run_id 34-fs=z2-n=1-g=8-gc-fp16-dbsz=32
+python -m $LAUNCHER "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$GC" "$D_BSZ_32" "$FS_Z2" --run_id 34-fs=z2-n=1-g=8-gc-fp16-dbsz=32
 pkill -f "train.py"
 sleep 3
 
 # Single Node FS-Z3, No GC, Device BSZ = 8 --> Cleanup --> Sleep
-python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_8 $FS_Z3 --run_id 35-fs=z3-n=1-g=8-fp16-dbsz=8
+python -m $LAUNCHER "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_8" "$FS_Z3" --run_id 35-fs=z3-n=1-g=8-fp16-dbsz=8
 pkill -f "train.py"
 sleep 3
 
 # Single Node FS-Z1, No GC, Device BSZ = 16 --> Cleanup --> Sleep
-python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $FS_Z3 --run_id 36-fs=z3-n=1-g=8-fp16-dbsz=16
+python -m $LAUNCHER "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_16" "$FS_Z3" --run_id 36-fs=z3-n=1-g=8-fp16-dbsz=16
 pkill -f "train.py"
 sleep 3
 
 # Single Node FS-Z3, ++GC, Device BSZ = 32 --> Cleanup --> Sleep
-python -m $LAUNCHER $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC $D_BSZ_32 $FS_Z3 --run_id 37-fs=z3-n=1-g=8-gc-fp16-dbsz=32
+python -m $LAUNCHER "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$GC" "$D_BSZ_32" "$FS_Z3" --run_id 37-fs=z3-n=1-g=8-gc-fp16-dbsz=32
 pkill -f "train.py"
 sleep 3

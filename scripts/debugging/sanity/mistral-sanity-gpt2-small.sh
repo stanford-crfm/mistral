@@ -1,3 +1,4 @@
+#!/bin/bash
 # mistral-sanity-gpt2-small.sh
 #   Mistral Sanity Check -- GPT-2 Small 4K Step Run with the DeepSpeed ZeRO-2 Optimizer, Per-Device Batch Size of 16.
 
@@ -18,7 +19,7 @@ ARAMIS="--seed 81"
 
 # Set DeepSpeed Launcher Parameters
 MASTER_ADDR=sphinx1.stanford.edu
-MASTER_PORT=7000
+export MASTER_PORT=7000
 DISTRIBUTED_ARGS="--num_gpus 8 --num_nodes 2 --master_addr $MASTER_ADDR"
 
 # Resume
@@ -32,16 +33,16 @@ RESUME="--resume true"
 #sleep 3
 
 # Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Sleep =>> Seed 21 -- REPLICATION
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $ATHOS $DS_Z2 --run_id athos-replica-gpt2-small-debug-x21
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_16" "$ATHOS" "$DS_Z2" --run_id athos-replica-gpt2-small-debug-x21
 pkill -f "train.py"
 sleep 3
 
 # Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Sleep =>> Seed 49
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $PORTHOS $DS_Z2 --run_id porthos-gpt2-small-debug-x49
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_16" "$PORTHOS" "$DS_Z2" --run_id porthos-gpt2-small-debug-x49
 pkill -f "train.py"
 sleep 3
 
 # Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Sleep =>> Seed 81
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $ARAMIS $DS_Z2 --run_id aramis-gpt2-small-debug-x81
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_16" "$ARAMIS" "$DS_Z2" --run_id aramis-gpt2-small-debug-x81
 pkill -f "train.py"
 sleep 3

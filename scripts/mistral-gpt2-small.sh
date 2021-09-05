@@ -1,3 +1,4 @@
+#!/bin/bash
 # mistral-gpt2-small.sh
 #   Mistral GPT-2 Small Full Run with the DeepSpeed ZeRO-2 Optimizer, Per-Device Batch Size of 16. Runs locally, on
 #   Sphinx Cluster.
@@ -7,8 +8,8 @@
 for ARGUMENT in "$@"
 do
 
-    KEY=$(echo $ARGUMENT | cut -f1 -d=)
-    VALUE=$(echo $ARGUMENT | cut -f2 -d=)
+    KEY=$(echo "$ARGUMENT" | cut -f1 -d=)
+    VALUE=$(echo "$ARGUMENT" | cut -f2 -d=)
 
     case "$KEY" in
             MODEL)              MODEL=${VALUE} ;;
@@ -87,7 +88,7 @@ DISTRIBUTED_ARGS="--num_gpus 8 --num_nodes 2 --master_addr sphinx1.stanford.edu"
 # ---
 
 # Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Seed
-echo deepspeed $DISTRIBUTED_ARGS train.py $SPHINX_CONFIG $INFRA $D_BSZ_8 $SEED $RES $DS_Z2 $RUN_ID
-deepspeed $DISTRIBUTED_ARGS train.py $SPHINX_CONFIG $INFRA $D_BSZ_8 $SEED $RES $DS_Z2 $RUN_ID
+echo deepspeed "$DISTRIBUTED_ARGS" train.py "$SPHINX_CONFIG" "$INFRA" "$D_BSZ_8" "$SEED" "$RES" "$DS_Z2" "$RUN_ID"
+deepspeed "$DISTRIBUTED_ARGS" train.py "$SPHINX_CONFIG" "$INFRA" "$D_BSZ_8" "$SEED" "$RES" "$DS_Z2" "$RUN_ID"
 pkill -f "train.py"
 sleep 3

@@ -1,3 +1,4 @@
+#!/bin/bash
 # Sphinx1 Private IP: 172.24.67.75
 # Sphinx2 Private IP: 172.24.67.78
 
@@ -33,7 +34,7 @@ DEEPSPEED_Z3_OFF="--training_arguments.deepspeed conf/deepspeed/z3-offload-conf.
 # deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z1
 
 # =>> ZeRO-2
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z2
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG_ARGS" "$DEEPSPEED_Z2"
 
 # =>> ZeRO-3
 # deepspeed $DISTRIBUTED_ARGS train.py $CONFIG_ARGS $DEEPSPEED_Z3

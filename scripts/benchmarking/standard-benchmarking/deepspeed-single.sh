@@ -1,3 +1,4 @@
+#!/bin/bash
 # deepspeed-single.sh
 #   Benchmarking Script for Single-Node DeepSpeed Trainer, verifying multi-stage sharded training (ZeRO 1, 2, and 3)
 #   with and without gradient checkpointing.
@@ -26,46 +27,46 @@ DISTRIBUTED_ARGS="--num_gpus 8 --num_nodes 1 --master_addr $MASTER_ADDR"
 # ---
 
 # Single Node DS-Z1, No GC, Device BSZ = 8 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_8 $DS_Z1 --run_id 44-ds=z1-n=1-g=8-fp16-dbsz=8
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_8" "$DS_Z1" --run_id 44-ds=z1-n=1-g=8-fp16-dbsz=8
 pkill -f "train.py"
 sleep 3
 
 # Single Node DS-Z1, No GC, Device BSZ = 16 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $DS_Z1 --run_id 45-ds=z1-n=1-g=8-fp16-dbsz=16
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_16" "$DS_Z1" --run_id 45-ds=z1-n=1-g=8-fp16-dbsz=16
 pkill -f "train.py"
 sleep 3
 
 # Single Node DS-Z1, ++GC, Device BSZ = 32 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC $D_BSZ_32 $DS_Z1 --run_id 46-ds=z1-n=1-g=8-gc-fp16-dbsz=32
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$GC" "$D_BSZ_32" "$DS_Z1" --run_id 46-ds=z1-n=1-g=8-gc-fp16-dbsz=32
 pkill -f "train.py"
 sleep 3
 
 # Single Node DS-Z2, No GC, Device BSZ = 8 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_8 $DS_Z2 --run_id 47-ds=z2-n=1-g=8-fp16-dbsz=8
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_8" "$DS_Z2" --run_id 47-ds=z2-n=1-g=8-fp16-dbsz=8
 pkill -f "train.py"
 sleep 3
 
 # Single Node DS-Z2, No GC, Device BSZ = 16 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $DS_Z2 --run_id 48-ds=z2-n=1-g=8-fp16-dbsz=16
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_16" "$DS_Z2" --run_id 48-ds=z2-n=1-g=8-fp16-dbsz=16
 pkill -f "train.py"
 sleep 3
 
 # Single Node DS-Z2, ++GC, Device BSZ = 32 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC $D_BSZ_32 $DS_Z2 --run_id 49-ds=z2-n=1-g=8-gc-fp16-dbsz=32
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$GC" "$D_BSZ_32" "$DS_Z2" --run_id 49-ds=z2-n=1-g=8-gc-fp16-dbsz=32
 pkill -f "train.py"
 sleep 3
 
 # Single Node DS-Z3, No GC, Device BSZ = 8 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_8 $DS_Z3 --run_id 50-ds=z3-n=1-g=8-fp16-dbsz=8
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_8" "$DS_Z3" --run_id 50-ds=z3-n=1-g=8-fp16-dbsz=8
 pkill -f "train.py"
 sleep 3
 
 # Single Node DS-Z3, No GC, Device BSZ = 16 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $DS_Z3 --run_id 51-ds=z3-n=1-g=8-fp16-dbsz=16
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_16" "$DS_Z3" --run_id 51-ds=z3-n=1-g=8-fp16-dbsz=16
 pkill -f "train.py"
 sleep 3
 
 # Single Node DS-Z3, ++GC, Device BSZ = 32 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $GC $D_BSZ_32 $DS_Z3 --run_id 52-ds=z3-n=1-g=8-gc-fp16-dbsz=32
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$GC" "$D_BSZ_32" "$DS_Z3" --run_id 52-ds=z3-n=1-g=8-gc-fp16-dbsz=32
 pkill -f "train.py"
 sleep 3

@@ -1,3 +1,4 @@
+#!/bin/bash
 # mistral-gpt2-small.sh
 #   Mistral GPT-2 Small Dry-Runs with the DeepSpeed ZeRO-2 Optimizer, Per-Device Batch Size of 16.
 
@@ -19,6 +20,6 @@ DISTRIBUTED_ARGS="--num_gpus 8 --num_nodes 2 --master_addr $MASTER_ADDR"
 # ---
 
 # Multi-Node DS-Z2, Linear LR Schedule, Device BSZ = 16 --> Cleanup --> Sleep
-deepspeed $DISTRIBUTED_ARGS train.py $CONFIG $INFRA $D_BSZ_16 $DS_Z2 --run_id alpha-dry-run-lr=linear-dbsz=16
+deepspeed "$DISTRIBUTED_ARGS" train.py "$CONFIG" "$INFRA" "$D_BSZ_16" "$DS_Z2" --run_id alpha-dry-run-lr=linear-dbsz=16
 pkill -f "train.py"
 sleep 3
