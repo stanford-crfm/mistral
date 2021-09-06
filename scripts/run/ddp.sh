@@ -10,9 +10,9 @@ node_rank=${2:-0}
 GPUS_PER=8
 
 # Assumes `sphinx1` is the main node - node rank must be 0 on sphinx1!
-export MASTER_ADDR=sphinx1.stanford.edu
-export MASTER_PORT=7000
-export WORLD_SIZE=$((nnodes*node_rank))
+MASTER_ADDR=sphinx1.stanford.edu
+MASTER_PORT=7000
+WORLD_SIZE=$((nnodes*node_rank))
 
 # `torch.distributed.launch` Parameters
 DISTRIBUTED_ARGS="--nproc_per_node $GPUS_PER --nnodes ${nnodes} --node_rank ${node_rank} --master_addr $MASTER_ADDR"
