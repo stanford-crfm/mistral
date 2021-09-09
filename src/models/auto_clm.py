@@ -56,7 +56,7 @@ def get_auto_clm_tokenizer(
     upcast_attn: bool = True,
     initial_weights: str = None,
 ) -> Tuple[AutoModelForCausalLM, PreTrainedTokenizer]:
-    """ Download/Load AutoConfig and Instantiate Corresponding Model and Tokenizer. """
+    """Download/Load AutoConfig and Instantiate Corresponding Model and Tokenizer."""
 
     # Create Configuration
     if "gpt2" in model_id and model_configs:

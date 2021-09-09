@@ -26,7 +26,7 @@ def get_training_arguments(
     nodes: int = 1,
     gpus_per_node: int = 8,
 ) -> TrainingArguments:
-    """ Initialize Training Arguments from Quinfig and Runtime-Defined Variables. """
+    """Initialize Training Arguments from Quinfig and Runtime-Defined Variables."""
 
     # `quinfig_args` already contains some default training arguments --> we'll be overwriting/adding to the Dict
     #   =>> a `Munch` is a subclass of Dictionary that supports attribute style access

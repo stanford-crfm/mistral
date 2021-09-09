@@ -6,14 +6,13 @@ Custom Hugging Face Trainer that allows for online eval of multiple datasets.
 import collections
 import logging
 import time
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
 from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data.dataset import Dataset
 from torch.utils.data.distributed import DistributedSampler
-from torch.utils.data.sampler import RandomSampler
 from transformers import AutoModelForCausalLM, PreTrainedModel, PreTrainedTokenizerBase, Trainer, TrainingArguments
 from transformers.data.data_collator import DataCollator
 from transformers.file_utils import is_datasets_available
@@ -40,6 +39,9 @@ class OnlineBenchmarkTrainer(Trainer):
 
     Overrides `evaluate` to trigger eval on each online dataset.
     """
+
+    control: Any
+    _globalstep_last_logged: int
 
     def __init__(
         self,
@@ -161,7 +163,7 @@ class OnlineBenchmarkTrainer(Trainer):
         return metrics
 
     def single_dataset_eval(self, dataset_name: str, dataset: Dataset, metric_key_prefix: str) -> Dict[str, float]:
-        """ Run Perplexity Evaluation on a Single Dataset. """
+        """Run Perplexity Evaluation on a Single Dataset."""
         custom_metric_key_prefix = f"{metric_key_prefix}_{dataset_name}"
         if dataset is not None and not isinstance(dataset, collections.abc.Sized):
             raise ValueError("eval_dataset must implement __len__")
@@ -223,7 +225,7 @@ class OnlineBenchmarkTrainer(Trainer):
 
         else:
             if self.args.world_size <= 1:
-                return RandomSampler(self.train_dataset)
+                return DistributedSampler(self.train_dataset, num_replicas=1, rank=0, seed=self.args.seed)
             elif (
                 self.args.parallel_mode in [ParallelMode.TPU, ParallelMode.SAGEMAKER_MODEL_PARALLEL]
                 and not self.args.dataloader_drop_last
@@ -240,7 +242,7 @@ class OnlineBenchmarkTrainer(Trainer):
             else:
                 # @Mercury =>> Critical Change :: Pass seed to Distributed Sampler to randomize Data Order!
                 return DistributedSampler(
-                    self.train_dataset,
+                    self.train_dataset,  # type: ignore
                     num_replicas=self.args.world_size,
                     rank=self.args.process_index,
                     seed=self.args.seed,

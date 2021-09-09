@@ -12,16 +12,18 @@
 # Problems with imports? Could try `export PYTHONPATH=$PYTHONPATH:`pwd`` from root project dir...
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))  # Source code dir relative to this file
+
+
+sys.path.insert(0, os.path.abspath(".."))  # Source code dir relative to this file
 
 # -- Project information -----------------------------------------------------
 
-project = 'Mistral'
-author = 'Project Mercury'
-copyright = '2021 The Board of Trustees of The Leland Stanford Junior University'
+project = "Mistral"
+author = "Project Mercury"
+copyright = "2021 The Board of Trustees of The Leland Stanford Junior University"
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.0'
+release = "0.1.0"
 
 # -- General configuration ---------------------------------------------------
 
@@ -29,10 +31,10 @@ release = '0.1.0'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',  # Core Sphinx library for auto html doc generation from docstrings
-    'sphinx.ext.autosummary',  # Create neat summary tables for modules/classes/methods etc
-    'sphinx.ext.intersphinx',  # Link to other project's documentation (see mapping below)
-    'sphinx.ext.viewcode'  # Add a link to the Python source code for classes, functions etc.
+    "sphinx.ext.autodoc",  # Core Sphinx library for auto html doc generation from docstrings
+    "sphinx.ext.autosummary",  # Create neat summary tables for modules/classes/methods etc
+    "sphinx.ext.intersphinx",  # Link to other project's documentation (see mapping below)
+    "sphinx.ext.viewcode",  # Add a link to the Python source code for classes, functions etc.
 ]
 
 # Mappings for sphinx.ext.intersphinx. Projects have to have Sphinx-generated doc! (.inv file)
@@ -46,20 +48,20 @@ html_show_sourcelink = False  # Remove 'view source code' from top of page (for 
 autodoc_inherit_docstrings = True  # If no docstring, inherit from base class
 set_type_checking_flag = True  # Enable 'expensive' imports for sphinx_autodoc_typehints
 nbsphinx_allow_errors = True  # Continue through Jupyter errors
-#autodoc_typehints = "description" # Sphinx-native method. Not as good as sphinx_autodoc_typehints
-add_module_names = False # Remove namespaces from class/method signatures
+# autodoc_typehints = "description" # Sphinx-native method. Not as good as sphinx_autodoc_typehints
+add_module_names = False  # Remove namespaces from class/method signatures
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # Exclusions
 # To exclude a module, use autodoc_mock_imports. Note this may increase build time, a lot.
 # (Also, when installing on readthedocs.org, we omit installing Tensorflow and
 # Tensorflow Probability so mock them here instead.)
-#autodoc_mock_imports = [
-    # 'tensorflow',
-    # 'tensorflow_probability',
-#]
+# autodoc_mock_imports = [
+# 'tensorflow',
+# 'tensorflow_probability',
+# ]
 # To exclude a class, function, method or attribute, use autodoc-skip-member. (Note this can also
 # be used in reverse, ie. to re-include a particular member that has been excluded.)
 # 'Private' and 'special' members (_ and __) are excluded using the Jinja2 templates; from the main
@@ -88,17 +90,18 @@ templates_path = ['_templates']
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 if not on_rtd:  # only import and set the theme if we're building docs locally
     import sphinx_rtd_theme
+
     html_theme = "sphinx_rtd_theme"
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-html_css_files = ["readthedocs-custom.css"] # Override some CSS settings
+html_css_files = ["readthedocs-custom.css"]  # Override some CSS settings
 
 # Pydata theme
-#html_theme = "pydata_sphinx_theme"
-#html_logo = "_static/logo-company.png"
-#html_theme_options = { "show_prev_next": False}
-#html_css_files = ['pydata-custom.css']
+# html_theme = "pydata_sphinx_theme"
+# html_logo = "_static/logo-company.png"
+# html_theme_options = { "show_prev_next": False}
+# html_css_files = ['pydata-custom.css']
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
