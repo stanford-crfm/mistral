@@ -4,6 +4,7 @@ If you don't already have Sphinx set up install it with `pip`.
 
 ```bash
 pip install sphinx
+pip install sphinx-rtd-theme
 ```
 
 The documentation has been built with version 4.0.2.
