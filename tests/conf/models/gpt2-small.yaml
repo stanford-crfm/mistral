@@ -20,6 +20,7 @@ model:
     # Stability -- Upcasting and Scaled Dot-Product Reordering
     reorder_attn: true
     upcast_attn: true
+    scale: true
 
     # Initialize Weights from File
     initial_weights: null

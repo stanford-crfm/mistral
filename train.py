@@ -99,6 +99,7 @@ def train() -> OnlineBenchmarkTrainer:
         use_pretrained_tokenizer=quinfig.model.pretrained_tokenizer,
         reorder_attn=quinfig.model.reorder_attn,
         upcast_attn=quinfig.model.upcast_attn,
+        scale=quinfig.model.scale,
         initial_weights=quinfig.model.initial_weights,
     )
 

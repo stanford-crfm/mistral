@@ -27,11 +27,12 @@ class MistralGPT2LMHeadModel(GPT2LMHeadModel):
         config: GPT2Config,
         reorder_attn: bool = True,
         upcast_attn: bool = True,
+        scale: bool = True,
         gradient_checkpointing: bool = True,
         gc_checkpoint_every: int = 1,
     ):
         super().__init__(config)
-        self.reorder_attn, self.upcast_attn = reorder_attn, upcast_attn
+        self.reorder_attn, self.upcast_attn, self.scale = reorder_attn, upcast_attn, scale
 
         # Turn on Gradient Checkpointing if Necessary
         if gradient_checkpointing:
@@ -42,24 +43,32 @@ class MistralGPT2LMHeadModel(GPT2LMHeadModel):
     # @MERCURY =>> Reconfigure GPT2LMHead to take custom, partial checkpoint model instance!
     def create_checkpointed_model(self, gc_checkpoint_every: int):
         # Reinitalize GPT-2 Model w/ Custom GC Wrapper
-        self.transformer = MistralGPT2Model(self.config, gc_checkpoint_every, self.reorder_attn, self.upcast_attn)
+        self.transformer = MistralGPT2Model(
+            self.config, gc_checkpoint_every, self.reorder_attn, self.upcast_attn, self.scale
+        )
 
     # @MERCURY =>> Reconfigure GPT2LMHead to Initialize Standard (non-checkpointed) model instance!
     def create_model(self):
         # Reinitialize Custom GPT-2 Model
         self.transformer = MistralGPT2Model(
-            self.config, gc_checkpoint_every=-1, reorder_attn=self.reorder_attn, upcast_attn=self.upcast_attn
+            self.config,
+            gc_checkpoint_every=-1,
+            reorder_attn=self.reorder_attn,
+            upcast_attn=self.upcast_attn,
+            scale=self.scale,
         )
 
 
 class MistralGPT2Model(GPT2Model):
     # @MERCURY =>> GPT-2 Model Instance now takes `gc_checkpoint_every` parameter.
-    def __init__(self, config: GPT2Config, gc_checkpoint_every: int, reorder_attn: bool, upcast_attn: bool):
+    def __init__(
+        self, config: GPT2Config, gc_checkpoint_every: int, reorder_attn: bool, upcast_attn: bool, scale: bool
+    ):
         super().__init__(config)
         self.h = nn.ModuleList(
             [
                 MistralGPT2Block(
-                    config.n_ctx, config, i + 1, scale=True, reorder_attn=reorder_attn, upcast_attn=upcast_attn
+                    config.n_ctx, config, i + 1, scale=scale, reorder_attn=reorder_attn, upcast_attn=upcast_attn
                 )
                 for i in range(config.n_layer)
             ]

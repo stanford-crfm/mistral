@@ -41,6 +41,7 @@ def get_schema() -> Dict[str, Any]:
         "seq_len": merge(tinteger, default(1024)),
         "reorder_attn": merge(tboolean, default(True)),
         "upcast_attn": merge(tboolean, default(True)),
+        "scale": merge(tboolean, default(True)),
         "initial_weights": merge(tstring, nullable, default(None)),
         "config_path": merge(tstring, nullable, default(None)),
     }

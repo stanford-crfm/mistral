@@ -54,6 +54,7 @@ def get_auto_clm_tokenizer(
     use_pretrained_tokenizer: bool = True,
     reorder_attn: bool = True,
     upcast_attn: bool = True,
+    scale: bool = True,
     initial_weights: str = None,
 ) -> Tuple[AutoModelForCausalLM, PreTrainedTokenizer]:
     """Download/Load AutoConfig and Instantiate Corresponding Model and Tokenizer."""
@@ -86,7 +87,7 @@ def get_auto_clm_tokenizer(
     # Partial Gradient Checkpointing (currently only supported for GPT-2 models)
     if "gpt2" in model_id:
         overwatch.info(f"Initializing Custom GPT-2 Model from Configuration: `{REGISTRY[model_id]}`...")
-        model = MistralGPT2LMHeadModel(config, reorder_attn, upcast_attn)
+        model = MistralGPT2LMHeadModel(config, reorder_attn, upcast_attn, scale)
 
     # No Adaptive Gradient Checkpointing
     else:
