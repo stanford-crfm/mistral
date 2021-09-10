@@ -36,4 +36,5 @@ jobs:
         run: |
           cd tests
           CUDA_VISIBLE_DEVICES=0 pytest test_seed.py
+      - run: echo "All tests finished!"
       - run: echo "🍏 This job's status is ${{ job.status }}."
