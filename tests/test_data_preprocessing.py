@@ -306,9 +306,20 @@ def test_add_eos_token():
         preprocessing_num_proc=4,
     )
 
-    # check that example matches expected
+    # check standard example is correct
     assert lm_dataset["test"][0]["input_ids"] == gold_example_input_ids
     assert lm_dataset["test"][0]["attention_mask"] == gold_example_attention_mask
+
+    # check input_ids and attention mask have same length for each doc
+    for doc in lm_dataset["train"]:
+        assert len(doc["input_ids"]) == len(doc["attention_mask"])
+
+    # grouping code processes batches of 1000
+    # there are 647 non empty docs in first 1000, last 2 get tossed when performing // 256 cutoff
+    # there should be 645 doc tokens present
+    first_doc_batch = lm_dataset["train"].select([i for i in range(233)])
+    num_doc_tokens = sum([1 for doc in first_doc_batch for i in doc["input_ids"] if i == tokenizer.eos_token_id])
+    assert num_doc_tokens == 645
 
 
 if __name__ == "__main__":
