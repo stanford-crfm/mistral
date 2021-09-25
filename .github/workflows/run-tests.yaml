@@ -36,7 +36,7 @@ jobs:
         run: |
           cd tests
           CUDA_VISIBLE_DEVICES=0 pytest test_seed.py
-      - name: Tests for random seed (single node/single GPU)
+      - name: Tests for data preprocessing (single node/single GPU)
         if: always()
         run: |
           cd tests
