@@ -314,6 +314,7 @@ def test_add_eos_token():
     for doc in lm_dataset["train"]:
         assert len(doc["input_ids"]) == len(doc["attention_mask"])
         assert len(doc["input_ids"]) == seq_len
+        assert set(doc["attention_mask"]) == set([1])
 
     # these are stats for wikitext2
     # grouping code processes batches of 1000
