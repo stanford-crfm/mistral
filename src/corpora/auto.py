@@ -89,7 +89,7 @@ def get_auto_dataset(
         # The tokenizer's eos_token will be added at the end of each document, with a corresponding 1 in the attention_mask
         doc_separators = {"input_ids": [tokenizer.eos_token_id], "attention_mask": [1]}
         concatenated: Dict[str, List[int]] = {
-            k: [i for seq in examples[k] for i in seq + doc_separators[k] if seq] for k in examples
+            k: [i for seq in examples[k] for i in seq + doc_separators[k] if seq] for k in examples.keys()
         }
         total_length = len(concatenated[list(examples.keys())[0]])
 
