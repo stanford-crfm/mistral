@@ -87,7 +87,10 @@ def get_auto_dataset(
     def group(examples: Dict[str, Iterable[List[int]]]) -> Dict[str, List[List[int]]]:
         # Concatenate all the Texts
         # The tokenizer's eos_token will be added at the end of each document, with a corresponding 1 in the attention_mask
-        doc_separators = {"input_ids": [tokenizer.eos_token_id], "attention_mask": [1]}
+        doc_separators = {
+            "input_ids": [tokenizer.eos_token_id] if tokenizer.eos_token_id else [],
+            "attention_mask": [1] if tokenizer.eos_token_id else [],
+        }
         concatenated: Dict[str, List[int]] = {
             k: [i for seq in examples[k] for i in seq + doc_separators[k] if seq] for k in examples.keys()
         }
