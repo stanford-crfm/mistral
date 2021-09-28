@@ -45,7 +45,7 @@ def produce_download_tables(mode="rst"):
 
     runs = {
         "small": ["Alias", "Battlestar", "Caprica", "Darkmatter", "Expanse"],
-        "medium": ["Arwen", "Beren", "Cerebrimbor", "Durin", "Eowyn"],
+        "medium": ["Arwen", "Beren", "Celebrimbor", "Durin", "Eowyn"],
     }
 
     run_to_seed = {
@@ -56,7 +56,7 @@ def produce_download_tables(mode="rst"):
         "Expanse": "x777",
         "Arwen": "x21",
         "Beren": "x49",
-        "Cerebrimbor": "x81",
+        "Celebrimbor": "x81",
         "Durin": "x343",
         "Eowyn": "x777",
     }
