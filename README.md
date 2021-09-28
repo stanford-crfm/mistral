@@ -8,7 +8,7 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-green?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
 A framework for transparent and accessible large-scale language model training, built with [Hugging Face 🤗](https://huggingface.co/) . Includes tools
-and helpful scripts for incorporating new pre-training datasets, various schemes for single node and distributed training - including on 
+and helpful scripts for incorporating new pre-training datasets, various schemes for single node and distributed training - including on
 cloud providers like GCP, and importantly, scripts for evaluation.
 
 Visit our [Read the Docs](https://nlp.stanford.edu/mistral) for the full documentation.
@@ -143,8 +143,8 @@ We have also stored over 600 checkpoints for each model, subject to the followin
 - Every 100 Steps, from 2000 - 20,000 Steps.
 - Every 1000 Steps, from 20,000 - 400,000 Steps.
 
-This comes out to _610 checkpoints per run, taking up ~22TB for all 10 models_ (making it pretty expensive to host!) If you are interested in acquiring 
-these additional checkpoints, please [file an issue](https://github.com/stanford-crfm/mistral/issues) or contact Laurel (lorr1) and Sidd (skaramcheti) 
+This comes out to _610 checkpoints per run, taking up ~22TB for all 10 models_ (making it pretty expensive to host!) If you are interested in acquiring
+these additional checkpoints, please [file an issue](https://github.com/stanford-crfm/mistral/issues) or contact Laurel (lorr1) and Sidd (skaramcheti)
 at their @cs.stanford.edu email addresses, and we'll be happy to figure out a cost-effective solution to sharing them.
 
 GPT-2 Medium
@@ -159,10 +159,10 @@ GPT-2 Medium
 | Beren | GPT-2 Medium | 300000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/beren-gpt2-medium-x49/beren-x49-checkpoint-300000.zip) |
 | Beren | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/beren-gpt2-medium-x49/beren-x49-checkpoint-200000.zip) |
 | Beren | GPT-2 Medium | 100000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/beren-gpt2-medium-x49/beren-x49-checkpoint-100000.zip) |
-| Celebrimbor | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-400000.zip) |
-| Celebrimbor | GPT-2 Medium | 300000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-300000.zip) |
-| Celebrimbor | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-200000.zip) |
-| Celebrimbor | GPT-2 Medium | 100000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/cerebrimbor-gpt2-medium-x81/cerebrimbor-x81-checkpoint-100000.zip) |
+| Celebrimbor | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/celebrimbor-gpt2-medium-x81/celebrimbor-x81-checkpoint-400000.zip) |
+| Celebrimbor | GPT-2 Medium | 300000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/celebrimbor-gpt2-medium-x81/celebrimbor-x81-checkpoint-300000.zip) |
+| Celebrimbor | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/celebrimbor-gpt2-medium-x81/celebrimbor-x81-checkpoint-200000.zip) |
+| Celebrimbor | GPT-2 Medium | 100000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/celebrimbor-gpt2-medium-x81/celebrimbor-x81-checkpoint-100000.zip) |
 | Durin | GPT-2 Medium | 400000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/durin-gpt2-medium-x343/durin-x343-checkpoint-400000.zip) |
 | Durin | GPT-2 Medium | 300000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/durin-gpt2-medium-x343/durin-x343-checkpoint-300000.zip) |
 | Durin | GPT-2 Medium | 200000 | 4.9G | [download](https://storage.googleapis.com/mistral-models/gpt2-medium/durin-gpt2-medium-x343/durin-x343-checkpoint-200000.zip) |
@@ -201,8 +201,15 @@ GPT-2 Small
 
 ## Issues
 
-To ask questions, report issues, or request features, please use the [GitHub Issue Tracker](https://github.com/stanford-crfm/mistral/issues). 
+To ask questions, report issues, or request features, please use the [GitHub Issue Tracker](https://github.com/stanford-crfm/mistral/issues).
 Before creating a new issue, please make sure to search for existing issues that may solve your problem.
+
+---
+
+## Differences between Mistral and Hugging Face
+
+Please visit the [following page](https://nlp.stanford.edu/mistral/hugging_face_differences.html) that outlines the
+differences between the two codebases.
 
 ---
 
