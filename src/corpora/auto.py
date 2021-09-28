@@ -7,7 +7,7 @@ de-facto training, validation, and testing tests. Performs additional tokenizati
 import logging
 from copy import deepcopy
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, Iterable, List
 
 import datasets
 from transformers import BatchEncoding, PreTrainedTokenizer
@@ -30,7 +30,7 @@ def get_auto_dataset(
     stride: int = -1,
     ignore_train: bool = False,
 ) -> datasets.DatasetDict:
-    """ Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset. """
+    """Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset."""
 
     # Sanity check on input args
     stride = seq_len if stride < 0 else stride
@@ -84,9 +84,9 @@ def get_auto_dataset(
     )
 
     # Finally, actually run chunking (collapse multiple sequences into a giant document to read `seq_len` chunks from)
-    def group(examples: Dict[str, List[int]]) -> Dict[str, List[int]]:
+    def group(examples: Dict[str, Iterable[List[int]]]) -> Dict[str, List[List[int]]]:
         # Concatenate all the Texts
-        concatenated = {k: sum(examples[k], []) for k in examples.keys()}
+        concatenated: Dict[str, List[int]] = {k: sum(examples[k], []) for k in examples.keys()}
         total_length = len(concatenated[list(examples.keys())[0]])
 
         # Drop the "very last" bit of the dataset that doesn't fit into block size...

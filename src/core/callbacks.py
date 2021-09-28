@@ -8,7 +8,7 @@ import logging
 import os
 import time
 from bisect import bisect_left
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import jsonlines
 import torch
@@ -41,7 +41,7 @@ def rewrite_logs(d: Dict[str, float]) -> Dict[str, float]:
 
 
 class CustomWandbCallback(WandbCallback):
-    """ Custom Weights and Biases Callback used by Mistral for logging information from the Huggingface Trainer. """
+    """Custom Weights and Biases Callback used by Mistral for logging information from the Huggingface Trainer."""
 
     def __init__(
         self,
@@ -70,14 +70,15 @@ class CustomWandbCallback(WandbCallback):
         self.group, self.resume, self.resume_run_id, self.wandb_dir = group, resume, resume_run_id, wandb_dir
 
         # Timers
-        self.within_time, self.between_time = None, None
+        self.within_time: Optional[float] = None
+        self.between_time: Optional[float] = None
 
     def _append_jsonl(self, data) -> None:
         with jsonlines.open(self.json_file, mode="a") as writer:
             writer.write(data)
 
     def _log_memory(self, state, prefix="train_info"):
-        """ Simple method to log memory usage at the end of every training batch. """
+        """Simple method to log memory usage at the end of every training batch."""
         if state.is_world_process_zero and torch.cuda.is_available():
             memory_usage = {
                 f"{prefix}/memory_allocated": torch.cuda.memory_allocated() / 2 ** 20,
@@ -254,7 +255,7 @@ class CustomWandbCallback(WandbCallback):
         eval_dataloader=None,
         **kwargs,
     ):
-        """ Calls wandb.init, we add additional arguments to that call using this method. """
+        """Calls wandb.init, we add additional arguments to that call using this method."""
 
         # Pass in additional keyword arguments to the wandb.init call as kwargs
         super().on_train_begin(
@@ -325,7 +326,7 @@ class CustomWandbCallback(WandbCallback):
 
 
 class CustomCheckpointCallback(TrainerCallback):
-    """ Custom Checkpoint Callback used by Mistral for Saving Checkpoints at different frequencies. """
+    """Custom Checkpoint Callback used by Mistral for Saving Checkpoints at different frequencies."""
 
     def __init__(self, frequencies: List[List[int]]):
         super(CustomCheckpointCallback, self).__init__()
@@ -337,7 +338,7 @@ class CustomCheckpointCallback(TrainerCallback):
         assert all(i < j for i, j in zip(self.until, self.until[1:])), "Frequency `until_step` not increasing!"
 
     def on_step_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
-        """ Borrow Checkpoint Logic from `DefaultFlowCallback` to decide when to checkpoint. """
+        """Borrow Checkpoint Logic from `DefaultFlowCallback` to decide when to checkpoint."""
 
         # Save (note we explicitly save checkpoint-0 in `train.py`, so no need to do it here)
         c = state.global_step
