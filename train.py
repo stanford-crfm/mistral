@@ -95,10 +95,9 @@ def train() -> OnlineBenchmarkTrainer:
         paths,
         model_configs=model_configs,
         gradient_checkpointing=quinfig.model.gradient_checkpointing,
-        gc_checkpoint_every=quinfig.model.gc_checkpoint_every,
         use_pretrained_tokenizer=quinfig.model.pretrained_tokenizer,
-        reorder_attn=quinfig.model.reorder_attn,
-        upcast_attn=quinfig.model.upcast_attn,
+        reorder_and_upcast_attn=quinfig.model.reorder_and_upcast_attn,
+        scale_attn_by_inverse_layer_idx=quinfig.model.scale_attn_by_inverse_layer_idx,
         initial_weights=quinfig.model.initial_weights,
     )
 
