@@ -77,7 +77,7 @@ class OnlineBenchmarkTrainer(Trainer):
         self.wikitext_dataset = custom_eval_datasets.get("wikitext", None)
         self.lambada_dataset = custom_eval_datasets.get("lambada", None)
 
-    def _maybe_log_save_evaluate(self, tr_loss, model, trial, epoch):
+    def _maybe_log_save_evaluate(self, tr_loss, model, trial, epoch, ignore_keys_for_eval):
         """
         Taken from https://github.com/huggingface/transformers/blob/v4.5.0/src/transformers/trainer.py#L1248
         We add activation logging
