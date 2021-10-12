@@ -38,8 +38,8 @@ def get_schema() -> Dict[str, Any]:
         "gradient_checkpointing": merge(tboolean, default(False)),
         "pretrained_tokenizer": merge(tboolean, default(True)),
         "seq_len": merge(tinteger, default(1024)),
-        "reorder_and_upcast_attn": merge(tstring, nullable, default(True)),
-        "scale_attn_by_inverse_layer_idx": merge(tstring, nullable, default(True)),
+        "reorder_and_upcast_attn": merge(tboolean, nullable, default(True)),
+        "scale_attn_by_inverse_layer_idx": merge(tboolean, nullable, default(True)),
         "initial_weights": merge(tstring, nullable, default(None)),
         "config_path": merge(tstring, nullable, default(None)),
     }
