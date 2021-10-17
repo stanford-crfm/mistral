@@ -113,8 +113,6 @@ one had trained the model with Hugging Face.
 
 For instance, to generate text with 🤗  Transformers:
 
-Or to load the model in Python code (make sure `/path/to/mistral` is in your `PYTHONPATH`):
-
 ```python
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
