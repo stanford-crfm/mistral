@@ -17,6 +17,10 @@ jobs:
           cp -r /home/stanzabuild/mistral/wandb .
           wandb offline
           echo 'Setting wandb to offline mode'
+          echo 'MISTRAL_TEST_DIR:'
+          echo $MISTRAL_TEST_DIR
+          echo 'PYTHONPATH:'
+          echo $PYTHONPATH
       - name: Tests for arguments (single node/single GPU)
         if: always()
         run: |
@@ -37,4 +41,5 @@ jobs:
         run: |
           cd tests
           CUDA_VISIBLE_DEVICES=0 pytest test_seed.py
+      - run: echo "All tests finished!"
       - run: echo "🍏 This job's status is ${{ job.status }}."

@@ -7,19 +7,15 @@ model:
     # Boolean whether to use Gradient Checkpointing to save GPU Memory at the expense of runtime
     gradient_checkpointing: false
 
-    # Add Gradient Checkpointing Every `gc_checkpoint_every` Transformer blocks
-    # > Checkpoints = (# layers / `gc_checkpoint_every`) Blocks
-    gc_checkpoint_every: -1
-
     # Boolean whether to use the pre-existing Hugging Face AutoTokenizer (or train a new one from scratch)
     pretrained_tokenizer: true
 
     # Sequence Length
     seq_len: 1024
 
-    # Stability -- Upcasting and Scaled Dot-Product Reordering
-    reorder_attn: true
-    upcast_attn: true
+    # Stability
+    reorder_and_upcast_attn: true
+    scale_attn_by_inverse_layer_idx: true
 
     # Initialize Weights from File
     initial_weights: null
