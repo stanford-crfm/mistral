@@ -21,10 +21,10 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-4.5.11-Linux-x86
     echo "conda activate base" >> ~/.bashrc
 
 # Install dependencies with Conda
-COPY environment.yaml .
+COPY environment-gpu.yaml .
 RUN set -x && \
     conda install -n base -c defaults conda=4.* && \
-    conda env create -f environment.yaml  && \
+    conda env create -f environment-gpu.yaml  && \
     conda clean -a
 ENV PATH /opt/conda/envs/mistral/bin:$PATH
 
