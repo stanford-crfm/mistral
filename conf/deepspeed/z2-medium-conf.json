@@ -30,5 +30,8 @@
     "overlap_comm": true,
     "contiguous_gradients": true,
     "cpu_offload": false
-  }
+  },
+
+  "train_batch_size": "auto",
+  "train_micro_batch_size_per_gpu": "auto"
 }
