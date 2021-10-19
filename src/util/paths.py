@@ -24,6 +24,10 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[
 
     :return: Dictionary mapping str ids --> paths on the filesystem.
     """
+    # To respect shortcuts in paths, such as ~
+    cache_dir = os.path.expanduser(cache_dir)
+    run_dir = os.path.expanduser(run_dir)
+
     paths = {
         # Top-Level Checkpoint Directory for Given Run
         "runs": Path(run_dir) / run_id,
