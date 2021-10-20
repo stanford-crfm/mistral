@@ -35,7 +35,7 @@ RESTART_ARGS = {
     "nproc_per_node": "1",
     "config": "conf/train.yaml",
     "training_arguments.fp16": "true",
-    "training_arguments.max_steps": "1",
+    "training_arguments.max_steps": "19",
     "training_arguments.per_device_train_batch_size": "1",
     "resume": "True",
     "resume_checkpoint": f"{RUN_ID_DIR}/{LAST_CHECKPOINT}",
