@@ -137,7 +137,7 @@ dependencies:
   - cytoolz==0.11.0
   - datasets==1.4.0
   - deepdiff==5.2.3
-  - deepspeed==0.3.13
+  - deepspeed==0.5.4
   - dill==0.3.3
   - distlib==0.3.1
   - docker-pycreds==0.4.0
