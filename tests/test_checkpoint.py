@@ -12,7 +12,7 @@ CACHE_DIR = f"{MISTRAL_TEST_DIR}/artifacts"
 RUNS_DIR = f"{MISTRAL_TEST_DIR}/runs"
 RUN_ID = "checkpoint_test"
 RUN_ID_DIR = f"{RUNS_DIR}/{RUN_ID}"
-LAST_CHECKPOINT = "checkpoint-18"
+LAST_CHECKPOINT = "checkpoint-2"
 
 # run training processes for tests
 TRAIN_ARGS = {
@@ -20,7 +20,7 @@ TRAIN_ARGS = {
     "nproc_per_node": "1",
     "config": "conf/train.yaml",
     "training_arguments.fp16": "true",
-    "training_arguments.max_steps": "19",
+    "training_arguments.max_steps": "3",
     "training_arguments.per_device_train_batch_size": "1",
     "artifacts.cache_dir": CACHE_DIR,
     "log_level": "20",
@@ -35,7 +35,7 @@ RESTART_ARGS = {
     "nproc_per_node": "1",
     "config": "conf/train.yaml",
     "training_arguments.fp16": "true",
-    "training_arguments.max_steps": "19",
+    "training_arguments.max_steps": "3",
     "training_arguments.per_device_train_batch_size": "1",
     "resume": "True",
     "resume_checkpoint": f"{RUN_ID_DIR}/{LAST_CHECKPOINT}",
