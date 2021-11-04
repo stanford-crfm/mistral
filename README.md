@@ -16,34 +16,23 @@ Visit our [Read the Docs](https://nlp.stanford.edu/mistral) for the full documen
 A Propulsion Endeavor 🚀
 
 ---
-## Community
-
-`Mistral` is built to facilitate transparent and accessible training. To do our best to reach this goal, **we will hold community meetings
-twice a month** we'll give updates as to where we're at and what we're working on, _and more importantly, hear from you as to how we can help
-and possibly work together._
-
-We would love for folks from academia, other community efforts, as well as those in industry to join - all are welcome. The first meeting will
-be on [Monday, August 30th at 4 PM PT](https://www.google.com/url?q=https://stanford.zoom.us/j/93555216759?pwd%3DSkd2eURyS0NWTGthWjVGNEJiMXJ3QT09).
-
-We'll post the future dates (and times - which we hope to move around through the day to maximally engage folks in varied timezones)
-after the first meeting!
-
----
 
 ## Quickstart
 
 ### Installation
 
-The dependencies for Mistral can be installed using Conda. Note that the provided environment assumes that CUDA 11.0
-is installed. You may need to adjust the environment YAML file depending on your set up.
+Mistral has been tested with Python 3.8.12, PyTorch 1.10.0 (compiled with CUDA 10.2), CUDA 10.2, NCCL 2.10, and Transformers 4.12.3.
+
+The environment can be easily built with the following commands.
 
 ```bash
-git clone https://github.com/stanford-crfm/mistral.git
-cd mistral
-conda env create -f environments/environment-gpu.yaml  # Choose CUDA kernel based on the hardware!
+conda create -n mistral python=3.8.12
+conda activate mistral
+conda install cudatoolkit=10.2
+pip install torch transformers datasets huggingface-hub deepspeed jsonlines quinine wandb
 ```
 
-If you are training on the CPU only, run `conda env create -f environments/environment-cpu.yaml` instead.
+Environments and non-Python dependencies can be managed with conda, and Python dependencies can be managed with pip.
 
 
 ### Training GPT-2 Micro
