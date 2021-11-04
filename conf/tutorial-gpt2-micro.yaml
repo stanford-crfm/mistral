@@ -23,7 +23,7 @@ artifacts:
     run_dir:
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
-effective_bsz: 16
+effective_bsz: 32
 
 # Resume from Checkpoint
 resume: false

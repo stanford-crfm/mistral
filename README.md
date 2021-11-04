@@ -21,18 +21,20 @@ A Propulsion Endeavor 🚀
 
 ### Installation
 
-Mistral has been tested with Python 3.8.12, PyTorch 1.10.0 (compiled with CUDA 10.2), CUDA 10.2, NCCL 2.10, Transformers 4.12.3, and DeepSpeed 0.5.5.
+Mistral has been tested with Python 3.8.12, PyTorch 1.10.0 (compiled with CUDA 11.3), CUDA 11.3, NCCL 2.10, Transformers 4.12.3, and DeepSpeed 0.5.5.
 
 The environment can be easily built with the following commands.
 
 ```bash
 conda create -n mistral python=3.8.12
 conda activate mistral
-conda install cudatoolkit=10.2
-pip install torch transformers datasets huggingface-hub deepspeed jsonlines quinine wandb
+conda install pytorch cudatoolkit=11.3 -c pytorch
+pip install transformers datasets huggingface-hub deepspeed jsonlines quinine wandb
 ```
 
-Environments and non-Python dependencies can be managed with conda, and Python dependencies can be managed with pip.
+A `.yaml` export of a tested environment is provided at `environments/environment-gpu.yaml`.
+
+Environments and non-Python dependencies can be managed with conda, and Python dependencies can be managed with pip (note: conda was used for the PyTorch install to get the version compiled with CUDA 11.3).
 
 
 ### Training GPT-2 Micro
@@ -84,7 +86,7 @@ To start distributed training, run:
 ```bash
 conda activate mistral
 cd mistral
-deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config conf/tutorial-gpt2-micro.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4 --training_arguments.deepspeed conf/deepspeed/z1-conf.json --run_id tutorial-gpt2-micro-multi-node > tutorial-gpt2-micro-multi-node.out 2> tutorial-gpt2-micro-multi-node.err
+deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config conf/tutorial-gpt2-micro.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4 --training_arguments.deepspeed conf/deepspeed/z2-small-conf.json --run_id tutorial-gpt2-micro-multi-node
 ```
 
 Note: You may need to adjust your batch size depending on the capacity of your GPUs.
