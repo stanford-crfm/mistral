@@ -104,6 +104,7 @@ def get_schema() -> Dict[str, Any]:
         "checkpoint_frequency": merge(merge(tlist, schema(merge(tlist, schema(tinteger)))), nullable, default(None)),
         "log_level": merge(tinteger, default(20)),
         "run_id": merge(tstring, nullable, default(None)),
+        "wandb_api_key_path": merge(tstring, nullable, default(None)),
         "wandb": merge(tstring, nullable, default(None)),
         "group": merge(tstring, nullable, default(None)),
         "seed": merge(tinteger, default(42)),

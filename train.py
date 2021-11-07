@@ -175,6 +175,7 @@ def train() -> OnlineBenchmarkTrainer:
                 resume=quinfig.resume,
                 resume_run_id=resume_run_id,
                 wandb_dir=str(paths["runs"]),
+                api_key_path=quinfig.wandb_api_key_path,
             ),
             CustomCheckpointCallback(frequencies=frequencies),
         ],

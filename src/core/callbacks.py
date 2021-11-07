@@ -51,8 +51,14 @@ class CustomWandbCallback(WandbCallback):
         resume: bool = False,
         resume_run_id: str = None,
         wandb_dir: str = None,
+        api_key_path: str = None,
     ):
         super(CustomWandbCallback, self).__init__()
+
+        # Authenticate via API key if available. If WANDB_API_KEY is set, the user will not be prompted login.
+        if api_key_path:
+            with open(os.path.expanduser(api_key_path), "r") as f:
+                os.environ["WANDB_API_KEY"] = f.read().strip()
 
         # Set the Project Name
         if isinstance(project, str):
