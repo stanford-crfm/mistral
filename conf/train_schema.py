@@ -42,6 +42,7 @@ def get_schema() -> Dict[str, Any]:
         "scale_attn_by_inverse_layer_idx": merge(tboolean, nullable, default(True)),
         "initial_weights": merge(tstring, nullable, default(None)),
         "config_path": merge(tstring, nullable, default(None)),
+        "mlm_probability": merge(tfloat, default(0.15)),
     }
 
     # Schema for Huggingface Trainer and Training Arguments

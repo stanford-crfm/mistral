@@ -100,7 +100,7 @@ class OnlineBenchmarkTrainer(Trainer):
             if self.deepspeed or isinstance(model, DistributedDataParallel):
                 model = model.module
 
-            if hasattr(model.transformer.h[0].attn, "activation_stats"):
+            if hasattr(model, "transformer") and hasattr(model.transformer.h[0].attn, "activation_stats"):
                 for block_i, block in enumerate(model.transformer.h):
                     layer_activation_stats = {
                         f"activations/layer{block_i}_" + k: v for k, v in block.attn.activation_stats.items()

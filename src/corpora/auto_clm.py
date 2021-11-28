@@ -1,5 +1,5 @@
 """
-auto.py
+auto_clm.py
 
 Default Dataset/Corpus Utilities. Downloads (if necessary) from the Hugging Face `datasets` Hub, and organizes into
 de-facto training, validation, and testing tests. Performs additional tokenization and normalization as well.
@@ -16,10 +16,10 @@ from src.corpora.detokenization import DATASET_TOKENIZATION_REGISTRY
 
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
-overwatch = logging.getLogger("mistral.corpora.auto")
+overwatch = logging.getLogger("mistral.corpora.auto_clm")
 
 
-def get_auto_dataset(
+def get_auto_clm_dataset(
     tokenizer: PreTrainedTokenizer,
     paths: Dict[str, Path],
     dataset_id: str = "wikitext",
@@ -217,7 +217,7 @@ def get_lambada(
 
 
 # Mapping of eval dataset name -> HF ids, names, and method for generating dataset
-ONLINE_EVAL_DATA_REGISTRY = {
-    "wikitext": {"id": "wikitext", "name": "wikitext-103-raw-v1", "generator": get_auto_dataset},
+ONLINE_EVAL_DATA_REGISTRY_CLM = {
+    "wikitext": {"id": "wikitext", "name": "wikitext-103-raw-v1", "generator": get_auto_clm_dataset},
     "lambada": {"id": "lambada", "name": None, "generator": get_lambada},
 }

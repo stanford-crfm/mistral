@@ -25,17 +25,23 @@ import os
 import random
 from datetime import datetime
 
+import datasets
 import numpy as np
 import torch
 from quinine import QuinineArgumentParser
-from transformers.data.data_collator import default_data_collator
+from transformers.data.data_collator import DataCollatorForLanguageModeling, default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
 
 from conf.train_schema import get_schema
 from src.args import get_training_arguments
 from src.core import CustomCheckpointCallback, CustomWandbCallback, OnlineBenchmarkTrainer
-from src.corpora import ONLINE_EVAL_DATA_REGISTRY, get_auto_dataset
-from src.models import get_auto_clm_tokenizer
+from src.corpora import (
+    ONLINE_EVAL_DATA_REGISTRY_CLM,
+    ONLINE_EVAL_DATA_REGISTRY_MLM,
+    get_auto_clm_dataset,
+    get_auto_mlm_dataset,
+)
+from src.models import get_auto_clm_tokenizer, get_auto_mlm_tokenizer
 from src.overwatch import get_overwatch
 from src.util import create_paths, set_permissions
 
@@ -90,7 +96,17 @@ def train() -> OnlineBenchmarkTrainer:
             model_configs = json.load(f)
     else:
         model_configs = None
-    model, tokenizer = get_auto_clm_tokenizer(
+
+    if quinfig.model.id.startswith("bert"):
+        get_auto_tokenizer = get_auto_mlm_tokenizer
+        get_auto_dataset = get_auto_mlm_dataset
+        ONLINE_EVAL_DATA_REGISTRY = ONLINE_EVAL_DATA_REGISTRY_MLM
+    else:
+        get_auto_tokenizer = get_auto_clm_tokenizer
+        get_auto_dataset = get_auto_clm_dataset
+        ONLINE_EVAL_DATA_REGISTRY = ONLINE_EVAL_DATA_REGISTRY_CLM
+
+    model, tokenizer = get_auto_tokenizer(
         quinfig.model.id,
         paths,
         model_configs=model_configs,
@@ -102,16 +118,25 @@ def train() -> OnlineBenchmarkTrainer:
     )
 
     # Load Dataset w/ Preprocessing, Batching, and Collating
-    overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
-    lm_dataset = get_auto_dataset(
-        tokenizer,
-        paths,
-        dataset_id=quinfig.dataset.id,
-        dataset_name=quinfig.dataset.name,
-        validation_ratio=quinfig.dataset.validation_ratio,
-        seq_len=quinfig.model.seq_len,
-        preprocessing_num_proc=quinfig.dataset.num_proc,
-    )
+    dataset_ids = quinfig.dataset.id.split(",")
+    dataset_names = quinfig.dataset.name.split(",")
+    dataset_list = []
+    for dataset_id, dataset_name in zip(dataset_ids, dataset_names):
+        overwatch.info(f"Downloading and Preprocessing Dataset `{dataset_id}`...")
+        lm_dataset = get_auto_dataset(
+            tokenizer,
+            paths,
+            dataset_id=dataset_id,
+            dataset_name=dataset_name,
+            validation_ratio=quinfig.dataset.validation_ratio,
+            seq_len=quinfig.model.seq_len,
+            preprocessing_num_proc=quinfig.dataset.num_proc,
+        )
+        dataset_list.append(lm_dataset)
+    if len(dataset_list) > 1:
+        lm_dataset["train"] = datasets.concatenate_datasets([d["train"] for d in dataset_list])
+        lm_dataset["validation"] = datasets.concatenate_datasets([d["validation"] for d in dataset_list])
+        overwatch.info("Datasets concatenated.")
 
     # Load Online Eval Datasets
     custom_eval_datasets = dict()
@@ -159,10 +184,18 @@ def train() -> OnlineBenchmarkTrainer:
     else:
         frequencies = quinfig.checkpoint_frequency
 
+    if quinfig.model.id.startswith("bert"):
+        data_collator = DataCollatorForLanguageModeling(
+            tokenizer=tokenizer,
+            mlm_probability=quinfig.model.mlm_probability,
+        )
+    else:
+        data_collator = default_data_collator  # De Facto Collator uses Padding, which we DO NOT want!
+
     trainer = OnlineBenchmarkTrainer(
         model=model,
         args=training_args,
-        data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
+        data_collator=data_collator,
         train_dataset=lm_dataset["train"],
         eval_dataset=lm_dataset["validation"],
         custom_eval_datasets=custom_eval_datasets,
