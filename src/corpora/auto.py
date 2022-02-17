@@ -29,6 +29,7 @@ def get_auto_dataset(
     preprocessing_num_proc: int = 64,
     stride: int = -1,
     ignore_train: bool = False,
+    detokenize: bool = True,
 ) -> datasets.DatasetDict:
     """Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset."""
 
@@ -58,7 +59,8 @@ def get_auto_dataset(
         assert len(dataset) > 0, "You can't set ignore_train = True when there is only train data"
 
     # First, Normalize Text if Necessary. Tokenization Strategies are in detokenization.py.
-    dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
+    if detokenize:
+        dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
 
     # Second, run straight-up tokenization
     def tokenize(examples: Dict[str, List[str]]) -> BatchEncoding:
