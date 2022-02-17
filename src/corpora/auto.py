@@ -25,7 +25,7 @@ def get_auto_dataset(
     paths: Dict[str, Path],
     dataset_id: str = "wikitext",
     dataset_name: str = "wikitext-103-raw-v1",
-    dataset_files: dict = None,
+    dataset_dir: str = None,
     validation_ratio: float = 0.0005,
     seq_len: int = 1024,
     preprocessing_num_proc: int = 64,
@@ -38,9 +38,13 @@ def get_auto_dataset(
     # Sanity check on input args
     stride = seq_len if stride < 0 else stride
     assert stride <= seq_len, f"Data grouping stride ({stride}) is smaller than sequence length: we are losing data."
-    if dataset_files is not None:
-        _, file_type = os.path.splitext(list(dataset_files.values())[0][0])
+    if dataset_dir is not None:
+        file_names = os.listdir(dataset_dir)
+        _, file_type = os.path.splitext(file_names[0])
         file_type = "json" if file_type == "jsonl" else file_type
+        dataset_files = {}
+        dataset_files["train"] = [f"{dataset_dir}/{fn}" for fn in file_names if "train" in fn]
+        dataset_files["validation"] = [f"{dataset_dir}/{fn}" for fn in file_names if "validation" in fn]
         dataset = datasets.load_dataset(
             file_type,
             name=dataset_name,
