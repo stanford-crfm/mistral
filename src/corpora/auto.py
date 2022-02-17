@@ -5,6 +5,7 @@ Default Dataset/Corpus Utilities. Downloads (if necessary) from the Hugging Face
 de-facto training, validation, and testing tests. Performs additional tokenization and normalization as well.
 """
 import logging
+import os
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, Iterable, List
@@ -24,6 +25,7 @@ def get_auto_dataset(
     paths: Dict[str, Path],
     dataset_id: str = "wikitext",
     dataset_name: str = "wikitext-103-raw-v1",
+    dataset_files: dict = None,
     validation_ratio: float = 0.0005,
     seq_len: int = 1024,
     preprocessing_num_proc: int = 64,
@@ -36,9 +38,20 @@ def get_auto_dataset(
     # Sanity check on input args
     stride = seq_len if stride < 0 else stride
     assert stride <= seq_len, f"Data grouping stride ({stride}) is smaller than sequence length: we are losing data."
-    dataset = datasets.load_dataset(
-        dataset_id, name=dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True
-    )
+    if dataset_files is not None:
+        _, file_type = os.path.splitext(list(dataset_files.values())[0][0])
+        file_type = "json" if file_type == "jsonl" else file_type
+        dataset = datasets.load_dataset(
+            file_type,
+            name=dataset_name,
+            data_files=dataset_files,
+            cache_dir=str(paths["dataset"]),
+            keep_in_memory=True,
+        )
+    else:
+        dataset = datasets.load_dataset(
+            dataset_id, name=dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True
+        )
 
     if "validation" not in dataset:
         assert "train" in dataset, "You must have train in dataset to make a validation dataset"
