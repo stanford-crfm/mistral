@@ -31,7 +31,7 @@ def get_schema() -> Dict[str, Any]:
         "num_proc": merge(tinteger, default(64)),
         "eval_num_proc": merge(tinteger, default(4)),
         "dataset_dir": merge(tstring, nullable, default(None)),
-        "detokenize": merge(tboolean, nullable, default(True)),
+        "detokenize": merge(tboolean, default(True)),
     }
 
     # Schema for Model
