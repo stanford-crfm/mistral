@@ -40,7 +40,7 @@ def get_auto_dataset(
     assert stride <= seq_len, f"Data grouping stride ({stride}) is smaller than sequence length: we are losing data."
     if dataset_dir is not None:
         file_names = os.listdir(dataset_dir)
-        _, file_type = os.path.splitext(file_names[0])
+        file_type = os.path.splitext(file_names[0])[1][1:]
         file_type = "json" if file_type == "jsonl" else file_type
         dataset_files = {}
         dataset_files["train"] = [f"{dataset_dir}/{fn}" for fn in file_names if "train" in fn]
@@ -50,11 +50,10 @@ def get_auto_dataset(
             name=dataset_name,
             data_files=dataset_files,
             cache_dir=str(paths["dataset"]),
-            keep_in_memory=True,
         )
     else:
         dataset = datasets.load_dataset(
-            dataset_id, name=dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True
+            dataset_id, name=dataset_name, cache_dir=str(paths["dataset"])
         )
 
     if "validation" not in dataset:
