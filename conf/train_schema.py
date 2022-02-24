@@ -20,6 +20,13 @@ from quinine.common.cerberus import (
 )
 
 
+def _tlist_of(element_schema):
+    """
+    Returns a cerberus schema that validates a list of element_schema.
+    """
+    return {"type": "list", "schema": element_schema}
+
+
 def get_schema() -> Dict[str, Any]:
     """Get the Cerberus schema for the Quinine config used in train.py."""
 
@@ -32,6 +39,8 @@ def get_schema() -> Dict[str, Any]:
         "eval_num_proc": merge(tinteger, default(4)),
         "dataset_dir": merge(tstring, nullable, default(None)),
         "detokenize": merge(tboolean, default(True)),
+        "source": merge(tstring, default("hub")),
+        "source_ratios": merge(_tlist_of(tfloat), nullable, default(None)),
     }
 
     # Schema for Model
