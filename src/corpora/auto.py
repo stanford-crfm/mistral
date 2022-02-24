@@ -25,7 +25,9 @@ def get_auto_dataset(
     paths: Dict[str, Path],
     dataset_id: str = "wikitext",
     dataset_name: str = "wikitext-103-raw-v1",
-    dataset_dir: str = None,
+    dataset_source: str = "hub",
+    dataset_ratios: str = None,
+    seed: int = 21,
     validation_ratio: float = 0.0005,
     seq_len: int = 1024,
     preprocessing_num_proc: int = 64,
@@ -38,35 +40,48 @@ def get_auto_dataset(
     # Sanity check on input args
     stride = seq_len if stride < 0 else stride
     assert stride <= seq_len, f"Data grouping stride ({stride}) is smaller than sequence length: we are losing data."
-    if dataset_dir is not None:
-        file_names = os.listdir(dataset_dir)
-        file_type = os.path.splitext(file_names[0])[1][1:]
-        file_type = "json" if file_type == "jsonl" else file_type
-        dataset_files = {}
-        dataset_files["train"] = [f"{dataset_dir}/{fn}" for fn in file_names if "train" in fn]
-        dataset_files["validation"] = [f"{dataset_dir}/{fn}" for fn in file_names if "validation" in fn]
-        dataset = datasets.load_dataset(
-            file_type,
-            name=dataset_name,
-            data_files=dataset_files,
-            cache_dir=str(paths["dataset"]),
-        )
-    else:
-        dataset = datasets.load_dataset(
-            dataset_id, name=dataset_name, cache_dir=str(paths["dataset"])
-        )
 
-    if "validation" not in dataset:
-        assert "train" in dataset, "You must have train in dataset to make a validation dataset"
-        # Create Dataset Split Cache Files
-        train_fn, val_fn = [str(paths["dataset"] / dataset_id / f"{k}-split.hf") for k in ["train", "val"]]
-        dataset = dataset["train"].train_test_split(
-            test_size=validation_ratio,
-            train_indices_cache_file_name=train_fn,
-            test_indices_cache_file_name=val_fn,
-        )
-        dataset["validation"] = dataset["test"]
-        del dataset["test"]
+    # Load initial datasets
+    dataset_id, dataset_name, dataset_source = (
+        dataset_id.split(","),
+        dataset_name.split(","),
+        dataset_source.split(","),
+    )
+    init_datasets = []
+    for (ds_id, ds_name, ds_source) in zip(dataset_id, dataset_name, dataset_source):
+        if ds_source == "hub" or ds_source is None:
+            dataset = datasets.load_dataset(ds_id, name=ds_name, cache_dir=str(paths["dataset"]))
+        elif os.path.isdir(ds_source):
+            file_names = os.listdir(ds_source)
+            file_type = os.path.splitext(file_names[0])[1][1:]
+            file_type = "json" if file_type == "jsonl" else file_type
+            ds_files = {
+                "train": [f"{dataset_dir}/{fn}" for fn in file_names if "train" in fn],
+                "validation": [f"{dataset_dir}/{fn}" for fn in file_names if "validation" in fn],
+            }
+            dataset = datasets.load_dataset(
+                file_type,
+                name=ds_name,
+                data_files=ds_files,
+                cache_dir=str(paths["dataset"]),
+            )
+        if "validation" not in dataset:
+            assert "train" in dataset, "You must have train in dataset to make a validation dataset"
+            # Create Dataset Split Cache Files
+            train_fn, val_fn = [str(paths["dataset"] / dataset_id / f"{k}-split.hf") for k in ["train", "validation"]]
+            dataset = dataset["train"].train_test_split(
+                test_size=validation_ratio,
+                train_indices_cache_file_name=train_fn,
+                test_indices_cache_file_name=val_fn,
+            )
+            dataset["validation"] = dataset["test"]
+            del dataset["test"]
+
+        init_datasets.append(dataset)
+    
+    # Interleave datasets
+    dataset_ratios = [float(r) for r in dataset_ratios.split(",")] if dataset_ratios is not None else dataset_ratios
+    dataset = datasets.combine.interleave_datasets(datasets=init_datasets, probabilities=dataset_ratios, seed=seed)
 
     # Preprocess Dataset in a Streaming Fashion
     assert "train" in dataset, "Field `train` not in Dataset!"
