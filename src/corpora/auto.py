@@ -42,13 +42,13 @@ def get_auto_dataset(
     assert stride <= seq_len, f"Data grouping stride ({stride}) is smaller than sequence length: we are losing data."
 
     # Load initial datasets
-    dataset_id, dataset_name, dataset_source = (
+    ds_id_list, ds_name_list, ds_source_list = (
         dataset_id.split(","),
         dataset_name.split(","),
         dataset_source.split(","),
     )
-    init_datasets = []
-    for (ds_id, ds_name, ds_source) in zip(dataset_id, dataset_name, dataset_source):
+    init_datasets = {"train": [], "validation": []}
+    for (ds_id, ds_name, ds_source) in zip(ds_id_list, ds_name_list, ds_source_list):
         if ds_source == "hub" or ds_source is None:
             dataset = datasets.load_dataset(ds_id, name=ds_name, cache_dir=str(paths["dataset"]))
         elif os.path.isdir(ds_source):
@@ -56,8 +56,8 @@ def get_auto_dataset(
             file_type = os.path.splitext(file_names[0])[1][1:]
             file_type = "json" if file_type == "jsonl" else file_type
             ds_files = {
-                "train": [f"{dataset_dir}/{fn}" for fn in file_names if "train" in fn],
-                "validation": [f"{dataset_dir}/{fn}" for fn in file_names if "validation" in fn],
+                "train": [f"{ds_source}/{fn}" for fn in file_names if "train" in fn],
+                "validation": [f"{ds_source}/{fn}" for fn in file_names if "validation" in fn],
             }
             dataset = datasets.load_dataset(
                 file_type,
@@ -77,11 +77,14 @@ def get_auto_dataset(
             dataset["validation"] = dataset["test"]
             del dataset["test"]
 
-        init_datasets.append(dataset)
+        init_datasets["train"].append(dataset["train"])
+        init_datasets["validation"].append(dataset["validation"])
     
     # Interleave datasets
     dataset_ratios = [float(r) for r in dataset_ratios.split(",")] if dataset_ratios is not None else dataset_ratios
-    dataset = datasets.combine.interleave_datasets(datasets=init_datasets, probabilities=dataset_ratios, seed=seed)
+    dataset = datasets.DatasetDict()
+    for split in ["train", "validation"]:
+        dataset[split] = datasets.combine.interleave_datasets(datasets=init_datasets[split], probabilities=dataset_ratios, seed=seed)
 
     # Preprocess Dataset in a Streaming Fashion
     assert "train" in dataset, "Field `train` not in Dataset!"
