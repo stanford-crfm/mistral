@@ -19,6 +19,9 @@ training_arguments:
     # We set this dynamically based on DDP Computation [steps = effective_batch / (per_gpu_batch * gpus * nodes)]
     gradient_accumulation_steps: null
 
+    # Boolean whether to use Gradient Checkpointing to save GPU Memory at the expense of runtime
+    gradient_checkpointing: false
+
     # For Online Evaluation, only keep around the Losses
     prediction_loss_only: true
 
