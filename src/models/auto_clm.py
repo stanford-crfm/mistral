@@ -53,25 +53,30 @@ def get_auto_clm_tokenizer(
         overwatch.error("Tokenizer Training/Initialization (from Scratch) not yet implemented!")
         raise NotImplementedError()
 
-    # Partial Gradient Checkpointing (currently only supported for GPT-2 models)
-    if "gpt2" in model_id:
-        overwatch.info(f"Initializing Custom GPT-2 Model from Configuration: `{REGISTRY[model_id]}`...")
-        model = GPT2LMHeadModel(config)
-        if gradient_checkpointing:
-            model.gradient_checkpointing_enable()
-
-    # No Adaptive Gradient Checkpointing
+    if initial_weights:
+        overwatch.info(f"Initializing Weights from `{initial_weights}`...")
+        model = AutoModelForCausalLM.from_pretrained(initial_weights, config=config, cache_dir=paths["model"])
+        model.train()
     else:
-        # Initialize Model
-        overwatch.info(f"Initializing Tabula Rasa Model from Configuration: `{REGISTRY[model_id]}`...")
-        model = AutoModelForCausalLM.from_config(config)
+        # Partial Gradient Checkpointing (currently only supported for GPT-2 models)
+        if "gpt2" in model_id:
+            overwatch.info(f"Initializing Custom GPT-2 Model from Configuration: `{REGISTRY[model_id]}`...")
+            model = GPT2LMHeadModel(config)
+            if gradient_checkpointing:
+                model.gradient_checkpointing_enable()
+        # No Adaptive Gradient Checkpointing
+        else:
+            # Initialize Model
+            overwatch.info(f"Initializing Tabula Rasa Model from Configuration: `{REGISTRY[model_id]}`...")
+            model = AutoModelForCausalLM.from_config(config)
 
     # Run GPT-Specific Initialization, if applicable
     model.resize_token_embeddings(len(tokenizer))
 
-    # If `initial_weights` is not None, load weights from path!
-    if initial_weights is not None:
-        overwatch.info(f"Initializing Weights from File: `{initial_weights}`...")
-        model.load_state_dict(torch.load(initial_weights, map_location=torch.device("cpu")))
+    # # If `initial_weights` is not None, load weights from path!
+    # if initial_weights is not None:
+    #     overwatch.info(f"Initializing Weights from `{initial_weights}`...")
+    #     model =
+    #     model.load_state_dict(torch.load(initial_weights, map_location=torch.device("cpu")))
 
     return model, tokenizer

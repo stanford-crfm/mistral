@@ -32,6 +32,7 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[
         # Top-Level Checkpoint Directory for Given Run
         "runs": Path(run_dir) / run_id,
         # Cache Directories for various components
+        "model": Path(cache_dir) / f"pretrained_models/{model}",
         "configs": Path(cache_dir) / f"{PATH_REGISTRY[model]}-configs",
         "tokenizer": Path(cache_dir) / f"{PATH_REGISTRY[model]}-tokenizer",
         "dataset": Path(cache_dir) / "datasets",
