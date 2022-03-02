@@ -110,6 +110,7 @@ def train() -> OnlineBenchmarkTrainer:
         dataset_name=quinfig.dataset.name,
         dataset_source=quinfig.dataset.source,
         dataset_ratios=quinfig.dataset.source_ratios,
+        data_dir=quinfig.dataset.data_dir,
         seed=quinfig.seed,
         validation_ratio=quinfig.dataset.validation_ratio,
         seq_len=quinfig.model.seq_len,

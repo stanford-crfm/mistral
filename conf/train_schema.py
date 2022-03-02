@@ -37,7 +37,7 @@ def get_schema() -> Dict[str, Any]:
         "validation_ratio": merge(tfloat, default(0.0005)),
         "num_proc": merge(tinteger, default(64)),
         "eval_num_proc": merge(tinteger, default(4)),
-        "dataset_dir": merge(tstring, nullable, default(None)),
+        "data_dir": merge(tstring, nullable, default(None)),
         "detokenize": merge(tboolean, default(True)),
         "source": merge(tstring, default("hub")),
         "source_ratios": merge(_tlist_of(tfloat), nullable, default(None)),

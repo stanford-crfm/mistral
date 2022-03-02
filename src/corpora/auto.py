@@ -27,6 +27,7 @@ def get_auto_dataset(
     dataset_name: str = "wikitext-103-raw-v1",
     dataset_source: str = "hub",
     dataset_ratios: str = None,
+    data_dir: str = None,
     seed: int = 21,
     validation_ratio: float = 0.0005,
     seq_len: int = 1024,
@@ -42,15 +43,16 @@ def get_auto_dataset(
     assert stride <= seq_len, f"Data grouping stride ({stride}) is smaller than sequence length: we are losing data."
 
     # Load initial datasets
-    ds_id_list, ds_name_list, ds_source_list = (
+    ds_id_list, ds_name_list, ds_source_list, ds_dir_list = (
         dataset_id.split(","),
         dataset_name.split(","),
         dataset_source.split(","),
+        data_dir.split(","),
     )
     init_datasets = {"train": [], "validation": []}
-    for (ds_id, ds_name, ds_source) in zip(ds_id_list, ds_name_list, ds_source_list):
+    for (ds_id, ds_name, ds_source, ds_dir) in zip(ds_id_list, ds_name_list, ds_source_list, ds_dir_list):
         if ds_source == "hub" or ds_source is None:
-            dataset = datasets.load_dataset(ds_id, name=ds_name, cache_dir=str(paths["dataset"]))
+            dataset = datasets.load_dataset(ds_id, name=ds_name, data_dir=ds_dir, cache_dir=str(paths["dataset"]))
         elif os.path.isdir(ds_source):
             file_names = os.listdir(ds_source)
             file_type = os.path.splitext(file_names[0])[1][1:]
