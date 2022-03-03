@@ -49,3 +49,8 @@ def set_permissions(paths: Dict[str, Path]) -> None:
     """Recursively call `os.chmod(775) recursively for the given paths."""
     for p in paths:
         os.system(f"chmod -R 775 {paths[p]} >/dev/null 2>&1")
+
+
+def get_file_extension(path: str) -> str:
+    """Given a path, return the file extension."""
+    return os.path.splitext(path)[1].replace(".", "")

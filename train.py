@@ -108,7 +108,7 @@ def train() -> OnlineBenchmarkTrainer:
         paths,
         dataset_id=quinfig.dataset.id,
         dataset_name=quinfig.dataset.name,
-        dataset_dir=quinfig.dataset.dataset_dir,
+        local_dataset=dict(quinfig.dataset.local_dataset) if quinfig.dataset.local_dataset else None,
         validation_ratio=quinfig.dataset.validation_ratio,
         seq_len=quinfig.model.seq_len,
         preprocessing_num_proc=quinfig.dataset.num_proc,

@@ -23,6 +23,12 @@ from quinine.common.cerberus import (
 def get_schema() -> Dict[str, Any]:
     """Get the Cerberus schema for the Quinine config used in train.py."""
 
+    # Schema for local dataset
+    local_dataset_schema = {
+        "train_files": merge(tlist, schema(tstring), nullable),
+        "validation_files": merge(tlist, schema(tstring), nullable),
+    }
+
     # Schema for Dataset
     data_schema = {
         "id": merge(tstring, required),
@@ -30,7 +36,7 @@ def get_schema() -> Dict[str, Any]:
         "validation_ratio": merge(tfloat, default(0.0005)),
         "num_proc": merge(tinteger, default(64)),
         "eval_num_proc": merge(tinteger, default(4)),
-        "dataset_dir": merge(tstring, nullable, default(None)),
+        "local_dataset": merge(stdict(local_dataset_schema), nullable),
         "detokenize": merge(tboolean, default(True)),
     }
 

@@ -5,7 +5,6 @@ Default Dataset/Corpus Utilities. Downloads (if necessary) from the Hugging Face
 de-facto training, validation, and testing tests. Performs additional tokenization and normalization as well.
 """
 import logging
-import os
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, Iterable, List
@@ -14,6 +13,7 @@ import datasets
 from transformers import BatchEncoding, PreTrainedTokenizer
 
 from src.corpora.detokenization import DATASET_TOKENIZATION_REGISTRY
+from src.util.paths import get_file_extension
 
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
@@ -25,7 +25,7 @@ def get_auto_dataset(
     paths: Dict[str, Path],
     dataset_id: str = "wikitext",
     dataset_name: str = "wikitext-103-raw-v1",
-    dataset_dir: str = None,
+    local_dataset: Dict[str, List[str]] = None,
     validation_ratio: float = 0.0005,
     seq_len: int = 1024,
     preprocessing_num_proc: int = 64,
@@ -38,15 +38,23 @@ def get_auto_dataset(
     # Sanity check on input args
     stride = seq_len if stride < 0 else stride
     assert stride <= seq_len, f"Data grouping stride ({stride}) is smaller than sequence length: we are losing data."
-    if dataset_dir is not None:
-        file_names = os.listdir(dataset_dir)
-        file_type = os.path.splitext(file_names[0])[1][1:]
-        file_type = "json" if file_type == "jsonl" else file_type
-        dataset_files = {}
-        dataset_files["train"] = [f"{dataset_dir}/{fn}" for fn in file_names if "train" in fn]
-        dataset_files["validation"] = [f"{dataset_dir}/{fn}" for fn in file_names if "validation" in fn]
+
+    if local_dataset is not None:
+        # Fail fast if the train or validation splits do not have a single file
+        assert len(local_dataset["train_files"]) > 0, "Expected at least one file path for the train split"
+        assert len(local_dataset["validation_files"]) > 0, "Expected at least one file path for the validation split"
+
+        # Extracts dataset files locally
+        path_to_check: str = local_dataset["train_files"][0]
+        file_extension: str = get_file_extension(path_to_check)
+        file_extension = "json" if file_extension == "jsonl" else file_extension
+
+        dataset_files: Dict[str, List[str]] = {
+            "train": local_dataset["train_files"],
+            "validation": local_dataset["validation_files"],
+        }
         dataset = datasets.load_dataset(
-            file_type,
+            file_extension,
             name=dataset_name,
             data_files=dataset_files,
             cache_dir=str(paths["dataset"]),
