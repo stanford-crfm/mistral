@@ -1,0 +1,14 @@
+# wikitext103.yaml
+#   Configuration for WikiText-103 Dataset (https://huggingface.co/datasets/wikitext).
+---
+dataset:
+    id: ../pubmed/pile_pubmed.py
+    name: abstracts
+    data_dir: ../pubmed/data
+    validation_ratio: null
+
+    # Number of Preprocessing Workers
+    num_proc: 4
+
+    # Number of Evaluation Preprocessing Workers
+    eval_num_proc: 4
