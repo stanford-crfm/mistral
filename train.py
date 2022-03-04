@@ -94,7 +94,6 @@ def train() -> OnlineBenchmarkTrainer:
         quinfig.model.id,
         paths,
         model_configs=model_configs,
-        gradient_checkpointing=quinfig.model.gradient_checkpointing,
         use_pretrained_tokenizer=quinfig.model.pretrained_tokenizer,
         reorder_and_upcast_attn=quinfig.model.reorder_and_upcast_attn,
         scale_attn_by_inverse_layer_idx=quinfig.model.scale_attn_by_inverse_layer_idx,
@@ -146,6 +145,7 @@ def train() -> OnlineBenchmarkTrainer:
         effective_bsz=quinfig.effective_bsz,
         nodes=quinfig.nnodes,
         gpus_per_node=quinfig.nproc_per_node,
+        gradient_checkpointing=quinfig.model.gradient_checkpointing,
     )
 
     # Initialize Trainer, with the relevant arguments
