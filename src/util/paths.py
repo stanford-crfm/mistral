@@ -35,6 +35,7 @@ def create_paths(run_id: str, model: str, run_dir: str, cache_dir: str) -> Dict[
         "configs": Path(cache_dir) / f"{PATH_REGISTRY[model]}-configs",
         "tokenizer": Path(cache_dir) / f"{PATH_REGISTRY[model]}-tokenizer",
         "dataset": Path(cache_dir) / "datasets",
+        "scripts": Path(cache_dir) / "scripts",
         "preprocessed": Path(cache_dir) / f"{PATH_REGISTRY[model]}-processed",
     }
 
