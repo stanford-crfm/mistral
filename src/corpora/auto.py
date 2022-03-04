@@ -4,7 +4,9 @@ auto.py
 Default Dataset/Corpus Utilities. Downloads (if necessary) from the Hugging Face `datasets` Hub, and organizes into
 de-facto training, validation, and testing tests. Performs additional tokenization and normalization as well.
 """
+import json
 import logging
+import os
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, Iterable, List
@@ -24,6 +26,8 @@ def get_auto_dataset(
     paths: Dict[str, Path],
     dataset_id: str = "wikitext",
     dataset_name: str = "wikitext-103-raw-v1",
+    dataset_dir: Optional[str] = None,
+    dataset_ratios: Optional[str] = None,
     validation_ratio: float = 0.0005,
     seq_len: int = 1024,
     preprocessing_num_proc: int = 64,
@@ -35,27 +39,63 @@ def get_auto_dataset(
     # Sanity check on input args
     stride = seq_len if stride < 0 else stride
     assert stride <= seq_len, f"Data grouping stride ({stride}) is smaller than sequence length: we are losing data."
-    dataset = datasets.load_dataset(
-        dataset_id, name=dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True
+    
+    # load datasets
+    ds_ids, ds_names = (
+        dataset_id.split(","),
+        dataset_name.split(","),
     )
-
-    if "validation" not in dataset:
-        assert "train" in dataset, "You must have train in dataset to make a validation dataset"
-        # Create Dataset Split Cache Files
-        train_fn, val_fn = [str(paths["dataset"] / dataset_id / f"{k}-split.hf") for k in ["train", "val"]]
-        dataset = dataset["train"].train_test_split(
-            test_size=validation_ratio,
-            train_indices_cache_file_name=train_fn,
-            test_indices_cache_file_name=val_fn,
+    assert len(ds_ids) == len(ds_names), f"Number of specified ids: {len(ds_ids)} and names: {len{ds_names} do not match"
+    ds_dirs = ds_dirs.split(",") if ds_dirs not None else [None for _ in ds_ids]
+    ds_dirs = [d if d else None for d in ds_dirs]
+    assert len(ds_dirs) == len(ds_ids), f"Wrong number of dataset dirs specified {len(ds_dirs)}, expected: {len(ds_ids)}"
+    init_datasets = {"train": [], "validation": []}
+    hf_datasets = datasets.list_datasets()
+           
+    for (ds_id, ds_name, ds_dir) in zip(ds_ids, ds_names, ds_dirs):
+        if ds_id not in hf_datasets:
+            overwatch.info(f"{ds_id} not on Hugging Face Hub, loading from local scripts at: {paths['scripts']}")
+            ds_id = f"{paths['scripts']}/{ds_id}.py"
+            assert os.path.exists(ds_id), f"Error, no data loading script at {ds_id}"
+        dataset = datasets.load_dataset(
+            path=ds_id,
+            name=ds_name,
+            data_dir=dataset_dir,
+            cache_dir=str(paths["dataset"]),
         )
-        dataset["validation"] = dataset["test"]
-        del dataset["test"]
 
-    # Preprocess Dataset in a Streaming Fashion
-    assert "train" in dataset, "Field `train` not in Dataset!"
-    if ignore_train:
-        del dataset["train"]
-        assert len(dataset) > 0, "You can't set ignore_train = True when there is only train data"
+        if "validation" not in dataset:
+            assert "train" in dataset, "You must have train in dataset to make a validation dataset"
+            # Create Dataset Split Cache Files
+            train_fn, val_fn = [str(paths["dataset"] / dataset_id / f"{k}-split.hf") for k in ["train", "val"]]
+            dataset = dataset["train"].train_test_split(
+                test_size=validation_ratio,
+                train_indices_cache_file_name=train_fn,
+                test_indices_cache_file_name=val_fn,
+            )
+            dataset["validation"] = dataset["test"]
+            del dataset["test"]
+
+        # Preprocess Dataset in a Streaming Fashion
+        assert "train" in dataset, "Field `train` not in Dataset!"
+        if ignore_train:
+            del dataset["train"]
+            assert len(dataset) > 0, "You can't set ignore_train = True when there is only train data"
+
+        if not ignore_train:
+            init_datasets["train"].append(dataset["train"])
+        init_datasets["validation"].append(dataset["validation"])
+
+    dataset = datasets.DatasetDict()
+    if dataset_ratios and not dataset_ratios.startswith("["):
+        dataset_ratios = f"[{dataset_ratios}]"
+    dataset_ratios = json.loads(dataset_ratios) if dataset_ratios not None else []
+    if dataset_ratios not None:
+        assert len(dataset_ratios) == len(ds_ids), f"Wrong number of dataset ratios specified {len(ds_ratios}, expected: {len(ds_ids)}"
+    for split in ["train", "validation"]:
+        if init_datasets[split]:
+            dataset[split] = datasets.combine.interleave_datasets(datasets=init_datasets[split], probabilities=dataset_ratios, seed=seed) 
+        
 
     # First, Normalize Text if Necessary. Tokenization Strategies are in detokenization.py.
     dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
