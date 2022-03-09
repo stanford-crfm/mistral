@@ -16,9 +16,16 @@ overwatch = logging.getLogger("mistral.args.data")
 def get_data_arguments(quinfig_args: Munch) -> Dict:
     """Initialize Data Arguments from Quinfig."""
     data_args = {}
+    # set up dataset loading arguments
     if quinfig_args.datasets:
         data_args["dataset_list"] = [dict(ds) for ds in quinfig_args.datasets]
+        # set up data_files
+        for ds in data_args["dataset_list"]:
+            data_files = {"train": ds.pop("train", None), "validation": ds.pop("validation", None)}
+            if data_files["train"] or data_files["validation"]:
+                data_args["data_files"] = [data_files]
     else:
         data_args["dataset_list"] = [{"path": quinfig_args.id, "name": quinfig_args.name}]
+    # get ratios of datasets
     data_args["dataset_ratios"] = quinfig_args.dataset_ratios
     return data_args
