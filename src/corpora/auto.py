@@ -4,9 +4,7 @@ auto.py
 Default Dataset/Corpus Utilities. Downloads (if necessary) from the Hugging Face `datasets` Hub, and organizes into
 de-facto training, validation, and testing tests. Performs additional tokenization and normalization as well.
 """
-import json
 import logging
-import os
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, Iterable, List
@@ -24,6 +22,7 @@ overwatch = logging.getLogger("mistral.corpora.auto")
 def get_auto_dataset(
     tokenizer: PreTrainedTokenizer,
     paths: Dict[str, Path],
+    dataset_id: str,
     dataset_list: List[Dict] = [{"path": "wikitext", "name": "wikitext-103-raw-v1"}],
     dataset_ratios: List[float] = None,
     validation_ratio: float = 0.0005,
@@ -31,22 +30,23 @@ def get_auto_dataset(
     preprocessing_num_proc: int = 64,
     stride: int = -1,
     ignore_train: bool = False,
+    seed: int = 21,
 ) -> datasets.DatasetDict:
     """Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset."""
 
     # Sanity check on input args
     stride = seq_len if stride < 0 else stride
     assert stride <= seq_len, f"Data grouping stride ({stride}) is smaller than sequence length: we are losing data."
-    
+
     # load datasets
-    loaded_datasets = {"train": [], "validation": []}
+    loaded_datasets: Dict = {"train": [], "validation": []}
     for ds in dataset_list:
-        datasets = load_dataset(**ds, cache_dir=str(paths["dataset"]))
+        dataset = datasets.load_dataset(**ds, cache_dir=str(paths["dataset"]))
 
         if "validation" not in dataset:
             assert "train" in dataset, "You must have train in dataset to make a validation dataset"
             # Create Dataset Split Cache Files
-            train_fn, val_fn = [str(paths["dataset"] / dataset_id / f"{k}-split.hf") for k in ["train", "val"]]
+            train_fn, val_fn = [str(paths["dataset"] / ds["path"] / f"{k}-split.hf") for k in ["train", "val"]]
             dataset = dataset["train"].train_test_split(
                 test_size=validation_ratio,
                 train_indices_cache_file_name=train_fn,
@@ -66,10 +66,12 @@ def get_auto_dataset(
         loaded_datasets["validation"].append(dataset["validation"])
 
     dataset = datasets.DatasetDict()
+    overwatch.info("Interleaving datasets" + (f" with probabilities = {dataset_ratios}" if dataset_ratios else ""))
     for split in ["train", "validation"]:
-        if init_datasets[split]:
-            dataset[split] = datasets.interleave_datasets(datasets=init_datasets[split], probabilities=dataset_ratios, seed=seed)
-        
+        if loaded_datasets[split]:
+            dataset[split] = datasets.interleave_datasets(
+                datasets=loaded_datasets[split], probabilities=dataset_ratios, seed=seed
+            )
 
     # First, Normalize Text if Necessary. Tokenization Strategies are in detokenization.py.
     dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
