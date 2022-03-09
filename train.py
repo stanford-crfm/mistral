@@ -32,7 +32,7 @@ from transformers.data.data_collator import default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
 
 from conf.train_schema import get_schema
-from src.args import get_training_arguments
+from src.args import get_data_arguments, get_training_arguments
 from src.core import CustomCheckpointCallback, CustomWandbCallback, OnlineBenchmarkTrainer
 from src.corpora import ONLINE_EVAL_DATA_REGISTRY, get_auto_dataset
 from src.models import get_auto_clm_tokenizer
@@ -102,15 +102,16 @@ def train() -> OnlineBenchmarkTrainer:
     )
 
     # Load Dataset w/ Preprocessing, Batching, and Collating
-    overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
+    overwatch.info("Downloading and Preprocessing Dataset ...")
+    data_args = get_data_arguments(quinfig.dataset)
     lm_dataset = get_auto_dataset(
         tokenizer,
         paths,
         dataset_id=quinfig.dataset.id,
-        dataset_name=quinfig.dataset.name,
         validation_ratio=quinfig.dataset.validation_ratio,
         seq_len=quinfig.model.seq_len,
         preprocessing_num_proc=quinfig.dataset.num_proc,
+        **data_args,
     )
 
     # Load Online Eval Datasets
