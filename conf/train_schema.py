@@ -24,10 +24,16 @@ def get_schema() -> Dict[str, Any]:
     """Get the Cerberus schema for the Quinine config used in train.py."""
 
     # Schema for an HF Dataset
+    data_files_schema = {
+        "train": merge(tlist, schema(tstring), nullable),
+        "validation": merge(tlist, schema(tstring), nullable),
+    }
+
     hf_dataset_schema = {
         "path": merge(tstring, nullable, default(None)),
         "name": merge(tstring, nullable, default(None)),
         "data_dir": merge(tstring, nullable),
+        "data_files": merge(stdict(data_files_schema), nullable),
         "train": merge(tlist, schema(tstring), nullable),
         "validation": merge(tlist, schema(tstring), nullable),
     }
