@@ -125,7 +125,12 @@ def train() -> OnlineBenchmarkTrainer:
                 tokenizer,
                 paths,
                 dataset_id=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["id"],
-                dataset_name=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["name"],
+                dataset_list=[
+                    {
+                        "path": ONLINE_EVAL_DATA_REGISTRY[dataset_name]["id"],
+                        "name": ONLINE_EVAL_DATA_REGISTRY[dataset_name]["name"],
+                    }
+                ],
                 validation_ratio=quinfig.dataset.validation_ratio,
                 seq_len=quinfig.model.seq_len,
                 stride=quinfig.online_eval.stride,
