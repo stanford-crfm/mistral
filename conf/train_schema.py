@@ -23,21 +23,21 @@ from quinine.common.cerberus import (
 def get_schema() -> Dict[str, Any]:
     """Get the Cerberus schema for the Quinine config used in train.py."""
 
-    local_dataset_schema = {
-         "train": merge(tlist, schema(tstring), nullable),
-         "validation": merge(tlist, schema(tstring), nullable),
+    # Schema for an HF Dataset
+    hf_dataset_schema = {
+        "path": merge(tstring, nullable, default(None)),
+        "name": merge(tstring, nullable, default(None)),
+        "data_dir": merge(tstring, nullable),
+        "train": merge(tlist, schema(tstring), nullable),
+        "validation": merge(tlist, schema(tstring), nullable),
     }
 
     # Schema for Dataset
     data_schema = {
         "id": merge(tstring, nullable, default(None)),
-        "ids": merge(merge(tlist, schema(tstring)), nullable, default(None)),
         "name": merge(tstring, nullable, default(None)),
-        "names": merge(merge(tlist, schema(tstring)), nullable, default(None)),
-        "data_dir": merge(tstring, nullable, default(None)),
-        "data_dirs": merge(merge(tlist, merge(schema(tstring), nullable, default(None))), nullable, default(None)),
-        "data_files": merge(stdict(local_dataset_schema), nullable, default(None)),
-        "data_ratios": merge(merge(tlist, schema(tfloat)), nullable, default(None)),
+        "datasets": merge(merge(tlist, schema(stdict(hf_dataset_schema))), nullable, default(None)),
+        "dataset_ratios": merge(merge(tlist, schema(tfloat)), nullable),
         "validation_ratio": merge(tfloat, default(0.0005)),
         "num_proc": merge(tinteger, default(64)),
         "eval_num_proc": merge(tinteger, default(4)),
