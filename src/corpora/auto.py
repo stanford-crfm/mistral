@@ -24,10 +24,8 @@ overwatch = logging.getLogger("mistral.corpora.auto")
 def get_auto_dataset(
     tokenizer: PreTrainedTokenizer,
     paths: Dict[str, Path],
-    dataset_id: str = "wikitext",
-    dataset_name: str = "wikitext-103-raw-v1",
-    dataset_dir: Optional[str] = None,
-    dataset_ratios: Optional[str] = None,
+    dataset_list: List[Dict] = [{"path": "wikitext", "name": "wikitext-103-raw-v1"}],
+    dataset_ratios: List[float] = None,
     validation_ratio: float = 0.0005,
     seq_len: int = 1024,
     preprocessing_num_proc: int = 64,
@@ -41,28 +39,9 @@ def get_auto_dataset(
     assert stride <= seq_len, f"Data grouping stride ({stride}) is smaller than sequence length: we are losing data."
     
     # load datasets
-    ds_ids, ds_names = (
-        dataset_id.split(","),
-        dataset_name.split(","),
-    )
-    assert len(ds_ids) == len(ds_names), f"Number of specified ids: {len(ds_ids)} and names: {len{ds_names} do not match"
-    ds_dirs = ds_dirs.split(",") if ds_dirs not None else [None for _ in ds_ids]
-    ds_dirs = [d if d else None for d in ds_dirs]
-    assert len(ds_dirs) == len(ds_ids), f"Wrong number of dataset dirs specified {len(ds_dirs)}, expected: {len(ds_ids)}"
-    init_datasets = {"train": [], "validation": []}
-    hf_datasets = datasets.list_datasets()
-           
-    for (ds_id, ds_name, ds_dir) in zip(ds_ids, ds_names, ds_dirs):
-        if ds_id not in hf_datasets:
-            overwatch.info(f"{ds_id} not on Hugging Face Hub, loading from local scripts at: {paths['scripts']}")
-            ds_id = f"{paths['scripts']}/{ds_id}.py"
-            assert os.path.exists(ds_id), f"Error, no data loading script at {ds_id}"
-        dataset = datasets.load_dataset(
-            path=ds_id,
-            name=ds_name,
-            data_dir=dataset_dir,
-            cache_dir=str(paths["dataset"]),
-        )
+    loaded_datasets = {"train": [], "validation": []}
+    for ds in dataset_list:
+        datasets = load_dataset(**ds, cache_dir=str(paths["dataset"]))
 
         if "validation" not in dataset:
             assert "train" in dataset, "You must have train in dataset to make a validation dataset"
@@ -83,18 +62,13 @@ def get_auto_dataset(
             assert len(dataset) > 0, "You can't set ignore_train = True when there is only train data"
 
         if not ignore_train:
-            init_datasets["train"].append(dataset["train"])
-        init_datasets["validation"].append(dataset["validation"])
+            loaded_datasets["train"].append(dataset["train"])
+        loaded_datasets["validation"].append(dataset["validation"])
 
     dataset = datasets.DatasetDict()
-    if dataset_ratios and not dataset_ratios.startswith("["):
-        dataset_ratios = f"[{dataset_ratios}]"
-    dataset_ratios = json.loads(dataset_ratios) if dataset_ratios not None else []
-    if dataset_ratios not None:
-        assert len(dataset_ratios) == len(ds_ids), f"Wrong number of dataset ratios specified {len(ds_ratios}, expected: {len(ds_ids)}"
     for split in ["train", "validation"]:
         if init_datasets[split]:
-            dataset[split] = datasets.combine.interleave_datasets(datasets=init_datasets[split], probabilities=dataset_ratios, seed=seed) 
+            dataset[split] = datasets.interleave_datasets(datasets=init_datasets[split], probabilities=dataset_ratios, seed=seed)
         
 
     # First, Normalize Text if Necessary. Tokenization Strategies are in detokenization.py.
