@@ -19,8 +19,8 @@ group:
 
 # Artifacts & Caching
 artifacts:
-    cache_dir:
-    run_dir:
+    cache_dir: cache
+    run_dir: runs
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
 effective_bsz: 32

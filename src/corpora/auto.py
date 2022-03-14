@@ -8,8 +8,11 @@ import logging
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, Iterable, List
+import dill as pickle
+
 
 import datasets
+from datasets import IterableDatasetDict
 from transformers import BatchEncoding, PreTrainedTokenizer
 
 from src.corpora.detokenization import DATASET_TOKENIZATION_REGISTRY
@@ -17,6 +20,12 @@ from src.corpora.detokenization import DATASET_TOKENIZATION_REGISTRY
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
 overwatch = logging.getLogger("mistral.corpora.auto")
+
+
+# For some reason, the datasets package's IterableDataSetDict doesn't define a `map` method, so we'll define it here
+def stream_map(dataset: IterableDatasetDict, fn, batched: bool= False, batch_size: int = 1000) -> IterableDatasetDict:
+    return IterableDatasetDict({k: v.map(fn, batched=batched, batch_size=batch_size) for k, v in dataset.items()})
+
 
 
 def get_auto_dataset(
@@ -29,6 +38,7 @@ def get_auto_dataset(
     preprocessing_num_proc: int = 64,
     stride: int = -1,
     ignore_train: bool = False,
+    streaming: bool = True,
 ) -> datasets.DatasetDict:
     """Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset."""
 
@@ -36,13 +46,15 @@ def get_auto_dataset(
     stride = seq_len if stride < 0 else stride
     assert stride <= seq_len, f"Data grouping stride ({stride}) is smaller than sequence length: we are losing data."
     dataset = datasets.load_dataset(
-        dataset_id, name=dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True
+        dataset_id, name=dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True,
+        streaming=streaming,
     )
 
     if "validation" not in dataset:
         assert "train" in dataset, "You must have train in dataset to make a validation dataset"
         # Create Dataset Split Cache Files
         train_fn, val_fn = [str(paths["dataset"] / dataset_id / f"{k}-split.hf") for k in ["train", "val"]]
+        # TODO: what to do for streaming?
         dataset = dataset["train"].train_test_split(
             test_size=validation_ratio,
             train_indices_cache_file_name=train_fn,
@@ -58,30 +70,33 @@ def get_auto_dataset(
         assert len(dataset) > 0, "You can't set ignore_train = True when there is only train data"
 
     # First, Normalize Text if Necessary. Tokenization Strategies are in detokenization.py.
-    dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
+    dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc, streaming)
 
     # Second, run straight-up tokenization
-    def tokenize(examples: Dict[str, List[str]]) -> BatchEncoding:
-        return tokenizer(examples["text"])
+    if streaming:
+        # TODO: randomly chose a batch size
+        tokenized_dataset = stream_map(dataset, lambda examples: tokenizer([ex["text"] for ex in examples]), batched=True)
+    else:
+        overwatch.info(f"Tokenizing Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
+        # Create Post-Tokenization Cache Paths
+        post_tokenization_cache_files = {
+            k: str(paths["preprocessed"] / dataset_id / "preprocessing" / "tokenization" / f"{k}-tokenized.hf")
+            for k in dataset
+        }
+        # Create Parent Path of Cache Files
+        (paths["preprocessed"] / dataset_id / "preprocessing" / "tokenization").mkdir(parents=True, exist_ok=True)
 
-    overwatch.info(f"Tokenizing Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
+        def tokenize(examples: Dict[str, List[str]]) -> BatchEncoding:
+            return tokenizer(examples["text"])
 
-    # Create Post-Tokenization Cache Paths
-    post_tokenization_cache_files = {
-        k: str(paths["preprocessed"] / dataset_id / "preprocessing" / "tokenization" / f"{k}-tokenized.hf")
-        for k in dataset
-    }
-    # Create Parent Path of Cache Files
-    (paths["preprocessed"] / dataset_id / "preprocessing" / "tokenization").mkdir(parents=True, exist_ok=True)
-
-    tokenized_dataset = dataset.map(
-        tokenize,
-        batched=True,
-        num_proc=preprocessing_num_proc,
-        remove_columns=next(iter(dataset.values())).column_names,
-        cache_file_names=post_tokenization_cache_files,
-        load_from_cache_file=True,
-    )
+        tokenized_dataset = dataset.map(
+            tokenize,
+            batched=True,
+            num_proc=preprocessing_num_proc,
+            remove_columns=next(iter(dataset.values())).column_names,
+            cache_file_names=post_tokenization_cache_files,
+            load_from_cache_file=True,
+        )
 
     # Finally, actually run chunking (collapse multiple sequences into a giant document to read `seq_len` chunks from)
     def group(examples: Dict[str, Iterable[List[int]]]) -> Dict[str, List[List[int]]]:
@@ -109,52 +124,57 @@ def get_auto_dataset(
     # away a remainder for each of those groups of 1,000 texts. You can adjust that batch_size here but a higher
     # value might be slower to preprocess.
     #   - Sidd Note (3/11): We're dropping a max of 8M / 9B tokens... we're probably fine!
-    overwatch.info(f"Auto-Batching Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
+    if streaming:
+        lm_dataset = stream_map(tokenized_dataset, group, batched=True, batch_size=1000)
+    else:
+        overwatch.info(f"Auto-Batching Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
 
-    # Create Post-Chunking Cache Paths
-    post_chunking_cache_files = {
-        k: str(paths["preprocessed"] / dataset_id / "preprocessing" / "chunking" / f"{k}-stride={stride}-chunked.hf")
-        for k in dataset
-    }
-    # Create Parent Path of Cache Files
-    (paths["preprocessed"] / dataset_id / "preprocessing" / "chunking").mkdir(parents=True, exist_ok=True)
+        # Create Post-Chunking Cache Paths
+        post_chunking_cache_files = {
+            k: str(paths["preprocessed"] / dataset_id / "preprocessing" / "chunking" / f"{k}-stride={stride}-chunked.hf")
+            for k in dataset
+        }
+        # Create Parent Path of Cache Files
+        (paths["preprocessed"] / dataset_id / "preprocessing" / "chunking").mkdir(parents=True, exist_ok=True)
 
-    lm_dataset = tokenized_dataset.map(
-        group,
-        batched=True,
-        num_proc=preprocessing_num_proc,
-        cache_file_names=post_chunking_cache_files,
-        load_from_cache_file=True,
-    )
+        lm_dataset = tokenized_dataset.map(
+            group,
+            batched=True,
+            num_proc=preprocessing_num_proc,
+            cache_file_names=post_chunking_cache_files,
+            load_from_cache_file=True,
+        )
 
     return lm_dataset
 
 
 def auto_detokenize(
-    dataset_id: str, dataset: datasets.DatasetDict, preprocess_path: Path, preprocessing_num_proc: int = 4
+        dataset_id: str, dataset: datasets.DatasetDict, preprocess_path: Path, preprocessing_num_proc: int = 4,
+        streaming: bool = True,
 ) -> datasets.DatasetDict:
     if dataset_id in DATASET_TOKENIZATION_REGISTRY:
         overwatch.info(f"Detokenizing Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
 
-        # Create Post-Detokenization Cache Paths
-        post_detokenization_cache_files = {
-            k: str(preprocess_path / dataset_id / "preprocessing" / "detokenization" / f"{k}-detokenized.hf")
-            for k in dataset
-        }
+        if streaming:
+            return stream_map(dataset, DATASET_TOKENIZATION_REGISTRY[dataset_id])
+        else:
+            # Create Post-Detokenization Cache Paths
+            post_detokenization_cache_files = {
+                k: str(preprocess_path / dataset_id / "preprocessing" / "detokenization" / f"{k}-detokenized.hf")
+                for k in dataset
+            }
 
-        # Create Parent Path of Cache Files
-        (preprocess_path / dataset_id / "preprocessing" / "detokenization").mkdir(parents=True, exist_ok=True)
+            # Create Parent Path of Cache Files
+            (preprocess_path / dataset_id / "preprocessing" / "detokenization").mkdir(parents=True, exist_ok=True)
 
-        detokenized_dataset = dataset.map(
-            DATASET_TOKENIZATION_REGISTRY[dataset_id],
-            num_proc=preprocessing_num_proc,
-            cache_file_names=post_detokenization_cache_files,
-            load_from_cache_file=True,
-        )
-    else:
-        detokenized_dataset = dataset
+            return dataset.map(
+                DATASET_TOKENIZATION_REGISTRY[dataset_id],
+                num_proc=preprocessing_num_proc,
+                cache_file_names=post_detokenization_cache_files,
+                load_from_cache_file=True,
+            )
 
-    return detokenized_dataset
+    return dataset
 
 
 def get_lambada(
