@@ -39,6 +39,7 @@ def get_schema() -> Dict[str, Any]:
         "id": merge(tstring, required),
         "name": merge(tstring, nullable, default(None)),
         "validation_ratio": merge(tfloat, default(0.0005)),
+        "streaming": merge(tboolean, default(False)),
         "num_proc": merge(tinteger, default(64)),
         "eval_num_proc": merge(tinteger, default(4)),
     }

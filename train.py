@@ -111,6 +111,7 @@ def train() -> OnlineBenchmarkTrainer:
         validation_ratio=quinfig.dataset.validation_ratio,
         seq_len=quinfig.model.seq_len,
         preprocessing_num_proc=quinfig.dataset.num_proc,
+        streaming=quinfig.dataset.streaming,
     )
 
     # Load Online Eval Datasets

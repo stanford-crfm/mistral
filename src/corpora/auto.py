@@ -7,15 +7,15 @@ de-facto training, validation, and testing tests. Performs additional tokenizati
 import logging
 from copy import deepcopy
 from pathlib import Path
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Callable, Optional
 import dill as pickle
 
 
 import datasets
 import torch
-from datasets import IterableDatasetDict, IterableDataset
+from datasets import IterableDatasetDict, IterableDataset, DatasetDict
 from datasets.iterable_dataset import iterable_dataset
-from transformers import BatchEncoding, PreTrainedTokenizer
+from transformers import BatchEncoding, PreTrainedTokenizer, PreTrainedTokenizerBase
 
 from src.corpora.detokenization import DATASET_TOKENIZATION_REGISTRY
 
@@ -41,10 +41,28 @@ def get_auto_dataset(
     # Sanity check on input args
     stride = seq_len if stride < 0 else stride
     assert stride <= seq_len, f"Data grouping stride ({stride}) is smaller than sequence length: we are losing data."
+
     dataset = datasets.load_dataset(
-        dataset_id, name=dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True,
+        dataset_id, name=dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=not streaming,
         streaming=streaming,
     )
+
+    # while HF datasets has a map method for both normal Dataset and streaming IterableDataset, the IterableDataset
+    # version doesn't actually work with Trainer so we have to wrap it in this StreamedDataset nonsense.
+    # The reasons are:
+    # 1. IterableDataset transforms are pickled using pickle (not dill or something reasonable), so you have to be super
+    # careful about what you pass to map. This is mostly Python's fault.
+    # 2. IterableDataset doesn't have a __len__ method, which is required by Trainer for non-torch.utils.IterableDataset
+    # types. You should be able to fix this by calling dataset.with_format(type="torch") but that's not working for
+    # reason #1 (they use a local class which can't be pickled). You can work around this too (see ensure_format).
+    # 3. IterableDataset, when successfully pickled, tries to `open` the urls of the dataset as files (rather than
+    # downloading them), which of course explodes. I haven't figured out how to work around this yet.
+    if streaming:
+        detokenizer = DATASET_TOKENIZATION_REGISTRY.get(dataset_id, None)
+        return IterableDatasetDict({
+            k: StreamedDataset(dataset_id, dataset_name, k, str(paths["dataset"]), tokenizer, detokenizer, seq_len,
+                               stride) for k, _ in dataset.items()
+        })
 
     if "validation" not in dataset:
         assert "train" in dataset, "You must have train in dataset to make a validation dataset"
@@ -70,8 +88,11 @@ def get_auto_dataset(
 
     # Second, run straight-up tokenization
     if streaming:
-        # TODO: randomly chose a batch size
-        tokenized_dataset = _stream_map(dataset, _TokenizerFun(tokenizer), batched=True)
+        tokenized_dataset = dataset.map(
+            _TokenizerFun(tokenizer),
+            batched=True,
+            remove_columns=list(next(iter(next(iter(dataset.values())))).keys()),
+        )
     else:
         overwatch.info(f"Tokenizing Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
         # Create Post-Tokenization Cache Paths
@@ -102,10 +123,13 @@ def get_auto_dataset(
     # value might be slower to preprocess.
     #   - Sidd Note (3/11): We're dropping a max of 8M / 9B tokens... we're probably fine!
     if streaming:
-        lm_dataset = _stream_map(tokenized_dataset, group, batched=True, batch_size=1000)
+        # .with_format(type="torch") doesn't work
+        lm_dataset = _ensure_format(tokenized_dataset.map(
+            group,
+            batched=True,
+        ))
     else:
         overwatch.info(f"Auto-Batching Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
-
         # Create Post-Chunking Cache Paths
         post_chunking_cache_files = {
             k: str(paths["preprocessed"] / dataset_id / "preprocessing" / "chunking" / f"{k}-stride={stride}-chunked.hf")
@@ -133,7 +157,7 @@ def auto_detokenize(
         overwatch.info(f"Detokenizing Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
 
         if streaming:
-            return _stream_map(dataset, DATASET_TOKENIZATION_REGISTRY[dataset_id])
+            return dataset.map(DATASET_TOKENIZATION_REGISTRY[dataset_id])
         else:
             # Create Post-Detokenization Cache Paths
             post_detokenization_cache_files = {
@@ -220,25 +244,14 @@ ONLINE_EVAL_DATA_REGISTRY = {
 }
 
 
-# For some reason, the datasets package's IterableDataSetDict doesn't define a `map` method, so we'll define it here
-def _stream_map(dataset: IterableDatasetDict, fn, batched: bool= False, batch_size: int = 1000) -> IterableDatasetDict:
-    return IterableDatasetDict({k: _ensure_format(v.map(fn, batched=batched, batch_size=batch_size)) for k, v in dataset.items()})
-
-
 # more hax: there's a method in datasets called iterable_dataset that mixes in torch IterableDataset like this, but it
 # creates an instance of a local class, and the local class isn't pickleable, so... we'll make our own mixed in version
 class TorchIterableDataset(IterableDataset, torch.utils.data.IterableDataset):
     pass
 
 
-def _ensure_format(dataset: IterableDataset) -> IterableDataset:
-    return TorchIterableDataset(
-        dataset._ex_iterable,
-        dataset.info,
-        dataset.split,
-        "torch",
-        dataset._shuffling,
-    )
+def _ensure_format(dataset: IterableDatasetDict) -> IterableDatasetDict:
+    return IterableDatasetDict({k: TorchIterableDataset(v._ex_iterable, v.info, v.split, "torch", v._shuffling) for k, v in dataset.items()})
 
 
 # to make pickling happy
@@ -276,3 +289,38 @@ class _GrouperFun:
                 labels[j] = -100
             result["labels"][i] = labels
         return result
+
+
+class StreamedDataset(torch.utils.data.IterableDataset):
+    def __init__(self, dataset_id: str, dataset_name: str, split: str, cache_dir: str, tokenizer: PreTrainedTokenizerBase,
+                 detokenizer: Optional[Callable], seq_len: int, stride: int):
+        self.dataset_id = dataset_id
+        self.dataset_name = dataset_name
+        self.split = split
+        self.cache_dir = cache_dir
+        self.tokenizer = tokenizer
+        self.seq_len = seq_len
+        self.stride = stride
+        self.detokenizer = detokenizer
+        self.dataset = None
+
+    def _tokenize(self, examples):
+        tokenized = self.tokenizer(examples["text"])
+        return tokenized
+
+    def _init_dataset(self):
+        dataset = datasets.load_dataset(self.dataset_id, self.dataset_name, split=self.split, cache_dir=self.cache_dir, streaming=True)
+        if self.detokenizer:
+            dataset = dataset.map(self.detokenizer, batched=False)
+
+        tokenized = dataset.map(self._tokenize, batched=True, batch_size=1000, remove_columns=dataset.info.features.keys())
+        grouped = tokenized.map(_GrouperFun(self.seq_len, self.stride), batched=True, batch_size=1000)
+        self.dataset = grouped
+
+    def __iter__(self):
+        if self.dataset is None:
+            self._init_dataset()
+
+        return iter(self.dataset)
+
+
