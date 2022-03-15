@@ -12,7 +12,9 @@ import dill as pickle
 
 
 import datasets
-from datasets import IterableDatasetDict
+import torch
+from datasets import IterableDatasetDict, IterableDataset
+from datasets.iterable_dataset import iterable_dataset
 from transformers import BatchEncoding, PreTrainedTokenizer
 
 from src.corpora.detokenization import DATASET_TOKENIZATION_REGISTRY
@@ -20,12 +22,6 @@ from src.corpora.detokenization import DATASET_TOKENIZATION_REGISTRY
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
 overwatch = logging.getLogger("mistral.corpora.auto")
-
-
-# For some reason, the datasets package's IterableDataSetDict doesn't define a `map` method, so we'll define it here
-def stream_map(dataset: IterableDatasetDict, fn, batched: bool= False, batch_size: int = 1000) -> IterableDatasetDict:
-    return IterableDatasetDict({k: v.map(fn, batched=batched, batch_size=batch_size) for k, v in dataset.items()})
-
 
 
 def get_auto_dataset(
@@ -75,7 +71,7 @@ def get_auto_dataset(
     # Second, run straight-up tokenization
     if streaming:
         # TODO: randomly chose a batch size
-        tokenized_dataset = stream_map(dataset, lambda examples: tokenizer([ex["text"] for ex in examples]), batched=True)
+        tokenized_dataset = _stream_map(dataset, _TokenizerFun(tokenizer), batched=True)
     else:
         overwatch.info(f"Tokenizing Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
         # Create Post-Tokenization Cache Paths
@@ -99,33 +95,14 @@ def get_auto_dataset(
         )
 
     # Finally, actually run chunking (collapse multiple sequences into a giant document to read `seq_len` chunks from)
-    def group(examples: Dict[str, Iterable[List[int]]]) -> Dict[str, List[List[int]]]:
-        # Concatenate all the Texts
-        concatenated: Dict[str, List[int]] = {k: sum(examples[k], []) for k in examples.keys()}
-        total_length = len(concatenated[list(examples.keys())[0]])
-
-        # Drop the "very last" bit of the dataset that doesn't fit into block size...
-        total_length = ((total_length - seq_len + stride) // stride) * stride
-
-        # Split by Chunks of Maximum Length
-        result = {k: [t[i : i + seq_len] for i in range(0, total_length, stride)] for k, t in concatenated.items()}
-        result["labels"] = deepcopy(result["input_ids"])
-
-        # Mask out losses in overlapping regions. If training data, string will be equal to seq_len
-        for i, labels in enumerate(result["labels"]):
-            if i == 0:
-                continue
-            for j in range(len(labels) - stride):
-                labels[j] = -100
-            result["labels"][i] = labels
-        return result
+    group = _GrouperFun(seq_len, stride)
 
     # From HF.Examples :: Note that with `batched=True`, this map processes 1,000 texts together, so group_texts throws
     # away a remainder for each of those groups of 1,000 texts. You can adjust that batch_size here but a higher
     # value might be slower to preprocess.
     #   - Sidd Note (3/11): We're dropping a max of 8M / 9B tokens... we're probably fine!
     if streaming:
-        lm_dataset = stream_map(tokenized_dataset, group, batched=True, batch_size=1000)
+        lm_dataset = _stream_map(tokenized_dataset, group, batched=True, batch_size=1000)
     else:
         overwatch.info(f"Auto-Batching Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
 
@@ -156,7 +133,7 @@ def auto_detokenize(
         overwatch.info(f"Detokenizing Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
 
         if streaming:
-            return stream_map(dataset, DATASET_TOKENIZATION_REGISTRY[dataset_id])
+            return _stream_map(dataset, DATASET_TOKENIZATION_REGISTRY[dataset_id])
         else:
             # Create Post-Detokenization Cache Paths
             post_detokenization_cache_files = {
@@ -241,3 +218,61 @@ ONLINE_EVAL_DATA_REGISTRY = {
     "wikitext": {"id": "wikitext", "name": "wikitext-103-raw-v1", "generator": get_auto_dataset},
     "lambada": {"id": "lambada", "name": None, "generator": get_lambada},
 }
+
+
+# For some reason, the datasets package's IterableDataSetDict doesn't define a `map` method, so we'll define it here
+def _stream_map(dataset: IterableDatasetDict, fn, batched: bool= False, batch_size: int = 1000) -> IterableDatasetDict:
+    return IterableDatasetDict({k: _ensure_format(v.map(fn, batched=batched, batch_size=batch_size)) for k, v in dataset.items()})
+
+
+# more hax: there's a method in datasets called iterable_dataset that mixes in torch IterableDataset like this, but it
+# creates an instance of a local class, and the local class isn't pickleable, so... we'll make our own mixed in version
+class TorchIterableDataset(IterableDataset, torch.utils.data.IterableDataset):
+    pass
+
+
+def _ensure_format(dataset: IterableDataset) -> IterableDataset:
+    return TorchIterableDataset(
+        dataset._ex_iterable,
+        dataset.info,
+        dataset.split,
+        "torch",
+        dataset._shuffling,
+    )
+
+
+# to make pickling happy
+class _TokenizerFun:
+    def __init__(self, tokenizer: PreTrainedTokenizer):
+        self.tokenizer = tokenizer
+
+    def __call__(self, examples: List[Dict[str, str]]):
+        return self.tokenizer([ex["text"] for ex in examples])
+
+
+class _GrouperFun:
+    def __init__(self, seq_len: int, stride: int):
+        self.seq_len = seq_len
+        self.stride = stride
+
+    def __call__(self, examples: Dict[str, Iterable[List[int]]]) -> Dict[str, List[List[int]]]:
+        # Concatenate all the Texts
+        concatenated: Dict[str, List[int]] = {k: sum(examples[k], []) for k in examples.keys()}
+        total_length = len(concatenated[list(examples.keys())[0]])
+
+        # Drop the "very last" bit of the dataset that doesn't fit into block size...
+        total_length = ((total_length - self.seq_len + self.stride) // self.stride) * self.stride
+
+        # Split by Chunks of Maximum Length
+        result = {k: [t[i: i + self.seq_len] for i in range(0, total_length, self.stride)] for k, t in
+                  concatenated.items()}
+        result["labels"] = deepcopy(result["input_ids"])
+
+        # Mask out losses in overlapping regions. If training data, string will be equal to seq_len
+        for i, labels in enumerate(result["labels"]):
+            if i == 0:
+                continue
+            for j in range(len(labels) - self.stride):
+                labels[j] = -100
+            result["labels"][i] = labels
+        return result

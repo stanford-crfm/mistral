@@ -2,8 +2,8 @@
 #   Configuration for WikiText-103 Dataset (https://huggingface.co/datasets/wikitext).
 ---
 dataset:
-    id: wikitext
-    name: wikitext-103-raw-v1
+    id: c4
+    name: en
     validation_ratio: null
 
     # Number of Preprocessing Workers
