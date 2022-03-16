@@ -138,7 +138,7 @@ Each model has 600 checkpoints, subject to the following checkpoint schedule:
 - Every 100 Steps, from 2000 - 20,000 Steps.
 - Every 1000 Steps, from 20,000 - 400,000 Steps.
 
-Checkpoints can be downloaded from [🤗 hub](https://huggingface.co/stanford-crfm)..
+Checkpoints can be downloaded from [🤗 hub](https://huggingface.co/stanford-crfm).
 
 | Run | Type | Seed | Download |
 | --- | --- | --- | --- |
