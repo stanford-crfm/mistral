@@ -16,34 +16,25 @@ Visit our [Read the Docs](https://nlp.stanford.edu/mistral) for the full documen
 A Propulsion Endeavor 🚀
 
 ---
-## Community
-
-`Mistral` is built to facilitate transparent and accessible training. To do our best to reach this goal, **we will hold community meetings
-twice a month** we'll give updates as to where we're at and what we're working on, _and more importantly, hear from you as to how we can help
-and possibly work together._
-
-We would love for folks from academia, other community efforts, as well as those in industry to join - all are welcome. The first meeting will
-be on [Monday, August 30th at 4 PM PT](https://www.google.com/url?q=https://stanford.zoom.us/j/93555216759?pwd%3DSkd2eURyS0NWTGthWjVGNEJiMXJ3QT09).
-
-We'll post the future dates (and times - which we hope to move around through the day to maximally engage folks in varied timezones)
-after the first meeting!
-
----
 
 ## Quickstart
 
 ### Installation
 
-The dependencies for Mistral can be installed using Conda. Note that the provided environment assumes that CUDA 11.0
-is installed. You may need to adjust the environment YAML file depending on your set up.
+Mistral has been tested with Python 3.8.12, PyTorch 1.10.0 (compiled with CUDA 11.3), CUDA 11.3, NCCL 2.10, Transformers 4.12.3, and DeepSpeed 0.5.5.
+
+The environment can be easily built with the following commands.
 
 ```bash
-git clone https://github.com/stanford-crfm/mistral.git
-cd mistral
-conda env create -f environments/environment-gpu.yaml  # Choose CUDA kernel based on the hardware!
+conda create -n mistral python=3.8.12
+conda activate mistral
+conda install pytorch cudatoolkit=11.3 -c pytorch
+pip install transformers datasets huggingface-hub deepspeed jsonlines quinine wandb
 ```
 
-If you are training on the CPU only, run `conda env create -f environments/environment-cpu.yaml` instead.
+A `.yaml` export of a tested environment is provided at `environments/environment-gpu.yaml`.
+
+Environments and non-Python dependencies can be managed with conda, and Python dependencies can be managed with pip (note: conda was used for the PyTorch install to get the version compiled with CUDA 11.3).
 
 
 ### Training GPT-2 Micro
@@ -95,7 +86,7 @@ To start distributed training, run:
 ```bash
 conda activate mistral
 cd mistral
-deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config conf/tutorial-gpt2-micro.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4 --training_arguments.deepspeed conf/deepspeed/z1-conf.json --run_id tutorial-gpt2-micro-multi-node > tutorial-gpt2-micro-multi-node.out 2> tutorial-gpt2-micro-multi-node.err
+deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --config conf/tutorial-gpt2-micro.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4 --training_arguments.deepspeed conf/deepspeed/z2-small-conf.json --run_id tutorial-gpt2-micro-multi-node
 ```
 
 Note: You may need to adjust your batch size depending on the capacity of your GPUs.
@@ -130,6 +121,9 @@ print("Output:\n" + 100 * "-")
 print(tokenizer.decode(sample_output[0], skip_special_tokens=True))
 ```
 
+Check out this [Google CoLab Notebook](https://colab.research.google.com/github/stanford-crfm/mistral/blob/main/generate_text.ipynb) to run
+this demo!
+
 ---
 
 ## Resources
@@ -137,41 +131,42 @@ print(tokenizer.decode(sample_output[0], skip_special_tokens=True))
 The Propulsion team has trained 5 GPT-2 Medium models and 5 GPT-2 Small models on the [OpenWebText corpus](https://huggingface.co/datasets/openwebtext),
 as found in [🤗  datasets](https://huggingface.co/datasets).
 
-Checkpoints can be loaded as Hugging Face models. For each model, we provide checkpoints at 100k, 200k, 300k and 400k steps.
+Each model has 600 checkpoints, subject to the following checkpoint schedule:
 
-We have also stored over 600 checkpoints for each model, subject to the following checkpoint schedule:
 - Every 10 Steps, for the first 0 - 100 Steps.
 - Every 50 Steps, from 100 - 2000 Steps.
 - Every 100 Steps, from 2000 - 20,000 Steps.
 - Every 1000 Steps, from 20,000 - 400,000 Steps.
 
-This comes out to _610 checkpoints per run, taking up ~22TB for all 10 models_ (making it pretty expensive to host!) If you are interested in acquiring
-these additional checkpoints, please [file an issue](https://github.com/stanford-crfm/mistral/issues) or contact Laurel (lorr1) and Sidd (skaramcheti)
-at their @cs.stanford.edu email addresses, and we'll be happy to figure out a cost-effective solution to sharing them.
+Checkpoints can be downloaded from [🤗 hub](https://huggingface.co/stanford-crfm).
 
-Full model checkpoints can be downloaded from [🤗 hub](https://huggingface.co/stanford-crfm).
+| Run | Type | Seed | Download |
+| --- | --- | --- | --- |
+| Alias | GPT-2 Small | 21 | [download](https://huggingface.co/stanford-crfm/alias-gpt2-small-x21/tree/main) |
+| Battlestar | GPT-2 Small | 49 | [download](https://huggingface.co/stanford-crfm/battlestar-gpt2-small-x49/tree/main) |
+| Caprica | GPT-2 Small | 81 | [download](https://huggingface.co/stanford-crfm/caprica-gpt2-small-x81/tree/main) |
+| Darkmatter | GPT-2 Small | 343 | [download](https://huggingface.co/stanford-crfm/darkmatter-gpt2-small-x343/tree/main) |
+| Expanse | GPT-2 Small | 777 | [download](https://huggingface.co/stanford-crfm/expanse-gpt2-small-x777/tree/main) |
+| Arwen | GPT-2 Medium | 21 | [download](https://huggingface.co/stanford-crfm/arwen-gpt2-medium-x21/tree/main) |
+| Beren | GPT-2 Medium | 49 | [download](https://huggingface.co/stanford-crfm/beren-gpt2-medium-x49/tree/main) |
+| Celebrimbor | GPT-2 Medium | 81 | [download](https://huggingface.co/stanford-crfm/celebrimbor-gpt2-medium-x81/tree/main) |
+| Durin | GPT-2 Medium | 343 | [download](https://huggingface.co/stanford-crfm/durin-gpt2-medium-x343/tree/main) |
+| Eowyn | GPT-2 Medium | 777 | [download](https://huggingface.co/stanford-crfm/eowyn-gpt2-medium-x777/tree/main) |
 
-| Run | Type | Seed |
-| --- | --- | --- |
-| Alias | GPT-2 Small | 21 |
-| Battlestar | GPT-2 Small | 49 |
-| Caprica | GPT-2 Small | 81 |
-| Darkmatter | GPT-2 Small | 343 |
-| Expanse | GPT-2 Small | 777 |
-| Arwen | GPT-2 Medium | 21 |
-| Beren | GPT-2 Medium | 49 |
-| Celebrimbor | GPT-2 Medium | 81 |
-| Durin | GPT-2 Medium | 343 |
-| Eowyn | GPT-2 Medium | 777 |
 
-For instance, to download the 400k checkpoint for Arwen, run this command:
+Each model has a distinct git repo, and each checkpoint is stored as a branch.
+
+As an example, here's how to get the battlestar model's checkpoint for step 300000:
 
 ```
 # Make sure you have git-lfs installed
-# (https://git-lfs.github.com/)
+# (https://git-lfs.github.com)
 git lfs install
 
-git clone https://huggingface.co/stanford-crfm/arwen-x21-checkpoint-400000
+# get checkpoint 300000 for battlestar
+git clone https://huggingface.co/stanford-crfm/battlestar-gpt2-small-x49 --branch checkpoint-300000 --single-branch
+cd battlestar-gpt2-small-x49
+git lfs pull
 ```
 
 For convenience, every model and step checkpoint is listed in `mistral_models.json`.

@@ -77,47 +77,6 @@ class OnlineBenchmarkTrainer(Trainer):
         self.wikitext_dataset = custom_eval_datasets.get("wikitext", None)
         self.lambada_dataset = custom_eval_datasets.get("lambada", None)
 
-    def _maybe_log_save_evaluate(self, tr_loss, model, trial, epoch, ignore_keys_for_eval):
-        """
-        Taken from https://github.com/huggingface/transformers/blob/v4.5.0/src/transformers/trainer.py#L1248
-        We add activation logging
-        """
-        if self.control.should_log:
-            logs: Dict[str, float] = {}
-            tr_loss_scalar = tr_loss.item()
-            # reset tr_loss to zero
-            tr_loss -= tr_loss
-
-            logs["loss"] = round(tr_loss_scalar / (self.state.global_step - self._globalstep_last_logged), 4)
-            logs["learning_rate"] = self._get_learning_rate()
-
-            self._total_loss_scalar += tr_loss_scalar
-            self._globalstep_last_logged = self.state.global_step
-
-            # Add activation logging
-            # This logging only works for MistralGPT2LMHeadModel
-            # Retrieve PyTorch module from DeepSpeedEngine
-            if self.deepspeed or isinstance(model, DistributedDataParallel):
-                model = model.module
-
-            if hasattr(model.transformer.h[0].attn, "activation_stats"):
-                for block_i, block in enumerate(model.transformer.h):
-                    layer_activation_stats = {
-                        f"activations/layer{block_i}_" + k: v for k, v in block.attn.activation_stats.items()
-                    }
-                    logs.update(layer_activation_stats)
-
-            self.log(logs)
-
-        metrics = None
-        if self.control.should_evaluate:
-            metrics = self.evaluate()
-            self._report_to_hp_search(trial, epoch, metrics)
-
-        if self.control.should_save:
-            self._save_checkpoint(model, trial, metrics=metrics)
-            self.control = self.callback_handler.on_save(self.args, self.state, self.control)
-
     def evaluate(
         self,
         eval_dataset: Optional[Dataset] = None,

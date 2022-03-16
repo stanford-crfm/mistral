@@ -73,7 +73,7 @@ def deepspeedify(cl_args_dict):
     cl_args_dict["nproc_per_node"] = str(info["gpus"])
     cl_args_dict["nnodes"] = str(info["nodes"])
     # cl_args_dict["training_arguments.deepspeed"] = "conf/deepspeed/z2-small-conf.json"
-    cl_args_dict["training_arguments.deepspeed"] = "conf/deepspeed/z1-conf.json"
+    cl_args_dict["training_arguments.deepspeed"] = "conf/deepspeed/z2-small-conf.json"
 
 
 def run_train_process(cl_args_dict, runs_dir, run_id, use_deepspeed=DEEPSPEED_MODE) -> OnlineBenchmarkTrainer:

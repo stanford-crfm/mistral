@@ -15,8 +15,8 @@ jobs:
       - name: Setup
         run: |
           cp -r /home/stanzabuild/mistral/wandb .
-          wandb offline
-          echo 'Setting wandb to offline mode'
+          echo 'Deactivating wandb'
+          cd tests ; wandb disabled
           echo 'MISTRAL_TEST_DIR:'
           echo $MISTRAL_TEST_DIR
           echo 'PYTHONPATH:'

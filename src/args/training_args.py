@@ -7,6 +7,7 @@ accumulation).
 """
 import logging
 from pathlib import Path
+from typing import Optional
 
 from munch import Munch
 from transformers import TrainingArguments
@@ -25,6 +26,7 @@ def get_training_arguments(
     effective_bsz: int = 512,
     nodes: int = 1,
     gpus_per_node: int = 8,
+    gradient_checkpointing: Optional[bool] = None,
 ) -> TrainingArguments:
     """Initialize Training Arguments from Quinfig and Runtime-Defined Variables."""
 
@@ -38,6 +40,10 @@ def get_training_arguments(
 
     # Since we Implement a Custom W&B / JSON Logging Callback, we don't report to anyone -- we've gone rogue!
     training_args.report_to = "none"
+
+    # do it this way so we start supporting gradient_checkpointing in training_args à la Transformers
+    if gradient_checkpointing is not None:
+        training_args.gradient_checkpointing = gradient_checkpointing
 
     # If "sharded_ddp" is None --> replace with False
     if training_args.sharded_ddp is None:

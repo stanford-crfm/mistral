@@ -3,6 +3,7 @@ train_schema.py
 
 Cerberus schema used by Quinine for train.py.
 """
+import logging
 from typing import Any, Dict
 
 from quinine.common.cerberus import (
@@ -20,6 +21,16 @@ from quinine.common.cerberus import (
 )
 
 
+def deprecated_field(msg):
+    """Can be used in a schema to indicate that a field has been deprecated."""
+    def _deprecated_field(field, value, _error):
+        if value is not None:
+            logging.warning(f"{field} is deprecated and will be removed in a future release.")
+            if msg:
+                logging.warning(msg)
+    return {"check_with": _deprecated_field}
+
+
 def get_schema() -> Dict[str, Any]:
     """Get the Cerberus schema for the Quinine config used in train.py."""
 
@@ -35,7 +46,8 @@ def get_schema() -> Dict[str, Any]:
     # Schema for Model
     model_schema = {
         "id": merge(tstring, required),
-        "gradient_checkpointing": merge(tboolean, default(False)),
+        "gradient_checkpointing": merge(tboolean, nullable, default(None),
+                                        deprecated_field("This config is now in training_arguments to better match HF.")),
         "pretrained_tokenizer": merge(tboolean, default(True)),
         "seq_len": merge(tinteger, default(1024)),
         "reorder_and_upcast_attn": merge(tboolean, nullable, default(True)),
@@ -76,6 +88,7 @@ def get_schema() -> Dict[str, Any]:
         "deepspeed": merge(tstring, nullable, default(None)),
         "dataloader_num_workers": merge(tinteger, default(4)),
         "local_rank": merge(tinteger, nullable, default(None)),
+        "gradient_checkpointing": merge(tboolean, default(False)),
     }
 
     # Schema for Online Custom Evaluation Datasets (e.g. LAMBADA)
@@ -104,6 +117,7 @@ def get_schema() -> Dict[str, Any]:
         "checkpoint_frequency": merge(merge(tlist, schema(merge(tlist, schema(tinteger)))), nullable, default(None)),
         "log_level": merge(tinteger, default(20)),
         "run_id": merge(tstring, nullable, default(None)),
+        "wandb_api_key_path": merge(tstring, nullable, default(None)),
         "wandb": merge(tstring, nullable, default(None)),
         "group": merge(tstring, nullable, default(None)),
         "seed": merge(tinteger, default(42)),

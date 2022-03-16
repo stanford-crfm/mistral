@@ -24,7 +24,6 @@ def get_auto_clm_tokenizer(
     model_id: str,
     paths: Dict[str, Path],
     model_configs: dict = None,
-    gradient_checkpointing: bool = True,
     use_pretrained_tokenizer: bool = True,
     reorder_and_upcast_attn: bool = True,
     scale_attn_by_inverse_layer_idx: bool = True,
@@ -53,18 +52,14 @@ def get_auto_clm_tokenizer(
         overwatch.error("Tokenizer Training/Initialization (from Scratch) not yet implemented!")
         raise NotImplementedError()
 
-    # Partial Gradient Checkpointing (currently only supported for GPT-2 models)
     if "gpt2" in model_id:
         overwatch.info(f"Initializing Custom GPT-2 Model from Configuration: `{REGISTRY[model_id]}`...")
         model = GPT2LMHeadModel(config)
-        if gradient_checkpointing:
-            model.gradient_checkpointing_enable()
-
-    # No Adaptive Gradient Checkpointing
     else:
         # Initialize Model
         overwatch.info(f"Initializing Tabula Rasa Model from Configuration: `{REGISTRY[model_id]}`...")
         model = AutoModelForCausalLM.from_config(config)
+
 
     # Run GPT-Specific Initialization, if applicable
     model.resize_token_embeddings(len(tokenizer))
