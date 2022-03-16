@@ -131,41 +131,42 @@ this demo!
 The Propulsion team has trained 5 GPT-2 Medium models and 5 GPT-2 Small models on the [OpenWebText corpus](https://huggingface.co/datasets/openwebtext),
 as found in [🤗  datasets](https://huggingface.co/datasets).
 
-Checkpoints can be loaded as Hugging Face models. For each model, we provide checkpoints at 100k, 200k, 300k and 400k steps.
+Each model has 600 checkpoints, subject to the following checkpoint schedule:
 
-We have also stored over 600 checkpoints for each model, subject to the following checkpoint schedule:
 - Every 10 Steps, for the first 0 - 100 Steps.
 - Every 50 Steps, from 100 - 2000 Steps.
 - Every 100 Steps, from 2000 - 20,000 Steps.
 - Every 1000 Steps, from 20,000 - 400,000 Steps.
 
-This comes out to _610 checkpoints per run, taking up ~22TB for all 10 models_ (making it pretty expensive to host!) If you are interested in acquiring
-these additional checkpoints, please [file an issue](https://github.com/stanford-crfm/mistral/issues) or contact Laurel (lorr1) and Sidd (skaramcheti)
-at their @cs.stanford.edu email addresses, and we'll be happy to figure out a cost-effective solution to sharing them.
+Checkpoints can be downloaded from [🤗 hub](https://huggingface.co/stanford-crfm)..
 
-Full model checkpoints can be downloaded from [🤗 hub](https://huggingface.co/stanford-crfm).
+| Run | Type | Seed | Download |
+| --- | --- | --- | --- |
+| Alias | GPT-2 Small | 21 | [download](https://huggingface.co/stanford-crfm/alias-gpt2-small-x21/tree/main) |
+| Battlestar | GPT-2 Small | 49 | [download](https://huggingface.co/stanford-crfm/battlestar-gpt2-small-x49/tree/main) |
+| Caprica | GPT-2 Small | 81 | [download](https://huggingface.co/stanford-crfm/caprica-gpt2-small-x81/tree/main) |
+| Darkmatter | GPT-2 Small | 343 | [download](https://huggingface.co/stanford-crfm/darkmatter-gpt2-small-x343/tree/main) |
+| Expanse | GPT-2 Small | 777 | [download](https://huggingface.co/stanford-crfm/expanse-gpt2-small-x777/tree/main) |
+| Arwen | GPT-2 Medium | 21 | [download](https://huggingface.co/stanford-crfm/arwen-gpt2-medium-x21/tree/main) |
+| Beren | GPT-2 Medium | 49 | [download](https://huggingface.co/stanford-crfm/beren-gpt2-medium-x49/tree/main) |
+| Celebrimbor | GPT-2 Medium | 81 | [download](https://huggingface.co/stanford-crfm/celebrimbor-gpt2-medium-x81/tree/main) |
+| Durin | GPT-2 Medium | 343 | [download](https://huggingface.co/stanford-crfm/durin-gpt2-medium-x343/tree/main) |
+| Eowyn | GPT-2 Medium | 777 | [download](https://huggingface.co/stanford-crfm/eowyn-gpt2-medium-x777/tree/main) |
 
-| Run | Type | Seed |
-| --- | --- | --- |
-| Alias | GPT-2 Small | 21 |
-| Battlestar | GPT-2 Small | 49 |
-| Caprica | GPT-2 Small | 81 |
-| Darkmatter | GPT-2 Small | 343 |
-| Expanse | GPT-2 Small | 777 |
-| Arwen | GPT-2 Medium | 21 |
-| Beren | GPT-2 Medium | 49 |
-| Celebrimbor | GPT-2 Medium | 81 |
-| Durin | GPT-2 Medium | 343 |
-| Eowyn | GPT-2 Medium | 777 |
 
-For instance, to download the 400k checkpoint for Arwen, run this command:
+Each model has a distinct git repo, and each checkpoint is stored as a branch.
+
+As an example, here's how to get the battlestar model's checkpoint for step 300000:
 
 ```
 # Make sure you have git-lfs installed
-# (https://git-lfs.github.com/)
+# (https://git-lfs.github.com)
 git lfs install
 
-git clone https://huggingface.co/stanford-crfm/arwen-x21-checkpoint-400000
+# get checkpoint 300000 for battlestar
+git clone https://huggingface.co/stanford-crfm/battlestar-gpt2-small-x49 --branch checkpoint-300000 --single-branch
+cd battlestar-gpt2-small-x49
+git lfs pull
 ```
 
 For convenience, every model and step checkpoint is listed in `mistral_models.json`.
