@@ -24,6 +24,7 @@ jobs:
       - name: Tests for arguments (single node/single GPU)
         if: always()
         run: |
+          echo $MISTRAL_TEST_DIR
           cd tests
           CUDA_VISIBLE_DEVICES=0 pytest test_args.py
       - name: Tests for checkpoints (single node/single GPU)
