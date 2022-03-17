@@ -23,7 +23,7 @@ A Propulsion Endeavor 🚀
 
 Mistral has been tested with Python 3.8.12, PyTorch 1.11.0 (compiled with CUDA 11.3), CUDA 11.3, NCCL 2.10, Transformers 4.17.0, and DeepSpeed 0.6.0.
 
-The environment can be easily built with the following commands.
+The environment can be easily built with the following commands:
 
 ```bash
 conda create -n mistral python=3.8.12
