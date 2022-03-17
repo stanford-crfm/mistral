@@ -17,7 +17,6 @@ jobs:
           cp -r /home/stanzabuild/mistral/wandb .
           echo 'Deactivating wandb'
           cd tests ; wandb disabled
-          export MISTRAL_TEST_DIR=/scr/mistral-test
           echo 'MISTRAL_TEST_DIR:'
           echo $MISTRAL_TEST_DIR
           echo 'PYTHONPATH:'
