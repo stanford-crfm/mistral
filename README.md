@@ -21,7 +21,7 @@ A Propulsion Endeavor 🚀
 
 ### Installation
 
-Mistral has been tested with Python 3.8.12, PyTorch 1.10.0 (compiled with CUDA 11.3), CUDA 11.3, NCCL 2.10, Transformers 4.12.3, and DeepSpeed 0.5.5.
+Mistral has been tested with Python 3.8.12, PyTorch 1.11.0 (compiled with CUDA 11.3), CUDA 11.3, NCCL 2.10, Transformers 4.17.0, and DeepSpeed 0.6.0.
 
 The environment can be easily built with the following commands.
 
@@ -29,7 +29,7 @@ The environment can be easily built with the following commands.
 conda create -n mistral python=3.8.12
 conda activate mistral
 conda install pytorch cudatoolkit=11.3 -c pytorch
-pip install transformers datasets huggingface-hub deepspeed jsonlines quinine wandb
+pip install -r requirements.txt
 ```
 
 A `.yaml` export of a tested environment is provided at `environments/environment-gpu.yaml`.
