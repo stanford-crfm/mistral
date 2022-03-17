@@ -14,8 +14,6 @@ jobs:
       - run: echo "🖥️ The workflow is now ready to test your code on the runner."
       - name: Setup
         run: |
-          cp -r /home/stanzabuild/mistral/wandb .
-          echo 'Deactivating wandb'
           cd tests ; wandb disabled
           echo 'MISTRAL_TEST_DIR:'
           echo $MISTRAL_TEST_DIR
