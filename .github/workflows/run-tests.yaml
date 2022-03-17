@@ -19,8 +19,6 @@ jobs:
           cd tests ; wandb disabled
           echo 'MISTRAL_TEST_DIR:'
           echo $MISTRAL_TEST_DIR
-          echo 'PYTHONPATH:'
-          echo $PYTHONPATH
       - name: Tests for arguments (single node/single GPU)
         if: always()
         run: |
