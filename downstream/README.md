@@ -8,7 +8,6 @@ pip install transformers==4.9.1 datasets==1.11.0 wandb sklearn seqeval
 
 ## Usage
 For PubMedQA, go to `seqcls/` and run the following command:
-
 ```bash
 task=pubmedqa_hf
 datadir=data/$task
@@ -21,6 +20,22 @@ python3 -u run_seqcls_gpt.py --tokenizer_name gpt2 --model_name_or_path gpt2 \
   --save_strategy no --evaluation_strategy no --output_dir $outdir --overwrite_output_dir \
   |& tee $outdir/log.txt &
 ```
+
+
+For MedQA-USMLE, go to `mc/` and run the following command:
+```bash
+task=medqa_usmle_hf
+datadir=data/$task
+outdir=runs/$task/GPT2
+mkdir -p $outdir
+python3 -u run_multiple_choice.py --tokenizer_name gpt2 --model_name_or_path gpt2 \
+  --train_file $datadir/train.json --validation_file $datadir/dev.json --test_file $datadir/test.json \
+  --do_train --do_eval --do_predict --per_device_train_batch_size 1 --per_device_eval_batch_size 1 --gradient_accumulation_steps 32 \
+  --learning_rate 3e-5 --warmup_ratio 0.5 --num_train_epochs 30 --max_seq_length 512 --fp16 --logging_first_step --logging_steps 20 \
+  --save_strategy no --evaluation_strategy steps --eval_steps 100 --output_dir $outdir --overwrite_output_dir \
+  |& tee $outdir/log.txt &
+```
+
 
 For NER tasks (EBM-PICO, BC5CDR-disease), go to `tokcls/` and run the following command:
 ```bash
