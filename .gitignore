@@ -133,3 +133,4 @@ dmypy.json
 
 
 runs
+downstream/textgen/gpt2/*_models
