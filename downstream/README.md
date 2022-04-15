@@ -104,7 +104,7 @@ python gen_batch.py --mode medparasimp --batch_size 9 --length 400 --no_repeat_n
     --base_model_name_or_path gpt2 \
     --load_checkpoint_path <finetuned_model_path>
 ```
-For example, `finetuned_model_path` can be `medparasimp_models/medparasimpfinetune_gpt2_y_0_act_cat_b=32-e=20_d=0.0_u=no_lr=5e-05_wm=1000_w=0.0_s=101_r=n_m=512_uctd=no_o=1_o=1`.
+For example, `finetuned_model_path` can be `runs_medparasimp/medparasimpfinetune_gpt2_y_0_act_cat_b=32-e=20_d=0.0_u=no_lr=5e-05_wm=1000_w=0.0_s=101_r=n_m=512_uctd=no_o=1_o=1`.
 This generation run will print out ROUGE evaluation score at the end.
 
 

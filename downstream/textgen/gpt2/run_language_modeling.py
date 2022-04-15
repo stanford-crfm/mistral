@@ -436,14 +436,6 @@ def get_dataset(
                                                   block_size=args.block_size, bos_tok=tokenizer.bos_token,
                                                   eos_tok=tokenizer.eos_token)
 
-        elif args.task_mode in ['cnndm', 'xsum', 'bioleaflets', 'medparasimp']:
-            max_source_length = args.max_source_length
-            max_target_length = args.train_max_target_length if not evaluate else args.val_max_target_length
-            dataset = LineByLineSumTextDataset(tokenizer=tokenizer, file_path=file_path,
-                                              block_size=args.block_size, bos_tok=tokenizer.bos_token,
-                                              eos_tok=tokenizer.eos_token, max_source_length=max_source_length,
-                                               max_target_length=max_target_length, use_task_instruction=args.use_task_instruction)
-
         elif args.task_mode == 'sentiment':
             dataset = LineByLineSentimentTextDataset(tokenizer=tokenizer, file_path=file_path,
                                                  block_size=args.block_size, bos_tok=tokenizer.bos_token,
@@ -472,8 +464,17 @@ def get_dataset(
             dataset =  LineByLineWithWeightTextDataset(tokenizer=tokenizer, file_path=file_path,
                                                    block_size=args.block_size, bos_tok=tokenizer.bos_token,
                                                      eos_tok=tokenizer.eos_token)
-        else:
-            return LineByLineTextDataset(tokenizer=tokenizer, file_path=file_path, block_size=args.block_size)
+
+        else: # elif args.task_mode in ['cnndm', 'xsum', 'bioleaflets', 'medparasimp']:
+            max_source_length = args.max_source_length
+            max_target_length = args.train_max_target_length if not evaluate else args.val_max_target_length
+            dataset = LineByLineSumTextDataset(tokenizer=tokenizer, file_path=file_path,
+                                              block_size=args.block_size, bos_tok=tokenizer.bos_token,
+                                              eos_tok=tokenizer.eos_token, max_source_length=max_source_length,
+                                               max_target_length=max_target_length, use_task_instruction=args.use_task_instruction)
+
+        # else:
+        #     return LineByLineTextDataset(tokenizer=tokenizer, file_path=file_path, block_size=args.block_size)
 
         # print(len(dataset))
         # n = len(dataset) % training_args.per_device_train_batch_size
@@ -908,12 +909,6 @@ def main():
                 tokenizer=tokenizer, mlm=data_args.mlm, mlm_probability=data_args.mlm_probability,
                 format_mode=data_args.format_mode
             )
-        elif data_args.task_mode in ['xsum', 'cnndm', 'bioleaflets', 'medparasimp']:
-            print('FORMAT MODE IS ', data_args.format_mode)
-            data_collator = DataCollatorForSumLanguageModeling(
-                tokenizer=tokenizer, mlm=data_args.mlm, mlm_probability=data_args.mlm_probability,
-                format_mode=data_args.format_mode
-            )
         elif data_args.task_mode == 'lemma2text':
             data_collator = DataCollatorForData2TextLanguageModeling(
                 tokenizer=tokenizer, mlm=data_args.mlm, mlm_probability=data_args.mlm_probability
@@ -926,10 +921,16 @@ def main():
             data_collator = DataCollatorForWeightedLanguageModeling(
                 tokenizer=tokenizer, mlm=data_args.mlm, mlm_probability=data_args.mlm_probability
             )
-        else:
-            data_collator = DataCollatorForLanguageModeling(
-                tokenizer=tokenizer, mlm=data_args.mlm, mlm_probability=data_args.mlm_probability
+        else: #elif data_args.task_mode in ['xsum', 'cnndm', 'bioleaflets', 'medparasimp']:
+            print('FORMAT MODE IS ', data_args.format_mode)
+            data_collator = DataCollatorForSumLanguageModeling(
+                tokenizer=tokenizer, mlm=data_args.mlm, mlm_probability=data_args.mlm_probability,
+                format_mode=data_args.format_mode
             )
+        # else:
+        #     data_collator = DataCollatorForLanguageModeling(
+        #         tokenizer=tokenizer, mlm=data_args.mlm, mlm_probability=data_args.mlm_probability
+        #     )
         # data_collator = DataCollatorForWeightedLanguageModeling(
         #     tokenizer=tokenizer, mlm=data_args.mlm, mlm_probability=data_args.mlm_probability
         # )

@@ -488,57 +488,6 @@ if __name__ == '__main__':
             tuning_mode = 'adaptertune'
             app = ''
 
-
-    elif mode in ['cnndm', 'xsum', 'bioleaflets', 'medparasimp']:
-        Token_FILE = MODEL_FILE
-        gen_dir = f'gen_results__tgtlen{args.length}__no_repeat_ngram_size{args.no_repeat_ngram_size}'
-
-        sub_model_name = os.path.basename(MODEL_FILE)
-
-        if 'finetune' in MODEL_FILE:
-            tuning_mode = 'finetune'
-            app = ''
-        elif 'prefixtune' in MODEL_FILE:
-            tuning_mode = 'prefixtune'
-            sub_model_name = [n for n in MODEL_FILE.split('/') if 'prefixtune' in n][0]
-            _toks = sub_model_name.split('_')
-            print (_toks)
-            if "y" in _toks:
-                app = '--optim_prefix {} --preseqlen {} '.format('yes', _toks[_toks.index('y')+1])
-            else:
-                assert "n" in _toks
-                app = '--optim_prefix {} --preseqlen {} '.format('no', _toks[_toks.index('n')+1])
-            if "_emb" in MODEL_FILE:
-                app += "--prefix_mode embedding "
-            elif "_act" in MODEL_FILE:
-                app += "--prefix_mode activation "
-            if "_inf" in MODEL_FILE or 'infix' in MODEL_FILE:
-                app += " --format_mode infix "
-            elif "_cat" in MODEL_FILE:
-                app += " --format_mode cat "
-            elif "_pee" in MODEL_FILE:
-                app += " --format_mode peek "
-
-            MODEL_FILE2 = MODEL_FILE
-
-            # if 'large' in sub_model_name:
-            #     MODEL_FILE = 'gpt2-large'
-            # else:
-            #     MODEL_FILE = 'gpt2-medium'
-            MODEL_FILE = args.base_model_name_or_path
-
-            # MODEL_FILE = 'gpt2-medium'
-        elif 'adaptertune' in sub_model_name:
-            tuning_mode = 'adaptertune'
-            app = ''
-
-        if "useTaskInstruction" in MODEL_FILE:
-            val_pos = MODEL_FILE.index("useTaskInstruction") + len("useTaskInstruction")
-            val = MODEL_FILE[val_pos]
-            app += f" --use_task_instruction {val}"
-
-
-
     elif mode =='lemma2text':
         # MODEL_FILE = "/u/scr/xlisali/contrast_LM/transformers/examples/language-modeling/temp_data2text"
         # Token_FILE = "/u/scr/xlisali/contrast_LM/transformers/examples/language-modeling/temp_data2text"
@@ -609,7 +558,53 @@ if __name__ == '__main__':
         MODEL_FILE2 = "/u/scr/xlisali/contrast_LM/transformers/examples/control/keywordhaha"
         Token_FILE = "gpt2-medium"
 
+    else: #elif mode in ['cnndm', 'xsum', 'bioleaflets', 'medparasimp']:
+        Token_FILE = MODEL_FILE
+        gen_dir = f'gen_results__tgtlen{args.length}__no_repeat_ngram_size{args.no_repeat_ngram_size}'
 
+        sub_model_name = os.path.basename(MODEL_FILE)
+
+        if 'finetune' in MODEL_FILE:
+            tuning_mode = 'finetune'
+            app = ''
+        elif 'prefixtune' in MODEL_FILE:
+            tuning_mode = 'prefixtune'
+            sub_model_name = [n for n in MODEL_FILE.split('/') if 'prefixtune' in n][0]
+            _toks = sub_model_name.split('_')
+            print (_toks)
+            if "y" in _toks:
+                app = '--optim_prefix {} --preseqlen {} '.format('yes', _toks[_toks.index('y')+1])
+            else:
+                assert "n" in _toks
+                app = '--optim_prefix {} --preseqlen {} '.format('no', _toks[_toks.index('n')+1])
+            if "_emb" in MODEL_FILE:
+                app += "--prefix_mode embedding "
+            elif "_act" in MODEL_FILE:
+                app += "--prefix_mode activation "
+            if "_inf" in MODEL_FILE or 'infix' in MODEL_FILE:
+                app += " --format_mode infix "
+            elif "_cat" in MODEL_FILE:
+                app += " --format_mode cat "
+            elif "_pee" in MODEL_FILE:
+                app += " --format_mode peek "
+
+            MODEL_FILE2 = MODEL_FILE
+
+            # if 'large' in sub_model_name:
+            #     MODEL_FILE = 'gpt2-large'
+            # else:
+            #     MODEL_FILE = 'gpt2-medium'
+            MODEL_FILE = args.base_model_name_or_path
+
+            # MODEL_FILE = 'gpt2-medium'
+        elif 'adaptertune' in sub_model_name:
+            tuning_mode = 'adaptertune'
+            app = ''
+
+        if "useTaskInstruction" in MODEL_FILE:
+            val_pos = MODEL_FILE.index("useTaskInstruction") + len("useTaskInstruction")
+            val = MODEL_FILE[val_pos]
+            app += f" --use_task_instruction {val}"
 
 
 

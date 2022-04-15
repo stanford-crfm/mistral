@@ -1291,7 +1291,7 @@ def main():
 
 
 
-    elif args.task_mode in ['cnndm', 'xsum', 'bioleaflets', 'medparasimp']:
+    else: #elif args.task_mode in ['cnndm', 'xsum', 'bioleaflets', 'medparasimp']:
         QUICK_CHECK = False
         if args.task_mode == 'cnndm':
             # test_path = "/u/scr/xlisali/WebNLG/webnlg-dataset/release_v2/json/webnlg_release_v2_test.json"
@@ -1319,6 +1319,15 @@ def main():
                 max_source_length = args.max_source_length
             max_target_length = 1024
             # args.length = max_target_length
+        else:
+            test_path = f"../data/{args.task_mode}/test.source"
+            assert os.path.exists(test_path)
+            if args.max_source_length < 0:
+                max_source_length = 512
+            else:
+                max_source_length = args.max_source_length
+            max_target_length = 1024
+
 
         test_tgt_path = test_path[:-6] + "target"
 
@@ -1422,7 +1431,7 @@ def main():
 
     import sys
     sys.path.insert(0, '../eval')
-    from utils import calculate_bleu, calculate_rouge, chunks, parse_numeric_n_bool_cl_kwargs, use_task_specific_params
+    from utils import calculate_rouge, chunks, parse_numeric_n_bool_cl_kwargs, use_task_specific_params
 
     try:
         print ('test_tgt_path', test_tgt_path)
@@ -1430,7 +1439,6 @@ def main():
         reference_lns = [x.rstrip() for x in open(test_tgt_path).readlines()]
         assert len(output_lns) == len(reference_lns)
         scores = calculate_rouge(output_lns, reference_lns)
-        scores.update(calculate_bleu(output_lns, reference_lns))
         print (scores)
     except:
         pass

@@ -89,8 +89,7 @@ if __name__ == '__main__':
     else:
         load_prefix_model = False
 
-    assert  args.mode in ['data2text', 'triples', 'webnlg', 'writingPrompts', 'cnndm', 'xsum', 'bioleaflets', 'medparasimp', 'sentiment', 'topic',
-                          'classify-sentiment', 'classify-topic']
+    # assert  args.mode in ['data2text', 'triples', 'webnlg', 'writingPrompts', 'cnndm', 'xsum', 'bioleaflets', 'medparasimp', 'sentiment', 'topic', 'classify-sentiment', 'classify-topic']
 
     assert args.objective_mode in [0, 1, 2, 3, 4]
     # 0 means the regular token level objective, which is sum / output_len
@@ -121,7 +120,7 @@ if __name__ == '__main__':
         else:
             args.notes = args.notes + f'_{key}'
 
-
+    other_seq2seq_app = None
     if args.mode == 'data2text':
 
         TRAIN_FILE = "../data/e2e_data/src1_train.txt"
@@ -249,7 +248,7 @@ if __name__ == '__main__':
                    '--val_max_target_length {} --dataloader_num_workers 4 '.format(max_source_length, max_target_length,
                                                          val_max_target_length, )
 
-        folder_name = "bioleaflets_models/"
+        folder_name = "runs_bioleaflets/"
         assert args.optim_prefix == 'yes'
 
     elif args.mode == 'medparasimp':
@@ -271,8 +270,31 @@ if __name__ == '__main__':
                    '--val_max_target_length {} --dataloader_num_workers 4 '.format(max_source_length, max_target_length,
                                                          val_max_target_length, )
 
-        folder_name = "medparasimp_models/"
+        folder_name = "runs_medparasimp/"
         assert args.optim_prefix == 'yes'
+
+    else:
+        TRAIN_FILE = f"../data/{args.mode}/train.source"
+        TEST_FILE = f"../data/{args.mode}/val.source"
+
+        if args.max_source_length < 0:
+            max_source_length = 512 - args.preseqlen//2
+        else:
+            max_source_length = args.max_source_length
+        if args.max_target_length < 0:
+            max_target_length = 512 -2 - args.preseqlen//2
+        else:
+            max_target_length = args.max_target_length
+        val_max_target_length = max_target_length
+        test_max_target_length = max_target_length
+
+        other_seq2seq_app = ' --max_source_length {} --train_max_target_length {} ' \
+                   '--val_max_target_length {} --dataloader_num_workers 4 '.format(max_source_length, max_target_length,
+                                                         val_max_target_length, )
+
+        folder_name = f"runs_{args.mode}/"
+        assert args.optim_prefix == 'yes'
+
 
     if not os.path.isdir(folder_name):
         os.mkdir(folder_name)
@@ -376,6 +398,9 @@ if __name__ == '__main__':
 
     if args.mode == 'medparasimp':
         app += medparasimp_app
+
+    if other_seq2seq_app is not None:
+        app += other_seq2seq_app
 
     if args.init_shallow == 'yes':
         app += ' --init_shallow {} --init_shallow_word {} '.format(args.init_shallow, args.init_shallow_word)
