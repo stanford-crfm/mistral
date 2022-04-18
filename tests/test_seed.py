@@ -14,7 +14,7 @@ TRAIN_ARGS_SEED_7 = {
     "nnodes": "1",
     "nproc_per_node": "1",
     "config": "conf/train.yaml",
-    "training_arguments.fp16": "true",
+    "training_arguments.fp16": "false",
     "training_arguments.per_device_train_batch_size": "1",
     "artifacts.cache_dir": CACHE_DIR,
     "seed": "7",
@@ -37,7 +37,6 @@ def is_randomized(key):
     weights and biases, and bias terms in general.
     """
     # regexes for components that are not randomized
-    print(key)
     if key.endswith("bias") or "ln" in key:
         return False
     else:
