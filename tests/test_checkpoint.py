@@ -1,3 +1,4 @@
+import copy
 import os
 
 import torch
@@ -19,13 +20,14 @@ TRAIN_ARGS = {
     "nnodes": "1",
     "nproc_per_node": "1",
     "config": "conf/train.yaml",
-    "training_arguments.fp16": "true",
+    "training_arguments.fp16": "false",
     "training_arguments.max_steps": "3",
     "training_arguments.per_device_train_batch_size": "1",
     "artifacts.cache_dir": CACHE_DIR,
     "log_level": "20",
     "effective_bsz": "16",
     "run_final_eval": "false",
+    "training_arguments.dataloader_num_workers": "0",
 }
 
 trainer_after_training = run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id=RUN_ID)
@@ -34,7 +36,7 @@ RESTART_ARGS = {
     "nnodes": "1",
     "nproc_per_node": "1",
     "config": "conf/train.yaml",
-    "training_arguments.fp16": "true",
+    "training_arguments.fp16": "false",
     "training_arguments.max_steps": "3",
     "training_arguments.per_device_train_batch_size": "1",
     "resume": "True",
@@ -43,9 +45,12 @@ RESTART_ARGS = {
     "log_level": "20",
     "effective_bsz": "16",
     "run_final_eval": "false",
+    "training_arguments.dataloader_num_workers": "0",
 }
 
 trainer_after_restart = run_train_process(cl_args_dict=RESTART_ARGS, runs_dir=RUNS_DIR, run_id=RUN_ID + "-restart")
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def test_checkpoint_weights() -> None:
@@ -54,7 +59,7 @@ def test_checkpoint_weights() -> None:
     """
     model = trainer_after_training.model
     loaded_model = trainer_after_restart.model
-    loaded_model.to(torch.device("cuda"))
+    loaded_model.to(device)
     assert model.state_dict().keys() == loaded_model.state_dict().keys()
     for key in model.state_dict().keys():
         assert torch.equal(model.state_dict()[key], loaded_model.state_dict()[key])
@@ -66,7 +71,7 @@ def test_checkpoint_forward_pass() -> None:
     """
     model = trainer_after_training.model
     loaded_model = trainer_after_restart.model
-    loaded_model.to(torch.device("cuda"))
+    loaded_model.to(device)
     train_dataloader = trainer_after_training.get_train_dataloader()
     inputs = next(iter(train_dataloader))
     inputs = trainer_after_training._prepare_inputs(inputs)

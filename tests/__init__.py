@@ -13,7 +13,7 @@ from src.core.trainer import OnlineBenchmarkTrainer
 from train import train
 
 
-MISTRAL_TEST_DIR = os.getenv("MISTRAL_TEST_DIR")
+MISTRAL_TEST_DIR = os.getenv("MISTRAL_TEST_DIR") or "."
 
 # standard utils
 
