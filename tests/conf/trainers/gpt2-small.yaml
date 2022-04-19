@@ -6,7 +6,6 @@
 ---
 training_arguments:
     # Overwrite from Top-Level Config
-    output_dir: null
 
     # Generally sticks to order from HF.TrainingArguments() Docs, skipping over sane defaults/implicitly set args...
     do_train: true
@@ -15,9 +14,6 @@ training_arguments:
     # Set these based on GPU RAM/your available hardware
     per_device_train_batch_size: 8
     per_device_eval_batch_size: 16
-
-    # We set this dynamically based on DDP Computation [steps = effective_batch / (per_gpu_batch * gpus * nodes)]
-    gradient_accumulation_steps: null
 
     # For Online Evaluation, only keep around the Losses
     prediction_loss_only: true
@@ -52,16 +48,8 @@ training_arguments:
     # Resume Behavior --> ignore "full determinism" on resume (saves time for debugging)
     ignore_data_skip: false
 
-    # Seeds -- Should be Overwritten at Runtime!
-    seed: null
-
     ### Optimization -- Precision, DeepSpeed, and FairScale Parameters -- all off for `simple` config
     fp16: true
-    sharded_ddp: null
-    deepspeed: null
 
     # Dataloader Parallelism
     dataloader_num_workers: 4
-
-    # Should be overwritten from the Top-Level Config or CLI!
-    local_rank: null

@@ -20,6 +20,7 @@ Reference:
 
 |=>> A Project Mercury Endeavor
 """
+import dataclasses
 import json
 import os
 import random
@@ -27,11 +28,10 @@ from datetime import datetime
 
 import numpy as np
 import torch
-from quinine import QuinineArgumentParser
 from transformers.data.data_collator import default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
 
-from conf.train_schema import get_schema
+from conf.train_schema import MistralHparams
 from src.args import get_training_arguments
 from src.core import CustomCheckpointCallback, CustomWandbCallback, OnlineBenchmarkTrainer
 from src.corpora import ONLINE_EVAL_DATA_REGISTRY, get_auto_dataset
@@ -41,13 +41,15 @@ from src.util import create_paths, set_permissions
 
 
 def train() -> OnlineBenchmarkTrainer:
-    # Parse Quinfig (via Quinine Argparse Binding)
+    # Parse config (via Quinine Argparse Binding)
     print("[*] Mercury :: Launching =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
     print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)')
-    quinfig = QuinineArgumentParser(schema=get_schema()).parse_quinfig()
+    quinfig = MistralHparams.create()
+    print(quinfig.dumps(add_docs=True))
 
     # Set Distributed Arguments
     # TODO train.A :: @Laurel, @Karan -- `local_rank` not in Quinfig w/ torch.distributed.launch?
+    print(quinfig)
     quinfig.world_size = int(os.getenv("WORLD_SIZE", quinfig.nproc_per_node))
     quinfig.local_rank = int(os.getenv("LOCAL_RANK", -1))
 
@@ -114,7 +116,7 @@ def train() -> OnlineBenchmarkTrainer:
 
     # Load Online Eval Datasets
     custom_eval_datasets = dict()
-    for eval_dataset_arg in list(filter(lambda x: x.startswith("do_"), quinfig.online_eval.keys())):
+    for eval_dataset_arg in list(filter(lambda x: x.startswith("do_"), quinfig.online_eval.__dataclass_fields__.keys())):
         if getattr(quinfig.online_eval, eval_dataset_arg):
             # Dataset name is in quinfig arg of "do_<dataset>" -> Boolean
             dataset_name = eval_dataset_arg.lstrip("do_")
@@ -145,7 +147,6 @@ def train() -> OnlineBenchmarkTrainer:
         effective_bsz=quinfig.effective_bsz,
         nodes=quinfig.nnodes,
         gpus_per_node=quinfig.nproc_per_node,
-        gradient_checkpointing=quinfig.model.gradient_checkpointing,
     )
 
     # Initialize Trainer, with the relevant arguments

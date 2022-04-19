@@ -6,7 +6,7 @@
 #   Inheritance and core paths can all be overridden from the command line or by re-writing these files.
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
-inherit:
+inherits:
     - datasets/openwebtext.yaml
     - models/gpt2-medium.yaml
     - trainers/gpt2-medium.yaml
