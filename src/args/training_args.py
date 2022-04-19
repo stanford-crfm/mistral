@@ -1,8 +1,8 @@
 """
 training_args.py
 
-Utility script for unloading Quinfigs into full set of Training Arguments, as well as for handling any argument
-overrides (e.g., paths that are defined at runtime, parameters that are dynamically computed such as gradient
+Utility script for massaging TrainingArgumentHparams into full set of Training Arguments, as well as for handling any
+argument overrides (e.g., paths that are defined at runtime, parameters that are dynamically computed such as gradient
 accumulation).
 """
 import logging
@@ -27,10 +27,9 @@ def get_training_arguments(
     nodes: int = 1,
     gpus_per_node: int = 8,
 ) -> TrainingArguments:
-    """Initialize Training Arguments from Quinfig and Runtime-Defined Variables."""
+    """Initialize Training Arguments from Hparams and Runtime-Defined Variables."""
 
-    # `quinfig_args` already contains some default training arguments --> we'll be overwriting/adding to the Dict
-    #   =>> a `Munch` is a subclass of Dictionary that supports attribute style access
+    # `args` already contains some default training arguments, but we want to add the following:
     training_args = args
     training_args.run_name = run_name
     training_args.output_dir = output_dir
