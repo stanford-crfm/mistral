@@ -1,7 +1,7 @@
 """
 train_schema.py
 
-Cerberus schema used by Quinine for train.py.
+Defines dataclass hparams for use with yahp
 """
 import dataclasses
 import typing

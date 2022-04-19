@@ -31,7 +31,7 @@ import torch
 from transformers.data.data_collator import default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
 
-from conf.train_schema import MistralHparams
+from src.train_schema import MistralHparams
 from src.args import get_training_arguments
 from src.core import CustomCheckpointCallback, CustomWandbCallback, OnlineBenchmarkTrainer
 from src.corpora import ONLINE_EVAL_DATA_REGISTRY, get_auto_dataset
@@ -41,7 +41,7 @@ from src.util import create_paths, set_permissions
 
 
 def train() -> OnlineBenchmarkTrainer:
-    # Parse config (via Quinine Argparse Binding)
+    # Parse config (via Yahp Argparse Binding)
     print("[*] Mercury :: Launching =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
     print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)')
     hparams = MistralHparams.create()

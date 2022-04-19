@@ -11,7 +11,7 @@ from pathlib import Path
 from transformers import TrainingArguments
 
 
-from conf.train_schema import TrainingArgumentsHparams
+from src.train_schema import TrainingArgumentsHparams
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
 overwatch = logging.getLogger("mistral.args.training")
