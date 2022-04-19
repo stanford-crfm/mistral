@@ -34,6 +34,7 @@ def get_training_arguments(
     training_args.run_name = run_name
     training_args.output_dir = output_dir
     training_args.seed = seed
+    training_args.data_seed = seed
     training_args.local_rank = local_rank
 
     # Since we Implement a Custom W&B / JSON Logging Callback, we don't report to anyone -- we've gone rogue!
