@@ -159,15 +159,11 @@ def train() -> OnlineBenchmarkTrainer:
     else:
         frequencies = quinfig.checkpoint_frequency
 
-    trainer = OnlineBenchmarkTrainer(
-        model=model,
-        args=training_args,
-        data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
-        train_dataset=lm_dataset["train"],
-        eval_dataset=lm_dataset["validation"],
-        custom_eval_datasets=custom_eval_datasets,
-        tokenizer=tokenizer,
-        callbacks=[
+    callbacks = [
+        CustomCheckpointCallback(frequencies=frequencies),
+    ]
+    if os.getenv("WANDB_DISABLED", "false").lower() != "true":
+        callbacks.append(
             CustomWandbCallback(
                 quinfig.wandb,
                 json_file=str(paths["runs"] / "metrics.json"),
@@ -177,8 +173,18 @@ def train() -> OnlineBenchmarkTrainer:
                 wandb_dir=str(paths["runs"]),
                 api_key_path=quinfig.wandb_api_key_path,
             ),
-            CustomCheckpointCallback(frequencies=frequencies),
-        ],
+        )
+
+
+    trainer = OnlineBenchmarkTrainer(
+        model=model,
+        args=training_args,
+        data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
+        train_dataset=lm_dataset["train"],
+        eval_dataset=lm_dataset["validation"],
+        custom_eval_datasets=custom_eval_datasets,
+        tokenizer=tokenizer,
+        callbacks=callbacks,
     )
 
     if quinfig.local_rank <= 0 and last_checkpoint is None:
