@@ -335,7 +335,7 @@ if __name__ == '__main__':
                      + 'w={}_'.format(args.weight_decay) + 's={}'.format(args.seed) + '_r={}'.format(args.init_random[:1]) +\
                      '_m={}'.format(args.mid_dim)
     else:
-        Model_FILE = dir_name
+        Model_FILE = args.dir_name
 
     if args.notes is not None:
         Model_FILE += '_{}'.format(args.notes)
