@@ -4,4 +4,5 @@ huggingface-hub==0.4.0
 jsonlines==3.0.0
 transformers==4.18.0
 wandb==0.12.11
-yahp==0.1.0
+# TODO(dlwh): when they fix list of lists switch back to their repo
+https://github.com/dlwh/yahp
