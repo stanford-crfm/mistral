@@ -1,13 +1,9 @@
 # wikitext2.yaml
 #   Configuration for WikiText-2 Dataset (https://huggingface.co/datasets/wikitext).
+# detokenized via scripts/hf_to_json.py
 ---
 dataset:
-    id: wikitext
-    name: wikitext-2-raw-v1
-    validation_ratio: null
-
-    # Number of Preprocessing Workers
-    num_proc: 4
-
-    # Number of Evaluation Preprocessing Workers
-    eval_num_proc: 4
+    train_sources:
+        wikitext2:
+            urls:
+               - wikitext2_raw/train.jsonl.zst

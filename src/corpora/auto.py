@@ -65,6 +65,10 @@ def load_datasets(
         weighted = {train_datasets[d]: weights[d] for d in train_datasets if weights[d] > 0}
         train_dataset = SampleMultiplexerDataPipe(weighted, seed=seed)
 
+    if data_hparams.shuffle:
+        # TODO: copypasta ShufflerIterDataPipe to sprucfluo so we can seed just it.
+        train_dataset = train_dataset.seeded_shuffle(seed=seed, buffer_size=data_hparams.shuffle_buffer_size)
+
     return LoadedDatasets(train_dataset, val_datasets)
 
 # TODO: bring back detokenization for wikitext if we really want it
