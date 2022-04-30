@@ -31,6 +31,7 @@ import torch
 from transformers.data.data_collator import default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
 
+from src.corpora.auto import load_datasets
 from src.train_schema import MistralHparams
 from src.args import get_training_arguments
 from src.core import CustomCheckpointCallback, CustomWandbCallback, OnlineBenchmarkTrainer
@@ -44,12 +45,14 @@ def train() -> OnlineBenchmarkTrainer:
     # Parse config (via Yahp Argparse Binding)
     print("[*] Mercury :: Launching =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
     print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)')
-    hparams = MistralHparams.create()
-    print(hparams.dumps(add_docs=True))
+    hparams: MistralHparams = MistralHparams.create()
+    # obnoxiously, yahp doesn't validate by default
+    hparams.validate()
+    # print(hparams.dumps(add_docs=True))
 
     # Set Distributed Arguments
     # TODO train.A :: @Laurel, @Karan -- `local_rank` not in hparams w/ torch.distributed.launch?
-    print(hparams)
+    # TODO: no need for these to be in hparams?
     hparams.world_size = int(os.getenv("WORLD_SIZE", hparams.nproc_per_node))
     hparams.local_rank = int(os.getenv("LOCAL_RANK", -1))
 
@@ -57,9 +60,14 @@ def train() -> OnlineBenchmarkTrainer:
     run_id = hparams.run_id
     if run_id is None:
         run_id = (
-            f"{hparams.model.id}-d={hparams.dataset.id}-n={hparams.nnodes}-g={hparams.nproc_per_node}-"
+            # TODO: by switching away from HF we lose the simple id name for the dataset. need to
+            # find an alternative naming scheme. Could either go "cool names" (seeded random memorable name) or
+            # use something indicating the mixture components.
+            # f"{hparams.model.id}-d={hparams.dataset.id}-n={hparams.nnodes}-g={hparams.nproc_per_node}-"
+            f"{hparams.model.id}-n={hparams.nnodes}-g={hparams.nproc_per_node}-"
             f"w={hparams.world_size}+{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
         )
+        hparams.run_id = run_id
     paths = create_paths(run_id, hparams.model.id, hparams.artifacts.run_dir, hparams.artifacts.cache_dir)
 
     # Overwatch :: Setup & Configure Console/File Logger --> Handle Process 0 vs. other Process Logging!
@@ -68,6 +76,7 @@ def train() -> OnlineBenchmarkTrainer:
 
     # Set Randomness
     overwatch.info(f"Setting Random Seed to {hparams.seed}!")
+
     random.seed(hparams.seed)
     np.random.seed(hparams.seed)
     torch.manual_seed(hparams.seed)
@@ -103,35 +112,33 @@ def train() -> OnlineBenchmarkTrainer:
     )
 
     # Load Dataset w/ Preprocessing, Batching, and Collating
-    overwatch.info(f"Downloading and Preprocessing Dataset `{hparams.dataset.id}`...")
-    lm_dataset = get_auto_dataset(
+    overwatch.info(f"Downloading and Preprocessing Dataset...")
+    lm_dataset = load_datasets(
+        hparams.dataset,
         tokenizer,
         paths,
-        dataset_id=hparams.dataset.id,
-        dataset_name=hparams.dataset.name,
-        validation_ratio=hparams.dataset.validation_ratio,
         seq_len=hparams.model.seq_len,
-        preprocessing_num_proc=hparams.dataset.num_proc,
+        seed=hparams.seed,
     )
 
     # Load Online Eval Datasets
-    custom_eval_datasets = dict()
-    for eval_dataset_arg in list(filter(lambda x: x.startswith("do_"), hparams.online_eval.__dataclass_fields__.keys())):
-        if getattr(hparams.online_eval, eval_dataset_arg):
-            # Dataset name is in hparams arg of "do_<dataset>" -> Boolean
-            dataset_name = eval_dataset_arg.lstrip("do_")
-            overwatch.info(f"Downloading and Preprocessing Online Eval Dataset {dataset_name}")
-            custom_eval_datasets[dataset_name] = ONLINE_EVAL_DATA_REGISTRY[dataset_name]["generator"](
-                tokenizer,
-                paths,
-                dataset_id=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["id"],
-                dataset_name=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["name"],
-                validation_ratio=hparams.dataset.validation_ratio,
-                seq_len=hparams.model.seq_len,
-                stride=hparams.online_eval.stride,
-                preprocessing_num_proc=hparams.dataset.eval_num_proc,
-                ignore_train=True,
-            )["validation"]
+    custom_eval_datasets = lm_dataset.validation
+    # for eval_dataset_arg in list(filter(lambda x: x.startswith("do_"), hparams.online_eval.__dataclass_fields__.keys())):
+    #     if getattr(hparams.online_eval, eval_dataset_arg):
+    #         # Dataset name is in hparams arg of "do_<dataset>" -> Boolean
+    #         dataset_name = eval_dataset_arg.lstrip("do_")
+    #         overwatch.info(f"Downloading and Preprocessing Online Eval Dataset {dataset_name}")
+    #         custom_eval_datasets[dataset_name] = ONLINE_EVAL_DATA_REGISTRY[dataset_name]["generator"](
+    #             tokenizer,
+    #             paths,
+    #             dataset_id=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["id"],
+    #             dataset_name=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["name"],
+    #             validation_ratio=hparams.dataset.validation_ratio,
+    #             seq_len=hparams.model.seq_len,
+    #             stride=hparams.online_eval.stride,
+    #             preprocessing_num_proc=hparams.dataset.eval_num_proc,
+    #             ignore_train=True,
+    #         )["validation"]
 
     # Fix All Dataset Permissions
     set_permissions(paths)
@@ -181,8 +188,8 @@ def train() -> OnlineBenchmarkTrainer:
         model=model,
         args=training_args,
         data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
-        train_dataset=lm_dataset["train"],
-        eval_dataset=lm_dataset["validation"],
+        train_dataset=lm_dataset.train,
+        eval_datasets=lm_dataset.validation,
         custom_eval_datasets=custom_eval_datasets,
         tokenizer=tokenizer,
         callbacks=callbacks,

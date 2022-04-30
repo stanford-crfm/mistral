@@ -4,30 +4,83 @@ auto.py
 Default Dataset/Corpus Utilities. Downloads (if necessary) from the Hugging Face `datasets` Hub, and organizes into
 de-facto training, validation, and testing tests. Performs additional tokenization and normalization as well.
 """
+import dataclasses
+import functools
 import logging
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, Iterable, List
 
 import datasets
+import sprucfluo as sf
+from torch.utils.data import IterableDataset, IterDataPipe
+from torch.utils.data.datapipes.iter.combining import MultiplexerIterDataPipe
+from torchdata.datapipes.iter.util.samplemultiplexer import SampleMultiplexerDataPipe
 from transformers import BatchEncoding, PreTrainedTokenizer
 
 from src.corpora.detokenization import DATASET_TOKENIZATION_REGISTRY
-
+from src.train_schema import DatasetHparams, DatasetSourceHparams
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
 overwatch = logging.getLogger("mistral.corpora.auto")
 
 
+@dataclasses.dataclass
+class LoadedDatasets:
+    train: IterableDataset
+    validation: Dict[str, IterableDataset]
+
+
+def load_datasets(
+    data_hparams: DatasetHparams,
+    tokenizer: PreTrainedTokenizer,
+    # TODO: reintroduce caching
+    paths: Dict[str, Path],
+    seq_len: int,
+    seed: int,
+) -> LoadedDatasets:
+    """Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset."""
+
+    def load_dataset(source_params: DatasetSourceHparams, cycle: bool):
+        return sf.load_corpus(source_params.urls, cycle=cycle, json_text_key=source_params.json_text_key,
+                              extra_fsspec_args=source_params.extra_fsspec_args or {})
+
+    tokenize = functools.partial(sf.tokenize_and_group_texts, tokenizer=tokenizer, seq_len=seq_len)
+
+    def prepare_datasets(sources: Dict[str, DatasetSourceHparams], cycle: bool) -> Dict[str, IterDataPipe[BatchEncoding]]:
+        datasets = {k: load_dataset(v, cycle) for k, v in sources.items()}
+        datasets = {k: dataset.then(tokenize, tokenizer=tokenizer, seq_len=seq_len) for k, dataset in datasets.items()}
+        return datasets
+
+    train_datasets = prepare_datasets(data_hparams.train_sources, cycle=data_hparams.cycle)
+    val_datasets = prepare_datasets(data_hparams.validation_sources, cycle=False)
+
+    # merge train via sampling or multiplexing
+    weights = data_hparams.train_weights
+    if len(train_datasets) == 1:
+        train_dataset = next(iter(train_datasets.values()))
+    elif weights is None:
+        train_dataset = MultiplexerIterDataPipe(*train_datasets.values())
+    else:
+        weighted = {train_datasets[d]: weights[d] for d in train_datasets if weights[d] > 0}
+        train_dataset = SampleMultiplexerDataPipe(weighted, seed=seed)
+
+    return LoadedDatasets(train_dataset, val_datasets)
+
+# TODO: bring back detokenization for wikitext if we really want it
+# TODO: similarly for lambada?
+
+
+# TODO: remove this when we excise wikitext
 def get_auto_dataset(
     tokenizer: PreTrainedTokenizer,
     paths: Dict[str, Path],
-    dataset_id: str = "wikitext",
-    dataset_name: str = "wikitext-103-raw-v1",
-    validation_ratio: float = 0.0005,
-    seq_len: int = 1024,
-    preprocessing_num_proc: int = 64,
-    stride: int = -1,
+    dataset_id: str,
+    dataset_name: str,
+    validation_ratio: float,
+    seq_len: int,
+    preprocessing_num_proc: int,
+    stride: int,
     ignore_train: bool = False,
 ) -> datasets.DatasetDict:
     """Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset."""
@@ -221,3 +274,5 @@ ONLINE_EVAL_DATA_REGISTRY = {
     "wikitext": {"id": "wikitext", "name": "wikitext-103-raw-v1", "generator": get_auto_dataset},
     "lambada": {"id": "lambada", "name": None, "generator": get_lambada},
 }
+
+

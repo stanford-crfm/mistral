@@ -11,22 +11,17 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import numpy as np
 import torch
 from torch.utils.data.dataset import Dataset
-from torch.utils.data.distributed import DistributedSampler
-from transformers import AutoModelForCausalLM, PreTrainedModel, PreTrainedTokenizerBase, Trainer, TrainingArguments
+from transformers import PreTrainedModel, PreTrainedTokenizerBase, Trainer, TrainingArguments
 from transformers.data.data_collator import DataCollator
-from transformers.file_utils import is_datasets_available
+from transformers.debug_utils import DebugOption
 from transformers.trainer_callback import TrainerCallback
-from transformers.trainer_pt_utils import (
-    DistributedLengthGroupedSampler,
-    DistributedSamplerWithLoop,
-    LengthGroupedSampler,
-)
 from transformers.trainer_utils import EvalPrediction, speed_metrics
-from transformers.training_args import ParallelMode
+from transformers.utils.import_utils import is_torch_tpu_available
 
+if is_torch_tpu_available():
+    import torch_xla.core.xla_model as xm
+    import torch_xla.debug.metrics as met
 
-if is_datasets_available():
-    import datasets
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
 overwatch = logging.getLogger("mistral.core.trainer")
@@ -44,11 +39,11 @@ class OnlineBenchmarkTrainer(Trainer):
 
     def __init__(
         self,
-        model: AutoModelForCausalLM,
+        model: PreTrainedModel,
         args: TrainingArguments,
         data_collator: Optional[DataCollator] = None,
         train_dataset: Optional[Dataset] = None,
-        eval_dataset: Optional[Dataset] = None,
+        eval_datasets: Optional[Dict[str, Dataset]] = None,
         custom_eval_datasets: Optional[Dict[str, Dataset]] = None,
         tokenizer: Optional[PreTrainedTokenizerBase] = None,
         model_init: Callable[[], PreTrainedModel] = None,
@@ -61,7 +56,7 @@ class OnlineBenchmarkTrainer(Trainer):
             args=args,
             data_collator=data_collator,
             train_dataset=train_dataset,
-            eval_dataset=eval_dataset,
+            eval_dataset=None,
             tokenizer=tokenizer,
             model_init=model_init,
             compute_metrics=compute_metrics,
@@ -70,9 +65,13 @@ class OnlineBenchmarkTrainer(Trainer):
         )
         custom_eval_datasets = custom_eval_datasets if custom_eval_datasets is not None else {}
 
+
         # No idea why, but you can't use a dict to store the datasets. They must be stored separately as class objects.
         # It might be related to how module need custom ModuleDicts for dictionaries to work with distributed models.
         #   =>> But who knows?
+        # TODO: see if we can verify this is still an issue
+        self.eval_datasets = eval_datasets
+
         self.wikitext_dataset = custom_eval_datasets.get("wikitext", None)
         self.lambada_dataset = custom_eval_datasets.get("lambada", None)
 
@@ -81,11 +80,10 @@ class OnlineBenchmarkTrainer(Trainer):
         eval_dataset: Optional[Dataset] = None,
         ignore_keys: Optional[List[str]] = None,
         metric_key_prefix: str = "eval",
-        eval_ppl_datasets: bool = True,
     ) -> Dict[str, float]:
 
         # Normal Evaluate -- this calls the on_evaluate callback
-        metrics = super(OnlineBenchmarkTrainer, self).evaluate(eval_dataset, ignore_keys, metric_key_prefix)
+        # metrics = super(OnlineBenchmarkTrainer, self).evaluate(eval_dataset, ignore_keys, metric_key_prefix)
 
         # Create New Metrics Dictionary --> TODO trainer.A :: Fix so doesn't explicitly assume OpenWebText
         metrics = {
@@ -96,14 +94,20 @@ class OnlineBenchmarkTrainer(Trainer):
             "epoch": metrics.get("epoch"),
         }
         self.log(metrics)
-        if not eval_ppl_datasets:
-            return metrics
 
         # Start Memory Tracker
         self._memory_tracker.start()
 
         # Iterate over each Online Evaluation Dataset - Store New Metrics for Control Call
         new_dataset_metrics = {}
+
+        # first iterate over our own eval datasets
+        if self.eval_datasets is not None:
+            for name, eval_dataset in self.eval_datasets.items():
+                output_metrics = self.single_dataset_eval(name, eval_dataset, metric_key_prefix=metric_key_prefix)
+                new_dataset_metrics.update(output_metrics)
+                self.log(output_metrics)
+
         if self.wikitext_dataset is not None:
             output_metrics = self.single_dataset_eval("wikitext", self.wikitext_dataset, metric_key_prefix)
             new_dataset_metrics.update(output_metrics)
@@ -118,11 +122,21 @@ class OnlineBenchmarkTrainer(Trainer):
         self._memory_tracker.stop_and_update_metrics(new_dataset_metrics)
         metrics.update(new_dataset_metrics)
 
+        self.log(metrics)
+
+        if DebugOption.TPU_METRICS_DEBUG in self.args.debug:
+            # tpu-comment: Logging debug metrics for PyTorch/XLA (compile, execute times, ops, etc.)
+            xm.master_print(met.metrics_report())
+
+        self.control = self.callback_handler.on_evaluate(self.args, self.state, self.control, metrics)
+
+        self._memory_tracker.stop_and_update_metrics(metrics)
+
         return metrics
 
     def single_dataset_eval(self, dataset_name: str, dataset: Dataset, metric_key_prefix: str) -> Dict[str, float]:
         """Run Perplexity Evaluation on a Single Dataset."""
-        custom_metric_key_prefix = f"{metric_key_prefix}_{dataset_name}"
+        custom_metric_key_prefix = f"{metric_key_prefix}/{dataset_name}"
         if dataset is not None and not isinstance(dataset, collections.abc.Sized):
             raise ValueError("eval_dataset must implement __len__")
 

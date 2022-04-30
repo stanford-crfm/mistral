@@ -4,31 +4,69 @@ train_schema.py
 Defines dataclass hparams for use with yahp
 """
 import dataclasses
+from dataclasses import dataclass
 import typing
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Dict, Any
 
-import yahp
 import yahp as hp
 from transformers import TrainingArguments
 
 
-# Schema for Dataset
-@dataclasses.dataclass
-class DataHparams(hp.Hparams):
-    """Hparams for Dataset."""
+@dataclass
+class DatasetSourceHparams(hp.Hparams):
+    urls: List[str] = hp.required("urls of the dataset. Supports braceexpand")
+    json_text_key: str = hp.optional("key of the json text", default="text")
+    extra_fsspec_args: Dict[str, Any] = hp.optional("fsspec args. Use for s3, gs, etc.", default_factory=lambda: {})
 
-    id: str = hp.required("dataset id")
-    name: Optional[str] = hp.optional("dataset name", default=None)
-    validation_ratio: float = hp.optional("validation ratio", default=0.0005)
-    num_proc: int = hp.optional("number of processes", default=64)
-    eval_num_proc: int = hp.optional("number of processes for evaluation", default=4)
+    def validate(self):
+        pass
+
+    def initialize_object(self):
+        return self
 
 
-# Schema for Model
-@dataclasses.dataclass
+@dataclass
+class DatasetHparams(hp.Hparams):
+    train_sources: Dict[str, DatasetSourceHparams] = hp.optional("source hparams", default_factory=lambda: {})
+    train_weights: Optional[Dict[str, float]] = hp.optional("dict of [str, float] for weights. If None, then a strict "
+                                                      "alternation is used.", default=None)
+
+    validation_sources: Dict[str, DatasetSourceHparams] = hp.optional(
+        "validation source hparams. Perplexities will be represented separately per-source", default_factory=lambda: {})
+
+    cycle: bool = hp.optional(
+        "Whether to cycle the dataset during training. This is useful for training.",
+        default=False,
+    )
+    shuffle: bool = hp.optional(
+        "Whether to shuffle the samples in the train dataset. Currently, shards are assigned and consumed with deterministic "
+        "per-device shard order, but shuffling affects the order of samples via (per-device) shuffle buffers.",
+        default=True,
+    )
+    shuffle_buffer_size: int = hp.optional(
+        "If `shuffle=True`, samples are read into a buffer of this size (per-device), and randomly sampled from there "
+        "to produce shuffled samples.",
+        default=10000,
+    )
+    drop_last: bool = hp.optional(
+        "Whether to drop the last samples for the last batch.", default=True
+    )
+
+    def validate(self):
+        # Until https://github.com/mosaicml/yahp/issues/115 is fixed, we need to coerce what should be
+        # DataSourceHparams but is actually "json" (a dict) to a DatasetSourceHparams.
+        self.train_sources = {k: DatasetSourceHparams.create(data=v, cli_args=False)
+                              for k, v in self.train_sources.items()} # type: ignore
+        self.validation_sources = {k: DatasetSourceHparams.create(data=v, cli_args=False)
+                                   for k, v in self.validation_sources.items()} # type: ignore
+
+        super().validate()
+
+
+@dataclass
 class ModelHparams(hp.Hparams):
     """Hparams for Model."""
-    id: str = hp.required("model id")
+    id: str = hp.required("model id for config")
     pretrained_tokenizer: bool = hp.optional("use pretrained tokenizer", default=True)
     seq_len: int = hp.optional("sequence length for the model", default=1024)
     reorder_and_upcast_attn: bool = hp.optional("reorder and upcast attention", default=True)
@@ -60,15 +98,18 @@ training_argument_defaults = {
 # these are set via other config
 exclude_fields = {"output_dir", "gradient_accumulation_steps", "seed", "data_seed", "_n_gpu"}
 
+
 def is_optional(field):
     return typing.get_origin(field) is Union and \
            type(None) in typing.get_args(field)
 
 
-# This function does two things:
-# It renames "help" to "doc" in the metadata for fields
-# It wraps the type annotation in a Union if it is optional. (HF doesn't bother with optional in type annotations...)
 def convert_hf_to_hparam_field(field: dataclasses.Field, overridden_default=None):
+    """ Converts a field from HuggingFace's TrainingArguments to an hparam dataclass field.
+     This function does two things:
+     * It renames "help" to "doc" in the metadata for fields
+     * It wraps the type annotation in a Union if it is optional. (HF doesn't bother with optional in type annotations...)
+    """
     help = field.metadata.get("help", "")
     default = field.default
     if overridden_default is not None:
@@ -96,23 +137,23 @@ TrainingArgumentsHparams = dataclasses.make_dataclass("TrainingArgumentsHparams"
 
 
 # Schema for Online Custom Evaluation Datasets (e.g. LAMBADA)
-@dataclasses.dataclass
-class OnlineEvalHparams(yahp.Hparams):
+@dataclass
+class OnlineEvalHparams(hp.Hparams):
     do_wikitext: bool = hp.optional(doc="Whether to run Wikitext-2 evaluation", default=True)
     do_lambada: bool = hp.optional(doc="Whether to run Lambada evaluation", default=True)
     stride: int = hp.optional(doc="Stride for evaluation", default=512)
 
 
 # Schema for Storing Training and Data Artifacts
-@dataclasses.dataclass
-class ArtifactsHparams(yahp.Hparams):
+@dataclass
+class ArtifactsHparams(hp.Hparams):
     cache_dir: str = hp.optional(doc="Cache directory", default="/u/scr/nlp/mercury/mistral/artifacts")
     run_dir: str = hp.optional(doc="Run directory", default="/u/scr/nlp/mercury/mistral/runs")
 
 
-@dataclasses.dataclass
-class MistralHparams(yahp.Hparams):
-    dataset: DataHparams = hp.required("Dataset parameters")
+@dataclass
+class MistralHparams(hp.Hparams):
+    dataset: DatasetHparams = hp.required("Dataset parameters")
     model: ModelHparams = hp.required("Model parameters")
     training_arguments: TrainingArgumentsHparams = hp.required("Training arguments")
     online_eval: OnlineEvalHparams = hp.required("Online evaluation parameters")
