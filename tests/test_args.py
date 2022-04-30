@@ -10,7 +10,7 @@ RUNS_DIR = f"{MISTRAL_TEST_DIR}/runs"
 TRAIN_ARGS = {
     "nnodes": "1",
     "nproc_per_node": "1",
-    "config": "conf/train.yaml",
+    "file": "conf/train.yaml",
     "training_arguments.fp16": "false",
     "training_arguments.per_device_train_batch_size": "1",
     "artifacts.cache_dir": CACHE_DIR,
@@ -22,7 +22,7 @@ TRAIN_ARGS = {
 trainer_w_train = run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id="train_args_test")
 
 TRAIN_ARGS_DIFF = copy(TRAIN_ARGS)
-TRAIN_ARGS_DIFF["config"] = "conf/train-diff.yaml"
+TRAIN_ARGS_DIFF["file"] = "conf/train-diff.yaml"
 
 trainer_w_train_diff = run_train_process(
     cl_args_dict=TRAIN_ARGS_DIFF, runs_dir=RUNS_DIR, run_id="train_args_diff_test"
