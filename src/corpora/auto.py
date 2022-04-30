@@ -14,6 +14,7 @@ from datasets import Dataset
 from transformers import BatchEncoding, PreTrainedTokenizer
 
 from src.corpora.detokenization import DATASET_TOKENIZATION_REGISTRY
+from .indexer import IndexedDataset
 
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
@@ -31,7 +32,8 @@ def build_indexed_dataset(
         stride: Optional[int] = None,
         preprocessing_num_proc: int = 64,
         ignore_train: bool = False,
-        shuffle_train: bool = True) -> Dict[str, IndexedDataset]:
+        shuffle_seed: int = 42,
+        train_shuffle_buffer_size: Optional[int] = 10000) -> Dict[str, IndexedDataset]:
     """ Builds Indexed Datasets from a Dataset Dictionary. """
 
     dataset_key = dataset_id
@@ -63,8 +65,8 @@ def build_indexed_dataset(
         token_iter = batch_tokenize(ds, tokenizer, 1000)
         out_datasets[k] = IndexedDataset.build_or_load(token_iter, post_tokenization_cache_files[k], seq_len, stride)
 
-    if shuffle_train and "train" in out_datasets:
-        out_datasets["train"] = out_datasets["train"].shuffle(buffer_size=20000)
+    if train_shuffle_buffer_size is not None and "train" in out_datasets:
+        out_datasets["train"] = out_datasets["train"].seeded_shuffle(seed=shuffle_seed, buffer_size=train_shuffle_buffer_size)
 
     return out_datasets
 

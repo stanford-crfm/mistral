@@ -194,14 +194,14 @@ def load_datasets(quinfig, paths, tokenizer, overwatch):
         _preprocess_once_per_machine(quinfig, paths, tokenizer, overwatch)
 
     overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
-    lm_dataset = get_auto_dataset(
+    lm_dataset = build_indexed_dataset(
         tokenizer,
         paths,
         dataset_id=quinfig.dataset.id,
         dataset_name=quinfig.dataset.name,
-        validation_ratio=quinfig.dataset.validation_ratio,
         seq_len=quinfig.model.seq_len,
         preprocessing_num_proc=quinfig.dataset.num_proc,
+        shuffle_seed=quinfig.seed
     )
     # Load Online Eval Datasets
     custom_eval_datasets = dict()

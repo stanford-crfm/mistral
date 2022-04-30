@@ -1,7 +1,9 @@
+from itertools import islice
+from typing import List, Dict
+
 import torch
 
-from tests import MISTRAL_TEST_DIR, run_tests, run_train_process
-
+from tests import MISTRAL_TEST_DIR, run_tests, run_train_process, get_samples, check_samples_equal
 
 # paths
 CACHE_DIR = f"{MISTRAL_TEST_DIR}/artifacts"
@@ -53,6 +55,9 @@ def is_randomized(key):
 
 
 def test_weight_initializations() -> None:
+    trainer_seed_7 = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_7, runs_dir=RUNS_DIR, run_id="trainer_seed_7")
+    trainer_seed_10 = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_10, runs_dir=RUNS_DIR, run_id="trainer_seed_10")
+
     assert trainer_seed_7.model.state_dict().keys() == trainer_seed_10.model.state_dict().keys()
     for key in trainer_seed_7.model.state_dict().keys():
         if is_randomized(key):
@@ -62,15 +67,21 @@ def test_weight_initializations() -> None:
 
 
 def test_data_order() -> None:
+    trainer_seed_7 = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_7, runs_dir=RUNS_DIR, run_id="trainer_seed_7")
+    trainer_seed_10 = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_10, runs_dir=RUNS_DIR, run_id="trainer_seed_10")
+
     seed_7_dataloader = trainer_seed_7.get_train_dataloader()
     seed_10_dataloader = trainer_seed_10.get_train_dataloader()
-    seed_7_indices, seed_10_indices = list(iter(seed_7_dataloader.sampler)), list(iter(seed_10_dataloader.sampler))
+
+
+
+    seed_7_data, seed_10_data = get_samples(seed_7_dataloader), get_samples(seed_10_dataloader)
 
     seed_7_copy_dataloader = trainer_seed_7_copy.get_train_dataloader()
-    seed_7_copy_indices = list(iter(seed_7_copy_dataloader.sampler))
+    seed_7_copy_data = get_samples(seed_7_copy_dataloader)
 
-    assert seed_7_copy_indices == seed_7_indices, "data order is different"
-    assert seed_10_indices != seed_7_indices, "data order should be different for different seeds"
+    assert check_samples_equal(seed_7_copy_data, seed_7_data), "data is not the same"
+    assert not check_samples_equal(seed_10_data, seed_7_data), "data order should be different for different seeds"
 
 
 if __name__ == "__main__":
