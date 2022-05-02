@@ -3,8 +3,7 @@ from typing import List, Dict
 
 import torch
 
-from tests import MISTRAL_TEST_DIR, run_tests, run_train_process
-
+from tests import MISTRAL_TEST_DIR, run_tests, run_train_process, get_samples, check_samples_equal
 
 # paths
 CACHE_DIR = f"{MISTRAL_TEST_DIR}/artifacts"
@@ -62,25 +61,17 @@ def test_data_order() -> None:
     seed_7_dataloader = trainer_seed_7.get_train_dataloader()
     seed_10_dataloader = trainer_seed_10.get_train_dataloader()
 
-    def check_equal(data1: List[Dict[str, torch.Tensor]], data2: List[Dict[str, torch.Tensor]]) -> bool:
-        # enough to check that the input_ids are the same
-        # remember to use torch.equal() for tensors
-        if len(data1) != len(data2):
-            return False
-        for i in range(len(data1)):
-            if not torch.equal(data1[i]["input_ids"], data2[i]["input_ids"]):
-                return False
-        return True
 
-    seed_7_data, seed_10_data = list(islice(iter(seed_7_dataloader), 20)),  list(islice(iter(seed_10_dataloader), 20))
+
+    seed_7_data, seed_10_data = get_samples(seed_7_dataloader), get_samples(seed_10_dataloader)
 
     trainer_seed_7_copy = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_7, runs_dir=RUNS_DIR,
                                             run_id="trainer_seed_7_copy")
     seed_7_copy_dataloader = trainer_seed_7_copy.get_train_dataloader()
-    seed_7_copy_data = list(islice(iter(seed_7_copy_dataloader), 20))
+    seed_7_copy_data = get_samples(seed_7_copy_dataloader)
 
-    assert check_equal(seed_7_copy_data, seed_7_data), "data is not the same"
-    assert not check_equal(seed_10_data, seed_7_data), "data order should be different for different seeds"
+    assert check_samples_equal(seed_7_copy_data, seed_7_data), "data is not the same"
+    assert not check_samples_equal(seed_10_data, seed_7_data), "data order should be different for different seeds"
 
 
 if __name__ == "__main__":

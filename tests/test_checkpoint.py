@@ -3,8 +3,7 @@ import os
 
 import torch
 
-from tests import MISTRAL_TEST_DIR, run_tests, run_train_process
-
+from tests import MISTRAL_TEST_DIR, run_tests, run_train_process, get_samples, check_samples_equal
 
 # common paths and resources for tests
 
@@ -103,9 +102,9 @@ def test_restart_batch_order() -> None:
     """
     Test batch order is consistent when restarting
     """
-    original_indices = list(iter(trainer_after_training.get_train_dataloader().sampler))
-    after_restart_indices = list(iter(trainer_after_restart.get_train_dataloader().sampler))
-    assert original_indices == after_restart_indices
+    original_data = get_samples(trainer_after_training.get_train_dataloader())
+    after_restart_data = get_samples(trainer_after_restart.get_train_dataloader())
+    assert check_samples_equal(original_data, after_restart_data)
 
 
 if __name__ == "__main__":
