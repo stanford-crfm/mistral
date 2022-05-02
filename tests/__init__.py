@@ -77,8 +77,19 @@ def deepspeed_launch_info():
     Get info about number of nodes/gpus used by deepspeed.
     """
     grandparent = psutil.Process(os.getppid()).parent()
-    num_nodes = grandparent.cmdline()[grandparent.cmdline().index("--num_nodes") + 1]
-    num_gpus = grandparent.cmdline()[grandparent.cmdline().index("--num_gpus") + 1]
+    try:
+        num_nodes = grandparent.cmdline()[grandparent.cmdline().index("--num_nodes") + 1]
+    except ValueError:
+        num_nodes = 1
+
+    try:
+        num_gpus = grandparent.cmdline()[grandparent.cmdline().index("--num_gpus") + 1]
+    except ValueError:
+        gpu_list = os.getenv("CUDA_VISIBLE_DEVICES")
+        if gpu_list:
+            num_gpus = len(os.getenv("CUDA_VISIBLE_DEVICES", "").split(","))
+        else:
+            num_gpus = 1
     return {"nodes": int(num_nodes), "gpus": int(num_gpus)}
 
 
