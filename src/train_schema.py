@@ -17,6 +17,7 @@ class DatasetSourceHparams(hp.Hparams):
     urls: List[str] = hp.required("urls of the dataset. Supports braceexpand")
     json_text_key: str = hp.optional("key of the json text", default="text")
     extra_fsspec_args: Dict[str, Any] = hp.optional("fsspec args. Use for s3, gs, etc.", default_factory=lambda: {})
+    max_samples: Optional[int] = hp.optional("max number of samples to use", default=None)
 
     def validate(self):
         pass

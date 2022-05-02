@@ -42,8 +42,12 @@ def load_datasets(
     """Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset."""
 
     def load_dataset(source_params: DatasetSourceHparams, cycle: bool):
-        return sf.load_corpus(source_params.urls, cycle=cycle, json_text_key=source_params.json_text_key,
+        corpus = sf.load_corpus(source_params.urls, cycle=cycle, json_text_key=source_params.json_text_key,
                               extra_fsspec_args=source_params.extra_fsspec_args or {})
+        if source_params.max_samples:
+            corpus = corpus.take(source_params.max_samples)
+
+        return corpus
 
     tokenize = functools.partial(sf.tokenize_and_group_texts, tokenizer=tokenizer, seq_len=seq_len)
 

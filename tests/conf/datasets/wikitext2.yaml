@@ -7,3 +7,12 @@ dataset:
         wikitext2:
             urls:
                - wikitext2_raw/train.jsonl.zst
+    validation_sources:
+        wikitext2:
+            urls:
+              - wikitext2_raw/validation.jsonl.zst
+            max_samples: 64
+        wikitext2_clone:
+            urls:
+              - wikitext2_raw/validation.jsonl.zst
+            max_samples: 64

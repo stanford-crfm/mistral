@@ -5,6 +5,7 @@ Custom Hugging Face Trainer that allows for online eval of multiple datasets.
 """
 import collections
 import logging
+import math
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -83,17 +84,7 @@ class OnlineBenchmarkTrainer(Trainer):
     ) -> Dict[str, float]:
 
         # Normal Evaluate -- this calls the on_evaluate callback
-        # metrics = super(OnlineBenchmarkTrainer, self).evaluate(eval_dataset, ignore_keys, metric_key_prefix)
-
-        # Create New Metrics Dictionary --> TODO trainer.A :: Fix so doesn't explicitly assume OpenWebText
-        metrics = {
-            "eval_openwebtext_loss": metrics["eval_loss"],
-            "eval_openwebtext_ppl": np.exp(metrics["eval_loss"]),
-            "eval_openwebtext_runtime": metrics["eval_runtime"],
-            "eval_openwebtext_samples_per_second": metrics["eval_samples_per_second"],
-            "epoch": metrics.get("epoch"),
-        }
-        self.log(metrics)
+        metrics = {}
 
         # Start Memory Tracker
         self._memory_tracker.start()
@@ -118,8 +109,6 @@ class OnlineBenchmarkTrainer(Trainer):
             new_dataset_metrics.update(output_metrics)
             self.log(output_metrics)
 
-        self.control = self.callback_handler.on_evaluate(self.args, self.state, self.control, new_dataset_metrics)
-        self._memory_tracker.stop_and_update_metrics(new_dataset_metrics)
         metrics.update(new_dataset_metrics)
 
         self.log(metrics)
@@ -137,20 +126,24 @@ class OnlineBenchmarkTrainer(Trainer):
     def single_dataset_eval(self, dataset_name: str, dataset: Dataset, metric_key_prefix: str) -> Dict[str, float]:
         """Run Perplexity Evaluation on a Single Dataset."""
         custom_metric_key_prefix = f"{metric_key_prefix}/{dataset_name}"
-        if dataset is not None and not isinstance(dataset, collections.abc.Sized):
-            raise ValueError("eval_dataset must implement __len__")
 
         eval_dataloader = self.get_eval_dataloader(dataset)
         start_time = time.time()
-        output = self.prediction_loop(
+        output = self.evaluation_loop(
             eval_dataloader,
             description=f"Evaluation {dataset_name}",
             prediction_loss_only=True,
             metric_key_prefix=custom_metric_key_prefix,
         )
-        n_samples = len(dataset) if dataset is not None else 1
-        output.metrics.update(speed_metrics(custom_metric_key_prefix, start_time, n_samples))
-
+        total_batch_size = self.args.eval_batch_size * self.args.world_size
+        output.metrics.update(
+            speed_metrics(
+                metric_key_prefix,
+                start_time,
+                num_samples=output.num_samples,
+                num_steps=math.ceil(output.num_samples / total_batch_size),
+            )
+        )
         # Compute perplexity --- Note :: this is unadjusted
         ppl = np.exp(output.metrics[f"{custom_metric_key_prefix}_loss"])
         output.metrics.update({f"{custom_metric_key_prefix}_ppl": ppl})
