@@ -162,7 +162,7 @@ def train() -> OnlineBenchmarkTrainer:
     callbacks = [
         CustomCheckpointCallback(frequencies=frequencies),
     ]
-    if os.getenv("WANDB_DISABLED", "false").lower() != "true":
+    if os.getenv("WANDB_DISABLED", "false").lower() not in ["true", "1", "yes"]:
         callbacks.append(
             CustomWandbCallback(
                 quinfig.wandb,
