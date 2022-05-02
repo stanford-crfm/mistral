@@ -246,7 +246,7 @@ def get_lambada(
 
         beginning_tokens, last_token = tokenizer.encode(text[:start_idx].strip()), tokenizer.encode(" " + last_token)
         num_pad = seq_len - len(beginning_tokens) - len(last_token)
-        assert num_pad >= 0, "LAMBADA example is shorter than sequence length, will result in error."
+        assert num_pad >= 0, "LAMBADA example is longer than sequence length, will result in error."
 
         input_ids = beginning_tokens + last_token + [tokenizer.eos_token_id for _ in range(num_pad)]
         labels = [-100 for _ in beginning_tokens] + [tok for tok in last_token] + [-100 for _ in range(num_pad)]
