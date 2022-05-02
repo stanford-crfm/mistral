@@ -28,7 +28,7 @@ from datetime import datetime
 
 import numpy as np
 import torch
-from transformers.data.data_collator import default_data_collator
+from transformers.data.data_collator import default_data_collator, DataCollatorForLanguageModeling
 from transformers.trainer_utils import get_last_checkpoint
 
 from src.corpora.auto import load_datasets
@@ -183,11 +183,15 @@ def train() -> OnlineBenchmarkTrainer:
             ),
         )
 
+    # even though we're not padding (we're not!) we still need to set the pad_token to avoid a dumb valueerror
+    # TODO: file a bug for this?
+    tokenizer.pad_token_id = tokenizer.eos_token_id
 
     trainer = OnlineBenchmarkTrainer(
         model=model,
         args=training_args,
-        data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
+        # set pad_to_multiple to None to avoid padding
+        data_collator=DataCollatorForLanguageModeling(tokenizer, pad_to_multiple_of=None, mlm=False),
         train_dataset=lm_dataset.train,
         eval_datasets=lm_dataset.validation,
         custom_eval_datasets=custom_eval_datasets,
