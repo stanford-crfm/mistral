@@ -12,7 +12,7 @@
   "layer_norm_epsilon": 1e-05,
   "model_type": "gpt2",
   "n_ctx": 256,
-  "n_embd": 768,
+  "n_embd": 128,
   "n_head": 2,
   "n_inner": null,
   "n_layer": 2,
