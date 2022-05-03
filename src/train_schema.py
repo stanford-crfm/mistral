@@ -35,10 +35,6 @@ class DatasetHparams(hp.Hparams):
     validation_sources: Dict[str, DatasetSourceHparams] = hp.optional(
         "validation source hparams. Perplexities will be represented separately per-source", default_factory=lambda: {})
 
-    cycle: bool = hp.optional(
-        "Whether to cycle the dataset during training. This is useful for training.",
-        default=False,
-    )
     shuffle: bool = hp.optional(
         "Whether to shuffle the samples in the train dataset. Currently, shards are assigned and consumed with deterministic "
         "per-device shard order, but shuffling affects the order of samples via (per-device) shuffle buffers.",

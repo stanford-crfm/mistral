@@ -41,8 +41,8 @@ def load_datasets(
 ) -> LoadedDatasets:
     """Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset."""
 
-    def load_dataset(source_params: DatasetSourceHparams, shard_by_rank: bool, cycle: bool):
-        corpus = sf.load_corpus(source_params.urls, shard_by_rank=shard_by_rank, cycle=cycle,
+    def load_dataset(source_params: DatasetSourceHparams, shard_by_rank: bool):
+        corpus = sf.load_corpus(source_params.urls, shard_by_rank=shard_by_rank,
                                 json_text_key=source_params.json_text_key,
                               extra_fsspec_args=source_params.extra_fsspec_args or {})
         if source_params.max_samples:
@@ -52,14 +52,14 @@ def load_datasets(
 
     tokenize = functools.partial(sf.tokenize_and_group_texts, tokenizer=tokenizer, seq_len=seq_len)
 
-    def prepare_datasets(sources: Dict[str, DatasetSourceHparams], is_val: bool, cycle: bool)\
+    def prepare_datasets(sources: Dict[str, DatasetSourceHparams], is_val: bool)\
             -> Dict[str, IterDataPipe[BatchEncoding]]:
-        datasets = {k: load_dataset(v, shard_by_rank=not is_val, cycle=cycle) for k, v in sources.items()}
+        datasets = {k: load_dataset(v, shard_by_rank=not is_val) for k, v in sources.items()}
         datasets = {k: dataset.then(tokenize, tokenizer=tokenizer, seq_len=seq_len) for k, dataset in datasets.items()}
         return datasets
 
-    train_datasets = prepare_datasets(data_hparams.train_sources, is_val=False, cycle=data_hparams.cycle)
-    val_datasets = prepare_datasets(data_hparams.validation_sources, is_val=True, cycle=False)
+    train_datasets = prepare_datasets(data_hparams.train_sources, is_val=False)
+    val_datasets = prepare_datasets(data_hparams.validation_sources, is_val=True)
 
     # merge train via sampling or multiplexing
     weights = data_hparams.train_weights
