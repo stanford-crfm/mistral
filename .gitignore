@@ -130,3 +130,7 @@ dmypy.json
 
 # JetBrains
 .idea/
+
+# mistral
+artifacts/
+runs/
