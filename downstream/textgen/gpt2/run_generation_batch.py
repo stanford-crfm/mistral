@@ -57,6 +57,10 @@ import sys, os
 sys.path.insert(1, '/u/scr/xlisali/contrast_LM/transformers/examples/control')
 from train_control import PrefixTuning, PrefixEmbTuning
 
+# imports for wandb
+from datetime import datetime
+import wandb
+
 
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
@@ -758,6 +762,9 @@ def main():
 
     parser.add_argument("--use_task_instruction", type=int, default=0, help="")
     parser.add_argument("--max_source_length", type=int, default=-1, help="")
+    parser.add_argument("--wandb_entity", type=str, default=None)
+    parser.add_argument("--wandb_project", type=str, default=None)
+    parser.add_argument("--wandb_run_name", type=str, default=None)
 
     args = parser.parse_args()
 
@@ -770,6 +777,17 @@ def main():
         args.n_gpu,
         args.fp16,
     )
+
+    # initialize wandb run
+    if args.wandb_entity and args.wandb_project and args.wandb_run_name:
+        wandb_run = wandb.init(
+                        entity=args.wandb_entity, 
+                        project=args.wandb_project,
+                        name=args.wandb_run_name
+                    )
+        wandb_run.summary["start_time"] = str(datetime.now())
+    else:
+        wandb_run = None
 
     set_seed(args.seed)
 
@@ -1439,6 +1457,10 @@ def main():
         reference_lns = [x.rstrip() for x in open(test_tgt_path).readlines()]
         assert len(output_lns) == len(reference_lns)
         scores = calculate_rouge(output_lns, reference_lns)
+        if wandb_run:
+            wandb_scores = dict([(f"eval/{k}", scores[k]) for k in scores])
+            wandb_run.log(wandb_scores)
+            wandb_run.summary["finish_time"] = str(datetime.now())
         print (scores)
     except:
         pass
