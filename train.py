@@ -185,7 +185,7 @@ def train() -> OnlineBenchmarkTrainer:
 
     # even though we're not padding (we're not!) we still need to set the pad_token to avoid a dumb valueerror
     # TODO: file a bug for this?
-    tokenizer.pad_token_id = tokenizer.eos_token_id
+    tokenizer.pad_token = tokenizer.eos_token
 
     trainer = OnlineBenchmarkTrainer(
         model=model,
