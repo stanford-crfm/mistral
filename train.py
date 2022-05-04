@@ -213,8 +213,11 @@ def train() -> OnlineBenchmarkTrainer:
     if hparams.run_final_eval:
         overwatch.info("Running final evaluation...")
         if hparams.nproc_per_node > 0:
-            trainer.model.to(torch.device("cuda"))
+            trainer.model.to(trainer.args.device)
         metrics = trainer.evaluate()
+        # TODO: this is a bit hacky, but it makes testing a bit easier given the current framework
+        with open(str(paths["runs"] / "final-metrics.json"), "w") as f:
+            json.dump(metrics, f)
         print(metrics)
 
     # return trainer as record of training process

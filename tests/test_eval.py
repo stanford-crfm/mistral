@@ -1,6 +1,9 @@
+from pathlib import Path
+
 import numpy as np
 
 from tests import MISTRAL_TEST_DIR, run_tests, run_train_process, get_samples, check_samples_equal
+import json
 
 # common paths and resources for tests
 
@@ -20,7 +23,7 @@ TRAIN_ARGS = {
     "artifacts.cache_dir": CACHE_DIR,
     "log_level": "20",
     "effective_bsz": "16",
-    "run_final_eval": "false",
+    "run_final_eval": "true",
     "training_arguments.dataloader_num_workers": "0",
 }
 
@@ -28,11 +31,10 @@ trainer_after_training = run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUN
 
 
 def test_eval_works() -> None:
-    """
-    Test weights of a checkpointed model match the true weights.
-    """
-    # mostly want to ensure it doesn't crash
-    metrics = trainer_after_training.evaluate(metric_key_prefix="eval")
+    # mostly want to ensure it doesn't crash, but also want to be sure eval does what we want
+    metrics = Path(RUNS_DIR) / RUN_ID / "final-metrics.json"
+    with open(metrics, 'r') as f:
+        metrics = json.load(f)
     base_ppl = metrics["eval/wikitext2_ppl"]
     clone_ppl = metrics["eval/wikitext2_clone_ppl"]
     assert np.isclose(base_ppl, clone_ppl)
