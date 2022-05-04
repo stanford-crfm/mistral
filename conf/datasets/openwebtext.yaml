@@ -2,12 +2,11 @@
 #   Configuration for OpenWebText Dataset (https://huggingface.co/datasets/openwebtext)
 ---
 dataset:
-    id: openwebtext
-    name: null
-    validation_ratio: 0.0005
-
-    # Number of Preprocessing Workers
-    num_proc: 64
-
-    # Number of Evaluation Preprocessing Workers
-    eval_num_proc: 4
+    train_sources:
+        openwebtext:
+            urls:
+               -  TODO
+    validation_sources:
+        openwebtext:
+            urls:
+              - TODO

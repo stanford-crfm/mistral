@@ -2,12 +2,11 @@
 #   Configuration for WikiText-103 Dataset (https://huggingface.co/datasets/wikitext).
 ---
 dataset:
-    id: wikitext
-    name: wikitext-103-raw-v1
-    validation_ratio: 0.005
-
-    # Number of Preprocessing Workers
-    num_proc: 4
-
-    # Number of Evaluation Preprocessing Workers
-    eval_num_proc: 4
+    train_sources:
+        wikitext103:
+            urls:
+               - wikitext103_raw/train.jsonl.zst
+    validation_sources:
+        wikitext103:
+            urls:
+              - wikitext103_raw/validation.jsonl.zst
