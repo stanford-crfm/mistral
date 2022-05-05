@@ -7,7 +7,7 @@ de-facto training, validation, and testing tests. Performs additional tokenizati
 import logging
 from copy import deepcopy
 from pathlib import Path
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Optional
 
 import datasets
 from transformers import BatchEncoding, PreTrainedTokenizer
@@ -29,6 +29,7 @@ def get_auto_dataset(
     preprocessing_num_proc: int = 64,
     stride: int = -1,
     ignore_train: bool = False,
+    _actual_preprocessing: bool = False
 ) -> datasets.DatasetDict:
     """Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset."""
 
@@ -43,6 +44,7 @@ def get_auto_dataset(
         assert "train" in dataset, "You must have train in dataset to make a validation dataset"
         # Create Dataset Split Cache Files
         train_fn, val_fn = [str(paths["dataset"] / dataset_id / f"{k}-split.hf") for k in ["train", "val"]]
+
         dataset = dataset["train"].train_test_split(
             test_size=validation_ratio,
             train_indices_cache_file_name=train_fn,
@@ -77,7 +79,7 @@ def get_auto_dataset(
     tokenized_dataset = dataset.map(
         tokenize,
         batched=True,
-        num_proc=preprocessing_num_proc,
+        num_proc=1, # tokenization is
         remove_columns=next(iter(dataset.values())).column_names,
         cache_file_names=post_tokenization_cache_files,
         load_from_cache_file=True,
@@ -167,6 +169,7 @@ def get_lambada(
     preprocessing_num_proc: int = 4,
     stride: int = -1,
     ignore_train: bool = False,
+    _actual_preprocessing: bool = False
 ) -> datasets.DatasetDict:
     """
     Run special tokenization and grouping for the Lambada dataset.
