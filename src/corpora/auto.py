@@ -5,14 +5,18 @@ Default Dataset/Corpus Utilities. Downloads (if necessary) from the Hugging Face
 de-facto training, validation, and testing tests. Performs additional tokenization and normalization as well.
 """
 import logging
+import os
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, Iterable, List
+import multiprocessing as mp
 
 import datasets
 from transformers import BatchEncoding, PreTrainedTokenizer
+import torch.distributed as dist
 
 from src.corpora.detokenization import DATASET_TOKENIZATION_REGISTRY
+from src.util.worker_info import pytorch_worker_info
 
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
@@ -29,8 +33,36 @@ def get_auto_dataset(
     preprocessing_num_proc: int = 64,
     stride: int = -1,
     ignore_train: bool = False,
+    _actual_preprocessing: bool = False
 ) -> datasets.DatasetDict:
     """Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset."""
+
+    rank, world_size, _, _ = pytorch_worker_info()
+    if not _actual_preprocessing and world_size > 1:
+        #barrier = mp.Barrier(world_size)
+        if rank == 0:
+            print("fork!")
+            process = mp.Process(target=get_auto_dataset, kwargs=dict(
+                tokenizer=tokenizer,
+                paths=paths,
+                dataset_id=dataset_id,
+                dataset_name=dataset_name,
+                validation_ratio=validation_ratio,
+                seq_len=seq_len,
+                preprocessing_num_proc=preprocessing_num_proc,
+                stride=stride,
+                ignore_train=ignore_train,
+                _actual_preprocessing=True
+            ))
+            process.start()
+            print("join!")
+            process.join()
+            print("done join!")
+        print("wait!", rank)
+        dist.barrier()
+        print("done waiting!", rank)
+
+    print("hi", _actual_preprocessing, rank)
 
     # Sanity check on input args
     stride = seq_len if stride < 0 else stride
@@ -43,6 +75,7 @@ def get_auto_dataset(
         assert "train" in dataset, "You must have train in dataset to make a validation dataset"
         # Create Dataset Split Cache Files
         train_fn, val_fn = [str(paths["dataset"] / dataset_id / f"{k}-split.hf") for k in ["train", "val"]]
+
         dataset = dataset["train"].train_test_split(
             test_size=validation_ratio,
             train_indices_cache_file_name=train_fn,
@@ -77,7 +110,7 @@ def get_auto_dataset(
     tokenized_dataset = dataset.map(
         tokenize,
         batched=True,
-        num_proc=preprocessing_num_proc,
+        num_proc=1, # tokenization is
         remove_columns=next(iter(dataset.values())).column_names,
         cache_file_names=post_tokenization_cache_files,
         load_from_cache_file=True,
@@ -126,6 +159,7 @@ def get_auto_dataset(
         cache_file_names=post_chunking_cache_files,
         load_from_cache_file=True,
     )
+    print("done!", rank, _actual_preprocessing)
 
     return lm_dataset
 
@@ -167,6 +201,7 @@ def get_lambada(
     preprocessing_num_proc: int = 4,
     stride: int = -1,
     ignore_train: bool = False,
+    _actual_preprocessing: bool = False
 ) -> datasets.DatasetDict:
     """
     Run special tokenization and grouping for the Lambada dataset.
@@ -174,6 +209,31 @@ def get_lambada(
     Taken from https://github.com/NVIDIA/Megatron-LM/blob/main/tasks/zeroshot_gpt2/datasets.py
     """
     overwatch.info(f"Preprocessing LAMBADA Dataset via Multiprocessing with `{preprocessing_num_proc}` threads...")
+
+    rank, world_size, _, _ = pytorch_worker_info()
+    if not _actual_preprocessing and world_size > 1:
+        #barrier = mp.Barrier(world_size)
+        if rank == 0:
+            print("fork!")
+            process = mp.Process(target=get_lambada, kwargs=dict(
+                tokenizer=tokenizer,
+                paths=paths,
+                dataset_id=dataset_id,
+                dataset_name=dataset_name,
+                validation_ratio=validation_ratio,
+                seq_len=seq_len,
+                preprocessing_num_proc=preprocessing_num_proc,
+                stride=stride,
+                ignore_train=ignore_train,
+                _actual_preprocessing=True
+            ))
+            process.start()
+            print("join!")
+            process.join()
+            print("done join!")
+        print("wait!", rank)
+        dist.barrier()
+        print("done waiting!", rank)
 
     # Sanity check on Input Arguments
     stride = seq_len if stride < 0 else stride

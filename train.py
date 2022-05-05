@@ -100,6 +100,24 @@ def train() -> OnlineBenchmarkTrainer:
         initial_weights=quinfig.model.initial_weights,
     )
 
+
+    # Initialize Training Arguments from Quinfig
+    overwatch.info("Setting Training Arguments from Quinfig...")
+    training_args = get_training_arguments(
+        quinfig.training_arguments,
+        run_name=run_id,
+        output_dir=paths["runs"],
+        seed=quinfig.seed,
+        local_rank=quinfig.local_rank,
+        effective_bsz=quinfig.effective_bsz,
+        nodes=quinfig.nnodes,
+        gpus_per_node=quinfig.nproc_per_node,
+        gradient_checkpointing=quinfig.model.gradient_checkpointing,
+    )
+
+    # ensures deepspeed is initialized
+    training_args._setup_devices
+
     # Load Dataset w/ Preprocessing, Batching, and Collating
     overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
     lm_dataset = get_auto_dataset(
@@ -134,19 +152,6 @@ def train() -> OnlineBenchmarkTrainer:
     # Fix All Dataset Permissions
     set_permissions(paths)
 
-    # Initialize Training Arguments from Quinfig
-    overwatch.info("Setting Training Arguments from Quinfig...")
-    training_args = get_training_arguments(
-        quinfig.training_arguments,
-        run_name=run_id,
-        output_dir=paths["runs"],
-        seed=quinfig.seed,
-        local_rank=quinfig.local_rank,
-        effective_bsz=quinfig.effective_bsz,
-        nodes=quinfig.nnodes,
-        gpus_per_node=quinfig.nproc_per_node,
-        gradient_checkpointing=quinfig.model.gradient_checkpointing,
-    )
 
     # Initialize Trainer, with the relevant arguments
     overwatch.info("Initializing Model Trainer...")
