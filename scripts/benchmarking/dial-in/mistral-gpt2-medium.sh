@@ -2,7 +2,7 @@
 #   Mistral GPT-2 Medium Dry-Runs with the DeepSpeed ZeRO-2 Optimizer, Per-Device Batch Size of 16/8/4.
 
 # Constants
-CONFIG="--config conf/archive/partial-checkpointing/gpt2-mistral-medium-gcheck-config.yaml"
+CONFIG="--file conf/archive/partial-checkpointing/gpt2-mistral-medium-gcheck-config.yaml"
 INFRA="--nnodes 2 --nproc_per_node 8"
 
 # Batch Size

@@ -17,7 +17,7 @@ WORLD_SIZE=$((${nnodes}*${node_rank}))
 DISTRIBUTED_ARGS="--num_gpus $GPUS_PER --num_nodes ${nnodes} --master_addr $MASTER_ADDR"
 
 # Default `train.py` config arguments
-CONFIG_ARGS="--config conf/gpt2-sphinx-debug-config.yaml --nproc_per_node $GPUS_PER --nnodes ${nnodes}"
+CONFIG_ARGS="--file conf/gpt2-sphinx-debug-config.yaml --nproc_per_node $GPUS_PER --nnodes ${nnodes}"
 
 # DeepSpeed Configurations
 DEEPSPEED_Z1="--training_arguments.deepspeed conf/deepspeed/z1-conf.json"

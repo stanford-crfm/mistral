@@ -3,7 +3,7 @@
 #   Per-Device Batch Size of 16.
 
 # Constants
-CONFIG="--config conf/gpt2-benchmark-config.yaml"
+CONFIG="--file conf/gpt2-benchmark-config.yaml"
 INFRA="--nnodes 1 --nproc_per_node 8"
 
 # Batch Size

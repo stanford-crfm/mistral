@@ -4,7 +4,7 @@
 #   directly from the results of the Vanilla runs!
 
 # Constants
-CONFIG="--config conf/gpt2-benchmark-config.yaml"
+CONFIG="--file conf/gpt2-benchmark-config.yaml"
 INFRA="--nnodes 1 --nproc_per_node 8"
 GC="--model.gradient_checkpointing true"
 FP16="--training_arguments.fp16 true"

@@ -10,17 +10,17 @@
 # Multi-Node FS-Z2, No GC, FP16, Device BSZ = 8
 
 ## =>> Sphinx1
-python -m torch.distributed.launch --nproc_per_node 8 --nnodes 2 --node_rank 0 --master_addr=sphinx1.stanford.edu train.py --config conf/gpt2-intensive-config.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8 --training_arguments.sharded_ddp zero_dp_2+auto_wrap --run_id charlie-fs=z2-n=2-g=8-fp16-dbsz=8; pkill -f "train.py"; sleep 3
+python -m torch.distributed.launch --nproc_per_node 8 --nnodes 2 --node_rank 0 --master_addr=sphinx1.stanford.edu train.py --fileconf/gpt2-intensive-config.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8 --training_arguments.sharded_ddp zero_dp_2+auto_wrap --run_id charlie-fs=z2-n=2-g=8-fp16-dbsz=8; pkill -f "train.py"; sleep 3
 
 ## =>> Sphinx2
-python -m torch.distributed.launch --nproc_per_node 8 --nnodes 2 --node_rank 1 --master_addr=sphinx1.stanford.edu train.py --config conf/gpt2-intensive-config.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8 --training_arguments.sharded_ddp zero_dp_2+auto_wrap --run_id charlie-fs=z2-n=2-g=8-fp16-dbsz=8; pkill -f "train.py"; sleep 3
+python -m torch.distributed.launch --nproc_per_node 8 --nnodes 2 --node_rank 1 --master_addr=sphinx1.stanford.edu train.py --fileconf/gpt2-intensive-config.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8 --training_arguments.sharded_ddp zero_dp_2+auto_wrap --run_id charlie-fs=z2-n=2-g=8-fp16-dbsz=8; pkill -f "train.py"; sleep 3
 
 # ---
 
 # Multi-Node FS-Z3, No GC, FP16, Device BSZ = 8
 
 ## =>> Sphinx1
-python -m torch.distributed.launch --nproc_per_node 8 --nnodes 2 --node_rank 0 --master_addr=sphinx1.stanford.edu train.py --config conf/gpt2-intensive-config.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8 --training_arguments.sharded_ddp zero_dp_3+auto_wrap --run_id delta-fs=z3-n=2-g=8-fp16-dbsz=8; pkill -f "train.py"; sleep 3
+python -m torch.distributed.launch --nproc_per_node 8 --nnodes 2 --node_rank 0 --master_addr=sphinx1.stanford.edu train.py --fileconf/gpt2-intensive-config.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8 --training_arguments.sharded_ddp zero_dp_3+auto_wrap --run_id delta-fs=z3-n=2-g=8-fp16-dbsz=8; pkill -f "train.py"; sleep 3
 
 ## =>> Sphinx2
-python -m torch.distributed.launch --nproc_per_node 8 --nnodes 2 --node_rank 1 --master_addr=sphinx1.stanford.edu train.py --config conf/gpt2-intensive-config.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8 --training_arguments.sharded_ddp zero_dp_3+auto_wrap --run_id delta-fs=z3-n=2-g=8-fp16-dbsz=8; pkill -f "train.py"; sleep 3
+python -m torch.distributed.launch --nproc_per_node 8 --nnodes 2 --node_rank 1 --master_addr=sphinx1.stanford.edu train.py --fileconf/gpt2-intensive-config.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 8 --training_arguments.sharded_ddp zero_dp_3+auto_wrap --run_id delta-fs=z3-n=2-g=8-fp16-dbsz=8; pkill -f "train.py"; sleep 3

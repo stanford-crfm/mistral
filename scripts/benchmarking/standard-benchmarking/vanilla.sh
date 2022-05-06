@@ -3,7 +3,7 @@
 #   on single-GPU runtime, mostly as a sanity check.
 
 # Constants
-CONFIG="--config conf/gpt2-benchmark-config.yaml"
+CONFIG="--file conf/gpt2-benchmark-config.yaml"
 INFRA="--nnodes 1 --nproc_per_node 1"
 GC="--model.gradient_checkpointing true"
 FP16="--training_arguments.fp16 true"

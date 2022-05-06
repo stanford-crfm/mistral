@@ -3,7 +3,7 @@
 #   with and without gradient checkpointing.
 
 # Constants
-CONFIG="--config conf/gpt2-benchmark-config.yaml"
+CONFIG="--file conf/gpt2-benchmark-config.yaml"
 INFRA="--nnodes 2 --nproc_per_node 8"
 GC="--model.gradient_checkpointing true"
 

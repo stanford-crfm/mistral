@@ -26,7 +26,7 @@ echo "MODEL = $MODEL"
 echo "RESUME = $RESUME"
 
 # Constants
-GCP_CONFIG="--config conf/gpt2-mistral-small-gcp-config.yaml";
+GCP_CONFIG="--file conf/gpt2-mistral-small-gcp-config.yaml";
 if [ "$RESUME" == "true" ];
 then
   RES="--resume true";

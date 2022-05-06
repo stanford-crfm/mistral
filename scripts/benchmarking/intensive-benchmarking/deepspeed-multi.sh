@@ -3,7 +3,7 @@
 #   without gradient checkpointing.
 
 # Constants
-CONFIG="--config conf/gpt2-intensive-config.yaml"
+CONFIG="--file conf/gpt2-intensive-config.yaml"
 INFRA="--nnodes 2 --nproc_per_node 8"
 
 # A Few Choices for Batch Size

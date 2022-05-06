@@ -2,7 +2,7 @@
 #   Mistral GPT-2 Small Dry-Runs with the DeepSpeed ZeRO-2 Optimizer, Per-Device Batch Size of 16.
 
 # Constants
-CONFIG="--config conf/gpt2-mistral-small-config.yaml"
+CONFIG="--file conf/gpt2-mistral-small-config.yaml"
 INFRA="--nnodes 2 --nproc_per_node 8"
 
 # Batch Size
