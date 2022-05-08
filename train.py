@@ -20,7 +20,6 @@ Reference:
 
 |=>> A Project Mercury Endeavor
 """
-import dataclasses
 import json
 import os
 import random
@@ -31,12 +30,12 @@ import torch
 from transformers.data.data_collator import default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
 
-from src.train_schema import MistralHparams
 from src.args import get_training_arguments
 from src.core import CustomCheckpointCallback, CustomWandbCallback, OnlineBenchmarkTrainer
 from src.corpora import ONLINE_EVAL_DATA_REGISTRY, get_auto_dataset
 from src.models import get_auto_clm_tokenizer
 from src.overwatch import get_overwatch
+from src.train_schema import MistralHparams
 from src.util import create_paths, set_permissions
 
 
@@ -116,7 +115,9 @@ def train() -> OnlineBenchmarkTrainer:
 
     # Load Online Eval Datasets
     custom_eval_datasets = dict()
-    for eval_dataset_arg in list(filter(lambda x: x.startswith("do_"), hparams.online_eval.__dataclass_fields__.keys())):
+    for eval_dataset_arg in list(
+        filter(lambda x: x.startswith("do_"), hparams.online_eval.__dataclass_fields__.keys())
+    ):
         if getattr(hparams.online_eval, eval_dataset_arg):
             # Dataset name is in hparams arg of "do_<dataset>" -> Boolean
             dataset_name = eval_dataset_arg.lstrip("do_")
@@ -175,7 +176,6 @@ def train() -> OnlineBenchmarkTrainer:
                 api_key_path=hparams.wandb_api_key_path,
             ),
         )
-
 
     trainer = OnlineBenchmarkTrainer(
         model=model,

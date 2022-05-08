@@ -10,8 +10,8 @@ from pathlib import Path
 
 from transformers import TrainingArguments
 
-
 from src.train_schema import TrainingArgumentsHparams
+
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
 overwatch = logging.getLogger("mistral.args.training")
@@ -51,7 +51,10 @@ def get_training_arguments(
             "zero_dp_2+auto_wrap+offload",
             "zero_dp_3+auto_wrap",
             "zero_dp_3+auto_wrap+offload",
-        ], f"sharded_ddp must be one of: '', 'simple', 'zero_dp_2+auto_wrap', 'zero_dp_2+auto_wrap+offload', 'zero_dp_3+auto_wrap', 'zero_dp_3+auto_wrap+offload', but was {training_args.sharded_ddp}"
+        ], (
+            "sharded_ddp must be one of: '', 'simple', 'zero_dp_2+auto_wrap', 'zero_dp_2+auto_wrap+offload',"
+            f" 'zero_dp_3+auto_wrap', 'zero_dp_3+auto_wrap+offload', but was {training_args.sharded_ddp}"
+        )
 
         # If "+" in `sharded_ddp` --> Split, and then join... this is kinda hacky (TODO training_args.A :: Fix!)
         if "+" in training_args.sharded_ddp:
@@ -59,7 +62,7 @@ def get_training_arguments(
 
     # Compute Gradient Accumulation Dynamically
     training_args.gradient_accumulation_steps = effective_bsz // (
-            args.per_device_train_batch_size * gpus_per_node * nodes
+        args.per_device_train_batch_size * gpus_per_node * nodes
     )
     overwatch.info(
         f"Setting Gradient Accumulation Steps = `{training_args.gradient_accumulation_steps}` [Node(s): {nodes} - "

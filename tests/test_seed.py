@@ -57,8 +57,9 @@ def test_data_order() -> None:
     seed_10_dataloader = trainer_seed_10.get_train_dataloader()
     seed_7_indices, seed_10_indices = list(iter(seed_7_dataloader.sampler)), list(iter(seed_10_dataloader.sampler))
 
-    trainer_seed_7_copy = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_7, runs_dir=RUNS_DIR,
-                                            run_id="trainer_seed_7_copy")
+    trainer_seed_7_copy = run_train_process(
+        cl_args_dict=TRAIN_ARGS_SEED_7, runs_dir=RUNS_DIR, run_id="trainer_seed_7_copy"
+    )
     seed_7_copy_dataloader = trainer_seed_7_copy.get_train_dataloader()
     seed_7_copy_indices = list(iter(seed_7_copy_dataloader.sampler))
 

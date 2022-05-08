@@ -5,7 +5,7 @@ Defines dataclass hparams for use with yahp
 """
 import dataclasses
 import typing
-from typing import Optional, List, Union
+from typing import List, Optional, Union
 
 import yahp
 import yahp as hp
@@ -19,7 +19,7 @@ class DataHparams(hp.Hparams):
 
     id: str = hp.required("dataset id")
     name: Optional[str] = hp.optional("dataset name", default=None)
-    validation_ratio: float = hp.optional("validation ratio", default=0.0005)
+    validation_ratio: Optional[float] = hp.optional("validation ratio", default=0.0005)
     num_proc: int = hp.optional("number of processes", default=64)
     eval_num_proc: int = hp.optional("number of processes for evaluation", default=4)
 
@@ -28,6 +28,7 @@ class DataHparams(hp.Hparams):
 @dataclasses.dataclass
 class ModelHparams(hp.Hparams):
     """Hparams for Model."""
+
     id: str = hp.required("model id")
     pretrained_tokenizer: bool = hp.optional("use pretrained tokenizer", default=True)
     seq_len: int = hp.optional("sequence length for the model", default=1024)
@@ -60,9 +61,9 @@ training_argument_defaults = {
 # these are set via other config
 exclude_fields = {"output_dir", "gradient_accumulation_steps", "seed", "data_seed", "_n_gpu"}
 
+
 def is_optional(field):
-    return typing.get_origin(field) is Union and \
-           type(None) in typing.get_args(field)
+    return typing.get_origin(field) is Union and type(None) in typing.get_args(field)
 
 
 # This function does two things:
@@ -88,11 +89,15 @@ def convert_hf_to_hparam_field(field: dataclasses.Field, overridden_default=None
     return field.name, tpe, field_info
 
 
-TrainingArgumentsHparams = dataclasses.make_dataclass("TrainingArgumentsHparams", [
-    convert_hf_to_hparam_field(field, training_argument_defaults.get(field.name, None))
-    for field in dataclasses.fields(TrainingArguments)
-    if field.name not in exclude_fields
-], bases=(hp.Hparams,))
+TrainingArgumentsHparams = dataclasses.make_dataclass(
+    "TrainingArgumentsHparams",
+    [
+        convert_hf_to_hparam_field(field, training_argument_defaults.get(field.name, None))
+        for field in dataclasses.fields(TrainingArguments)
+        if field.name not in exclude_fields
+    ],
+    bases=(hp.Hparams,),
+)
 
 
 # Schema for Online Custom Evaluation Datasets (e.g. LAMBADA)
@@ -120,7 +125,7 @@ class MistralHparams(yahp.Hparams):
     effective_bsz: int = hp.optional(doc="Effective batch size", default=512)
     resume: bool = hp.optional(doc="Whether to resume training", default=False)
     resume_checkpoint: Optional[str] = hp.optional(doc="Checkpoint to resume from", default=None)
-    checkpoint_frequency: List[List[int]] = hp.optional(doc="Checkpoint frequency", default_factory=lambda:[])
+    checkpoint_frequency: List[List[int]] = hp.optional(doc="Checkpoint frequency", default_factory=lambda: [])
     log_level: int = hp.optional(doc="Logging level", default=20)
     run_id: Optional[str] = hp.optional(doc="Run ID", default=None)
     wandb_api_key_path: Optional[str] = hp.optional(doc="Path to wandb api key", default=None)
