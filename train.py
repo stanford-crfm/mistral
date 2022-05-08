@@ -23,7 +23,7 @@ Reference:
 import json
 import os
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import numpy as np
 import torch
@@ -45,6 +45,16 @@ def train() -> OnlineBenchmarkTrainer:
     print("[*] Mercury :: Launching =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
     print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)')
     quinfig = QuinineArgumentParser(schema=get_schema()).parse_quinfig()
+
+    # hack-y hack hack, set the default pg timeout to 6 hours
+    try:
+        import torch.distributed.constants
+        torch.distributed.constants.default_pg_timeout = timedelta(hours=6)
+        import deepspeed.constants
+        deepspeed.constants.default_pg_timeout = timedelta(hours=6)
+    except ModuleNotFoundError:
+        print("[!] Mercury :: Unable to import distributed modules")
+
 
     # Set Distributed Arguments
     # TODO train.A :: @Laurel, @Karan -- `local_rank` not in Quinfig w/ torch.distributed.launch?
