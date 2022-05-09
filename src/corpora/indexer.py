@@ -10,18 +10,15 @@
 # We don't want to have one giant file, so we'll split it up into chunks.
 import json
 import os
-import sprucfluo
 from pathlib import Path
-from typing import Iterator, Optional, Callable, List
+from typing import Iterator, Optional
 
 import datasets
-import fsspec
 import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
-from fsspec.core import OpenFile
-from torch.utils.data import Dataset, IterableDataset
-from torch.utils.data.datapipes.utils.common import StreamWrapper
+import sprucfluo
+from torch.utils.data import IterDataPipe
 from tqdm import tqdm
 from transformers import BatchEncoding, AutoTokenizer, PreTrainedTokenizerFast
 
@@ -43,8 +40,8 @@ NUM_TOKENS_PER_FILE = 67108864
 
 LEDGER_FILE = "ledger.json"
 
-class IndexedDataset(IterableDataset[BatchEncoding]):
 
+class IndexedDataset(IterDataPipe[BatchEncoding]):
     def __init__(self, cache_dir, seq_len: int, stride: Optional[int] = None):
         self.cache_dir = cache_dir
         self.ledger = self._load_ledger()

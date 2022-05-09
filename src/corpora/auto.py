@@ -30,7 +30,8 @@ def build_indexed_dataset(
         seq_len: int = 512,
         stride: Optional[int] = None,
         preprocessing_num_proc: int = 64,
-        ignore_train: bool = False) -> Dict[str, IndexedDataset]:
+        ignore_train: bool = False,
+        shuffle_train: bool = True) -> Dict[str, IndexedDataset]:
     """ Builds Indexed Datasets from a Dataset Dictionary. """
 
     dataset_key = dataset_id
@@ -61,6 +62,9 @@ def build_indexed_dataset(
     for k, ds in dataset.items():
         token_iter = batch_tokenize(ds, tokenizer, 1000)
         out_datasets[k] = IndexedDataset.build_or_load(token_iter, post_tokenization_cache_files[k], seq_len, stride)
+
+    if shuffle_train and "train" in out_datasets:
+        out_datasets["train"] = out_datasets["train"].shuffle(buffer_size=20000)
 
     return out_datasets
 

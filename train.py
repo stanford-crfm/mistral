@@ -37,6 +37,7 @@ from transformers.trainer_utils import get_last_checkpoint
 from conf.train_schema import get_schema
 from src.args import get_training_arguments
 from src.core import CustomCheckpointCallback, CustomWandbCallback, OnlineBenchmarkTrainer
+from src.core.trainer import LMDataCollator
 from src.corpora import ONLINE_EVAL_DATA_REGISTRY, get_auto_dataset
 from src.corpora.auto import build_indexed_dataset
 from src.models import get_auto_clm_tokenizer
@@ -157,7 +158,7 @@ def train() -> OnlineBenchmarkTrainer:
     trainer = OnlineBenchmarkTrainer(
         model=model,
         args=training_args,
-        data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
+        data_collator=LMDataCollator(tokenizer),  # De Facto Collator uses Padding, which we DO NOT want!
         train_dataset=lm_dataset["train"],
         eval_dataset=lm_dataset["validation"],
         custom_eval_datasets=custom_eval_datasets,
