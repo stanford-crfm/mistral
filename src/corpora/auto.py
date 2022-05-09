@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
 import datasets
+from datasets import Dataset
 from transformers import BatchEncoding, PreTrainedTokenizer
 
 from src.corpora.detokenization import DATASET_TOKENIZATION_REGISTRY
@@ -73,6 +74,8 @@ def get_auto_dataset(
     }
     # Create Parent Path of Cache Files
     (paths["preprocessed"] / dataset_id / "preprocessing" / "tokenization").mkdir(parents=True, exist_ok=True)
+
+    ds: Dataset = next(iter(dataset.values()))
 
     tokenized_dataset = dataset.map(
         tokenize,
