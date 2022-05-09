@@ -59,10 +59,11 @@ def build_indexed_dataset(
         for k in dataset
     }
 
-    overwatch.info(f"Tokenizing indexed dataset")
+    overwatch.info(f"Building Tokenized Indexed Dataset")
     out_datasets = {}
     for k, ds in dataset.items():
-        token_iter = batch_tokenize(ds, tokenizer, 1000)
+        overwatch.info(f"Building Indexed Dataset for {k}")
+        token_iter = batch_tokenize(ds, tokenizer, batch_size=1000)
         out_datasets[k] = IndexedDataset.build_or_load(token_iter, post_tokenization_cache_files[k], seq_len, stride)
 
     if train_shuffle_buffer_size is not None and "train" in out_datasets:

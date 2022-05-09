@@ -9,6 +9,7 @@
 # (We might add back in file metadata later)
 # We don't want to have one giant file, so we'll split it up into chunks.
 import json
+import logging
 import os
 from pathlib import Path
 from typing import Iterator, Optional
@@ -28,6 +29,8 @@ from transformers import BatchEncoding, AutoTokenizer, PreTrainedTokenizerFast
 from src.corpora.tokenization_utils import batch_tokenize
 
 NUM_TOKENS_PER_FILE = 67108864
+
+overwatch = logging.getLogger("mistral.corpora.indexer")
 
 # TASKS:
 # TODO: only do the caching on local_rank=0 so we do it once per device
@@ -69,6 +72,7 @@ class IndexedDataset(IterDataPipe[BatchEncoding]):
         ledger_file = os.path.join(cache_dir, LEDGER_FILE)
 
         if os.path.exists(ledger_file):
+            overwatch.info("Found existing indexed dataset at %s", cache_dir)
             return IndexedDataset(cache_dir, seq_len, stride)
 
         file_index = 0
