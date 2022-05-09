@@ -26,7 +26,9 @@ def build_indexed_dataset(
         tokenizer: PreTrainedTokenizer,
         paths: Dict[str, Path],
         dataset_id: str,
-        dataset_name: Optional[str] = None,
+        dataset_name: Optional[str],
+        seq_len: int = 512,
+        stride: Optional[int] = None,
         preprocessing_num_proc: int = 64,
         ignore_train: bool = False) -> Dict[str, IndexedDataset]:
     """ Builds Indexed Datasets from a Dataset Dictionary. """
@@ -58,7 +60,7 @@ def build_indexed_dataset(
     out_datasets = {}
     for k, ds in dataset.items():
         token_iter = batch_tokenize(ds, tokenizer, 1000)
-        out_datasets[k] = IndexedDataset.build_or_load(token_iter, post_tokenization_cache_files[k], flatten=True)
+        out_datasets[k] = IndexedDataset.build_or_load(token_iter, post_tokenization_cache_files[k], seq_len, stride)
 
     return out_datasets
 

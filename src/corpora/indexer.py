@@ -10,6 +10,7 @@
 # We don't want to have one giant file, so we'll split it up into chunks.
 import json
 import os
+import sprucfluo
 from pathlib import Path
 from typing import Iterator, Optional, Callable, List
 
@@ -44,10 +45,11 @@ LEDGER_FILE = "ledger.json"
 
 class IndexedDataset(IterableDataset[BatchEncoding]):
 
-    def __init__(self, cache_dir, flatten: bool):
+    def __init__(self, cache_dir, seq_len: int, stride: Optional[int] = None):
         self.cache_dir = cache_dir
         self.ledger = self._load_ledger()
-        self.flatten = flatten
+        self.seq_len = seq_len
+        self.stride = stride
 
     def _files(self):
         for entry in self.ledger["files"]:
@@ -55,19 +57,22 @@ class IndexedDataset(IterableDataset[BatchEncoding]):
 
     def __iter__(self):
         for file_name in self._files():
-            yield from read_cache_file(file_name, self.flatten)
+            for entry in read_cache_file(file_name, flatten=True):
+                yield from sprucfluo.concatenate_and_group_texts(entry, self.seq_len, self.stride)
+
 
     @staticmethod
     def build_or_load(token_iter: Iterator[BatchEncoding],
-                      cache_dir: str, *,
-                      flatten: bool,
+                      cache_dir: str,
+                      seq_len: int,
+                      stride: Optional[int] = None,
                       num_tokens_per_file: int = NUM_TOKENS_PER_FILE,
                       file_template: str = 'docs-{}.parquet') -> 'IndexedDataset':
         os.makedirs(cache_dir, exist_ok=True)
         ledger_file = os.path.join(cache_dir, LEDGER_FILE)
 
         if os.path.exists(ledger_file):
-            return IndexedDataset(cache_dir, flatten)
+            return IndexedDataset(cache_dir, seq_len, stride)
 
         file_index = 0
         current_writer: Optional[pq.ParquetWriter] = None
@@ -129,7 +134,7 @@ class IndexedDataset(IterableDataset[BatchEncoding]):
                 ledger = {"files": ledger_files}
                 json.dump(ledger, f)
 
-            return IndexedDataset(cache_dir, flatten)
+            return IndexedDataset(cache_dir, seq_len, stride)
         except (KeyboardInterrupt, InterruptedError):
             current_writer.close()
             current_writer = None
@@ -167,7 +172,7 @@ if __name__ == '__main__':
     dataset = datasets.load_dataset("dlwh/wikitext_2_detokenized", split="train")
     token_iter = batch_tokenize(dataset, tokenizer, batch_size=1000)
     indexer = IndexedDataset.build_or_load(batch_tokenize(dataset, tokenizer, batch_size=1000),
-                                           "cache/wikitext-2-indexed", flatten=True)
+                                           "cache/wikitext-2-indexed", seq_len=512, stride=None)
 
     for i, batch in enumerate(indexer):
         print(i, batch)
