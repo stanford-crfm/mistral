@@ -17,7 +17,50 @@ from src.corpora.detokenization import DATASET_TOKENIZATION_REGISTRY
 
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
+from .tokenization_utils import batch_tokenize
+
 overwatch = logging.getLogger("mistral.corpora.auto")
+
+
+def build_indexed_dataset(
+        tokenizer: PreTrainedTokenizer,
+        paths: Dict[str, Path],
+        dataset_id: str,
+        dataset_name: Optional[str] = None,
+        preprocessing_num_proc: int = 64,
+        ignore_train: bool = False) -> Dict[str, IndexedDataset]:
+    """ Builds Indexed Datasets from a Dataset Dictionary. """
+
+    dataset_key = dataset_id
+    if dataset_name is not None:
+        dataset_key = f"{dataset_name}-{dataset_id}"
+
+    # First, Normalize Text if Necessary. Tokenization Strategies are in detokenization.py.
+    dataset = datasets.load_dataset(
+        dataset_id, name=dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True
+    )
+
+    if ignore_train and "train" in dataset:
+        del dataset["train"]
+
+    dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
+
+    # Create Post-Tokenization Cache Paths
+    tokenization_cache = (paths["preprocessed"] / dataset_key / "preprocessing" / "tokenization")
+    tokenization_cache.mkdir(parents=True, exist_ok=True)
+
+    post_tokenization_cache_files = {
+        k: tokenization_cache / f"{k}-tokenized"
+        for k in dataset
+    }
+
+    overwatch.info(f"Tokenizing indexed dataset")
+    out_datasets = {}
+    for k, ds in dataset.items():
+        token_iter = batch_tokenize(ds, tokenizer, 1000)
+        out_datasets[k] = IndexedDataset.build_or_load(token_iter, post_tokenization_cache_files[k], flatten=True)
+
+    return out_datasets
 
 
 def get_auto_dataset(
@@ -74,8 +117,6 @@ def get_auto_dataset(
     }
     # Create Parent Path of Cache Files
     (paths["preprocessed"] / dataset_id / "preprocessing" / "tokenization").mkdir(parents=True, exist_ok=True)
-
-    ds: Dataset = next(iter(dataset.values()))
 
     tokenized_dataset = dataset.map(
         tokenize,

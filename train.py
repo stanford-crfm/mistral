@@ -38,6 +38,7 @@ from conf.train_schema import get_schema
 from src.args import get_training_arguments
 from src.core import CustomCheckpointCallback, CustomWandbCallback, OnlineBenchmarkTrainer
 from src.corpora import ONLINE_EVAL_DATA_REGISTRY, get_auto_dataset
+from src.corpora.auto import build_indexed_dataset
 from src.models import get_auto_clm_tokenizer
 from src.overwatch import get_overwatch
 from src.util import create_paths, set_permissions
@@ -117,9 +118,6 @@ def train() -> OnlineBenchmarkTrainer:
         gpus_per_node=quinfig.nproc_per_node,
         gradient_checkpointing=quinfig.model.gradient_checkpointing,
     )
-
-    # ensures deepspeed is initialized
-    training_args._setup_devices
 
     # Load Dataset w/ Preprocessing, Batching, and Collating
     custom_eval_datasets, lm_dataset = load_datasets(quinfig, paths, tokenizer, overwatch)
