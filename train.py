@@ -48,16 +48,6 @@ def train() -> OnlineBenchmarkTrainer:
     print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)')
     quinfig = QuinineArgumentParser(schema=get_schema()).parse_quinfig()
 
-    # hack-y hack hack, set the default pg timeout to 6 hours
-    try:
-        import torch.distributed.constants
-        torch.distributed.constants.default_pg_timeout = timedelta(hours=6)
-        import deepspeed.constants
-        deepspeed.constants.default_pg_timeout = timedelta(hours=6)
-    except ModuleNotFoundError:
-        print("[!] Mercury :: Unable to import distributed modules")
-
-
     # Set Distributed Arguments
     # TODO train.A :: @Laurel, @Karan -- `local_rank` not in Quinfig w/ torch.distributed.launch?
     quinfig.world_size = int(os.getenv("WORLD_SIZE", quinfig.nproc_per_node))
