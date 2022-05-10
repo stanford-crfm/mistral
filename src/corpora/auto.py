@@ -28,7 +28,7 @@ def build_indexed_dataset(
         paths: Dict[str, Path],
         dataset_id: str,
         dataset_name: Optional[str],
-        seq_len: int = 512,
+        seq_len: int,
         stride: Optional[int] = None,
         preprocessing_num_proc: int = 64,
         ignore_train: bool = False,

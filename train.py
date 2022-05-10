@@ -38,7 +38,7 @@ from conf.train_schema import get_schema
 from src.args import get_training_arguments
 from src.core import CustomCheckpointCallback, CustomWandbCallback, OnlineBenchmarkTrainer
 from src.core.trainer import LMDataCollator
-from src.corpora import ONLINE_EVAL_DATA_REGISTRY, get_auto_dataset
+from src.corpora import ONLINE_EVAL_DATA_REGISTRY
 from src.corpora.auto import build_indexed_dataset
 from src.models import get_auto_clm_tokenizer
 from src.overwatch import get_overwatch
@@ -203,6 +203,7 @@ def load_datasets(quinfig, paths, tokenizer, overwatch):
         preprocessing_num_proc=quinfig.dataset.num_proc,
         shuffle_seed=quinfig.seed
     )
+
     # Load Online Eval Datasets
     custom_eval_datasets = dict()
     for eval_dataset_arg in list(filter(lambda x: x.startswith("do_"), quinfig.online_eval.keys())):

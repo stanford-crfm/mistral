@@ -168,7 +168,7 @@ class LMDataCollator:
 
     def __call__(self, examples: List[BatchEncoding]):
         # If special token mask has been preprocessed, pop it from the dict.
-        batch = BatchEncoding(data={k: torch.tensor([v[k] for v in examples]) for k in examples[0].data.keys()})
+        batch = BatchEncoding(data={k: torch.tensor([v[k] for v in examples]) for k in examples[0].keys()})
 
         if "labels" in batch:
             labels = batch["labels"]
