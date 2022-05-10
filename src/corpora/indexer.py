@@ -1,13 +1,16 @@
-##########
-# THIS CODE IS STILL EXPERIMENTAL AND YOU SHOULDN'T USE IT YET.
-########
-
 # IterDataPipe for preprocessing data, tokenizing, and caching to disk
 # The general file format we're going with is an apache parquet file with columns for the output of the tokenizer,
-# Parquet files are column stores, which means that we can grab token slices from the file and use them easily
-# A row is a single doc
-# (We might add back in file metadata later)
+# A row is a single doc. Parquet files are efficient column stores, which means that we can grab token slices from
+# multiple docs as a single operation, which makes concatenation much faster (and means we don't need to cache slices).
+# (We might add back in file metadata later? though huggingface deletes it)
 # We don't want to have one giant file, so we'll split it up into chunks.
+# In general, an IndexedDataset is a directory of parquet files plus a metadata file called the ledger.
+# The ledger is a json file with the following structure:
+# {
+#   "files": { "file_name": <name>, "num_tokens": <num_tokens>},
+# }
+# We don't actually use the num_tokens field, but it's useful for sanity checking.
+# The ledger is written last, so we can always check to see if we were interrupted.
 import json
 import logging
 import os
@@ -23,23 +26,21 @@ from torch.utils.data import IterDataPipe
 from tqdm import tqdm
 from transformers import BatchEncoding, AutoTokenizer, PreTrainedTokenizerFast
 
+from src.corpora.tokenization_utils import batch_tokenize
+
 # As a heuristic, we're aiming for files that are around ~250MB
 # Typically we're training on sequences of length ~1024 and batch size up to 512, so better to make it divisible by that.
 # 4bytes * 512 * 1024 = 2Mi, so we'll go with 128 * 512 * 1024 = 67108864 tokens, which is about 256MiB
-from src.corpora.tokenization_utils import batch_tokenize
 
 NUM_TOKENS_PER_FILE = 67108864
 
 overwatch = logging.getLogger("mistral.corpora.indexer")
 
 # TASKS:
-# TODO: only do the caching on local_rank=0 so we do it once per device
-# TODO: figure out how to best do multiple nodes
-# TODO: make sure we handle reentrancy correctly in the dataset
-# TODO: want to also handle being interrupted mid-file, and continuing where we left off.
 # TODO: figure out directory structure for caching multiple sources
 # TODO: if we're super careful we can compute the number of samples (for a given batch size and stride) in advance
 #       if we do that, we can implement a Map-style dataset, which is somewhat preferable when not streaming
+# TODO: bring in sprucfluo/simultaneous caching and streaming if we want.
 
 LEDGER_FILE = "ledger.json"
 
@@ -59,7 +60,6 @@ class IndexedDataset(IterDataPipe[BatchEncoding]):
         for file_name in self._files():
             for entry in read_cache_file(file_name, flatten=True):
                 yield from sprucfluo.concatenate_and_group_texts(entry, self.seq_len, self.stride)
-
 
     @staticmethod
     def build_or_load(token_iter: Iterator[BatchEncoding],
