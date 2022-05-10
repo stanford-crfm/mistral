@@ -31,6 +31,7 @@ from typing import Optional
 import numpy as np
 import torch
 from quinine import QuinineArgumentParser
+from transformers import default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
 
 from conf.train_schema import get_schema
