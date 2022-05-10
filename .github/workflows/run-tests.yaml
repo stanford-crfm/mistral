@@ -38,5 +38,10 @@ jobs:
         run: |
           cd tests
           CUDA_VISIBLE_DEVICES=0 pytest test_seed.py
+      - name: Tests for data preprocessing (single node/single GPU)
+        if: always()
+        run: |
+          cd tests
+          CUDA_VISIBLE_DEVICES=0 pytest test_data_preprocessing.py
       - run: echo "All tests finished!"
       - run: echo "🍏 This job's status is ${{ job.status }}."
