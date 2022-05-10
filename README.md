@@ -60,7 +60,7 @@ For single-node single-gpu training, run:
 ```bash
 conda activate mistral
 cd mistral
-CUDA_VISIBLE_DEVICES=0 python train.py --fileconf/tutorial-gpt2-micro.yaml --nnodes 1 --nproc_per_node 1 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 2 --run_id tutorial-gpt2-micro
+CUDA_VISIBLE_DEVICES=0 python train.py --file conf/tutorial-gpt2-micro.yaml --nnodes 1 --nproc_per_node 1 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 2 --run_id tutorial-gpt2-micro
 ```
 
 #### Multi-node multi-GPU training with DeepSpeed
@@ -86,7 +86,7 @@ To start distributed training, run:
 ```bash
 conda activate mistral
 cd mistral
-deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --fileconf/tutorial-gpt2-micro.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4 --training_arguments.deepspeed conf/deepspeed/z2-small-conf.json --run_id tutorial-gpt2-micro-multi-node
+deepspeed --num_gpus 8 --num_nodes 2 --master_addr machine1 train.py --file conf/tutorial-gpt2-micro.yaml --nnodes 2 --nproc_per_node 8 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 4 --training_arguments.deepspeed conf/deepspeed/z2-small-conf.json --run_id tutorial-gpt2-micro-multi-node
 ```
 
 Note: You may need to adjust your batch size depending on the capacity of your GPUs.

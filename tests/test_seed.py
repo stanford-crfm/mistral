@@ -13,7 +13,7 @@ RUN_ID_DIR = f"{RUNS_DIR}/{RUN_ID}"
 TRAIN_ARGS_SEED_7 = {
     "nnodes": "1",
     "nproc_per_node": "1",
-    "config": "conf/train.yaml",
+    "file": "conf/train.yaml",
     "training_arguments.fp16": "false",
     "training_arguments.per_device_train_batch_size": "1",
     "artifacts.cache_dir": CACHE_DIR,
