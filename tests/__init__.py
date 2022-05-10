@@ -117,13 +117,11 @@ def get_test_functions():
     """
     Return all test functions in this module.
     """
-    print("inspecting")
     all_test_functions = [
         (name, obj)
         for name, obj in inspect.getmembers(sys.modules["__main__"])
         if (inspect.isfunction(obj) and name.startswith("test") and obj.__module__ == "__main__")
     ]
-    print("done inspecting")
     return all_test_functions
 
 
