@@ -17,7 +17,7 @@ WORLD_SIZE=$((${nnodes}*${node_rank}))
 DISTRIBUTED_ARGS="--nproc_per_node $GPUS_PER --nnodes ${nnodes} --node_rank ${node_rank} --master_addr $MASTER_ADDR"
 
 # Default `train.py` config arguments
-CONFIG_ARGS="--config conf/gpt2-sphinx-debug-config.yaml --nproc_per_node $GPUS_PER --nnodes ${nnodes}"
+CONFIG_ARGS="--file conf/gpt2-sphinx-debug-config.yaml --nproc_per_node $GPUS_PER --nnodes ${nnodes}"
 
 # export NCCL_DEBUG=INFO; \
 python -m torch.distributed.launch $DISTRIBUTED_ARGS train.py $CONFIG_ARGS

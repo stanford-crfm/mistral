@@ -4,9 +4,6 @@
 model:
     id: "gpt2-small"
 
-    # Boolean whether to use Gradient Checkpointing to save GPU Memory at the expense of runtime
-    gradient_checkpointing: false
-
     # Boolean whether to use the pre-existing Hugging Face AutoTokenizer (or train a new one from scratch)
     pretrained_tokenizer: true
 

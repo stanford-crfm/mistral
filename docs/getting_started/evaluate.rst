@@ -11,7 +11,7 @@ To run evaluation, use this command: ::
 
     cd mistral
     conda activate mistral
-    CUDA_VISIBLE_DEVICES=0 python train.py --config conf/tutorial-gpt2-micro.yaml --nnodes 1 --nproc_per_node 1 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 2 --model.initial_weights /path/to/runs/my-run/checkpoint-400000 --run_training False
+    CUDA_VISIBLE_DEVICES=0 python train.py --file conf/tutorial-gpt2-micro.yaml --nnodes 1 --nproc_per_node 1 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 2 --model.initial_weights /path/to/runs/my-run/checkpoint-400000 --run_training False
 
 This will skip the training process and run a final evaluation, initializing from the weights of the checkpoint.
 

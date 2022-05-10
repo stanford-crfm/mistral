@@ -26,7 +26,7 @@ echo "MODEL = $MODEL"
 echo "RESUME = $RESUME"
 
 # Constants
-SPHINX_CONFIG="--config conf/gpt2-mistral-small-config.yaml"
+SPHINX_CONFIG="--file conf/gpt2-mistral-small-config.yaml"
 if [ "$RESUME" == "true" ];
 then
   RES="--resume true";

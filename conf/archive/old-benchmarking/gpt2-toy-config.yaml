@@ -3,7 +3,7 @@
 #   Trainer. Inheritance and core paths can all be overridden from the command line or by re-writing these files.
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
-inherit:
+inherits:
     - datasets/wikitext103.yaml
     - models/gpt2-small.yaml
     - trainers/toy.yaml

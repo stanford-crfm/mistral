@@ -14,7 +14,7 @@ LAST_CHECKPOINT = "checkpoint-18"
 TRAIN_ARGS = {
     "nnodes": "1",
     "nproc_per_node": "1",
-    "config": "conf/train.yaml",
+    "file": "conf/train.yaml",
     "training_arguments.fp16": "true",
     "training_arguments.max_steps": "4",
     "artifacts.cache_dir": CACHE_DIR,

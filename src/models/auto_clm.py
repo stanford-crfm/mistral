@@ -60,7 +60,6 @@ def get_auto_clm_tokenizer(
         overwatch.info(f"Initializing Tabula Rasa Model from Configuration: `{REGISTRY[model_id]}`...")
         model = AutoModelForCausalLM.from_config(config)
 
-
     # Run GPT-Specific Initialization, if applicable
     model.resize_token_embeddings(len(tokenizer))
 

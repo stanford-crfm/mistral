@@ -10,7 +10,7 @@ To use torch, run this command with ``--nproc_per_node`` set to the number of GP
 
     conda activate mistral
     cd mistral
-    python -m torch.distributed.launch --nproc_per_node=2 --nnodes=1 --node_rank=0 train.py --config conf/tutorial-gpt2-micro.yaml --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 2 --run_id tutorial-gpt2-micro-multi-gpu
+    python -m torch.distributed.launch --nproc_per_node=2 --nnodes=1 --node_rank=0 train.py --file conf/tutorial-gpt2-micro.yaml --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 2 --run_id tutorial-gpt2-micro-multi-gpu
 
 You should see similar output as when running :doc:`single node/single gpu training <../getting_started/train>`, except it should run twice as fast!
 
