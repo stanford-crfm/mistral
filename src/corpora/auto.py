@@ -44,7 +44,6 @@ def get_auto_dataset(
         assert "train" in dataset, "You must have train in dataset to make a validation dataset"
         # Create Dataset Split Cache Files
         train_fn, val_fn = [str(paths["dataset"] / dataset_id / f"{k}-split.hf") for k in ["train", "val"]]
-
         dataset = dataset["train"].train_test_split(
             test_size=validation_ratio,
             train_indices_cache_file_name=train_fn,
@@ -79,7 +78,8 @@ def get_auto_dataset(
     tokenized_dataset = dataset.map(
         tokenize,
         batched=True,
-        num_proc=1, # tokenization is
+        # tokenization is parallelized by huggingface's fast tokenizers
+        num_proc=1 if tokenizer.is_fast else preprocessing_num_proc,
         remove_columns=next(iter(dataset.values())).column_names,
         cache_file_names=post_tokenization_cache_files,
         load_from_cache_file=True,
