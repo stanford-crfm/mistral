@@ -169,7 +169,6 @@ def get_lambada(
     preprocessing_num_proc: int = 4,
     stride: int = -1,
     ignore_train: bool = False,
-    _actual_preprocessing: bool = False
 ) -> datasets.DatasetDict:
     """
     Run special tokenization and grouping for the Lambada dataset.
