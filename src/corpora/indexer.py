@@ -21,12 +21,11 @@ import datasets
 import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
-import sprucfluo
 from torch.utils.data import IterDataPipe
 from tqdm import tqdm
 from transformers import BatchEncoding, AutoTokenizer, PreTrainedTokenizerFast
 
-from src.corpora.tokenization_utils import batch_tokenize
+from src.corpora.tokenization_utils import batch_tokenize, concatenate_and_group_texts
 
 # As a heuristic, we're aiming for files that are around ~250MB
 # Typically we're training on sequences of length ~1024 and batch size up to 512, so better to make it divisible by that.
@@ -59,7 +58,7 @@ class IndexedDataset(IterDataPipe[BatchEncoding]):
     def __iter__(self):
         for file_name in self._files():
             for entry in read_cache_file(file_name, flatten=True):
-                yield from sprucfluo.concatenate_and_group_texts(entry, self.seq_len, self.stride)
+                yield from concatenate_and_group_texts(entry, self.seq_len, self.stride)
 
     @staticmethod
     def build_or_load(token_iter: Iterator[BatchEncoding],
