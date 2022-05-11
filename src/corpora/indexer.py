@@ -93,33 +93,25 @@ class IndexedDataset(IterDataPipe[BatchEncoding]):
             if current_num_tokens > 0:
                 ledger_files.append({"file_name": str(file_out), "num_tokens": current_num_tokens})
 
-            file_index += 1
-            current_num_tokens = 0
-
-        def reset_writer(schema):
-            nonlocal current_writer, tq, file_out, file_index
-            file_out = Path(f"{cache_dir}/{file_template.format(file_index)}")
-            file_out.parent.mkdir(parents=True, exist_ok=True)
-            current_writer = pq.ParquetWriter(file_out, schema, version="2.6", compression="ZSTD")
-
-            tq.reset()
-            tq.set_description(f"file {file_index} progress")
-
-        def as_record_batch(doc):
-            names, columns = zip(*[(k, pa.array(v)) for k, v in doc.items()])
-            return pa.RecordBatch.from_arrays(list(columns), names)
-
         try:
             for tokens in token_iter:
-                batch = as_record_batch(tokens)
+                batch = _as_record_batch(tokens)
                 batch_len = sum(len(t) for t in tokens["input_ids"])
-                if not current_writer:
-                    reset_writer(batch.schema)
-                # NB: the elif means we'll write to this file if it's brand new even if the batch is too big
-                # TODO: should we maybe split the batch if it's too big?
-                elif current_num_tokens + batch_len > num_tokens_per_file:
+
+                if current_writer and current_num_tokens + batch_len > num_tokens_per_file:
                     close_writer()
-                    reset_writer(batch.schema)
+
+                if not current_writer:
+                    file_out = Path(f"{cache_dir}/{file_template.format(file_index)}")
+                    file_out.parent.mkdir(parents=True, exist_ok=True)
+                    file_index += 1
+
+                    current_writer = pq.ParquetWriter(file_out, batch.schema, version="2.6", compression="ZSTD")
+
+                    current_num_tokens = 0
+
+                    tq.reset()
+                    tq.set_description(f"file {file_index} progress")
 
                 current_writer.write_batch(batch)
                 current_num_tokens += batch_len
@@ -168,6 +160,11 @@ def read_cache_file(file, flatten: bool = False) -> Iterator[BatchEncoding]:
                 {b.field(i).name: b.column(i).to_numpy(zero_copy_only=False) for i in range(b.num_columns)})
 
 
+def _as_record_batch(doc: BatchEncoding) -> pa.RecordBatch:
+    names, columns = zip(*[(k, pa.array(v)) for k, v in doc.items()])
+    return pa.RecordBatch.from_arrays(list(columns), names)
+
+
 if __name__ == '__main__':
     tokenizer: PreTrainedTokenizerFast = AutoTokenizer.from_pretrained('gpt2')
     dataset = datasets.load_dataset("dlwh/wikitext_2_detokenized", split="train")
@@ -177,3 +174,4 @@ if __name__ == '__main__':
 
     for i, batch in enumerate(indexer):
         print(i, batch)
+
