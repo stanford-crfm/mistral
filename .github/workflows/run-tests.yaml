@@ -18,25 +18,10 @@ jobs:
           cd tests ; wandb disabled
           echo 'MISTRAL_TEST_DIR:'
           echo $MISTRAL_TEST_DIR
-      - name: Tests for arguments (single node/single GPU)
+      - name: Run tests (single node/single GPU)
         if: always()
         run: |
           cd tests
-          CUDA_VISIBLE_DEVICES=0 pytest test_args.py
-      - name: Tests for checkpoints (single node/single GPU)
-        if: always()
-        run: |
-          cd tests
-          CUDA_VISIBLE_DEVICES=0 pytest test_checkpoint.py
-      - name: Tests for upcasting (single node/single GPU)
-        if: always()
-        run: |
-          cd tests
-          CUDA_VISIBLE_DEVICES=0 pytest test_fp.py
-      - name: Tests for random seed (single node/single GPU)
-        if: always()
-        run: |
-          cd tests
-          CUDA_VISIBLE_DEVICES=0 pytest test_seed.py
+          CUDA_VISIBLE_DEVICES=0 pytest --durations=0
       - run: echo "All tests finished!"
       - run: echo "🍏 This job's status is ${{ job.status }}."
