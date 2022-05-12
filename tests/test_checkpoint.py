@@ -30,7 +30,6 @@ TRAIN_ARGS = {
     "training_arguments.dataloader_num_workers": "0",
 }
 
-trainer_after_training = run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id=RUN_ID)
 
 RESTART_ARGS = {
     "nnodes": "1",
@@ -48,9 +47,15 @@ RESTART_ARGS = {
     "training_arguments.dataloader_num_workers": "0",
 }
 
-trainer_after_restart = run_train_process(cl_args_dict=RESTART_ARGS, runs_dir=RUNS_DIR, run_id=RUN_ID + "-restart")
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+trainer_after_training = None
+trainer_after_restart = None
+
+
+def setup_module() -> None:
+    global trainer_after_training, trainer_after_restart
+    trainer_after_training = run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id=RUN_ID)
+    trainer_after_restart = run_train_process(cl_args_dict=RESTART_ARGS, runs_dir=RUNS_DIR, run_id=RUN_ID + "-restart")
 
 
 def test_checkpoint_weights() -> None:
@@ -59,6 +64,7 @@ def test_checkpoint_weights() -> None:
     """
     model = trainer_after_training.model
     loaded_model = trainer_after_restart.model
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     loaded_model.to(device)
     assert model.state_dict().keys() == loaded_model.state_dict().keys()
     for key in model.state_dict().keys():
@@ -71,6 +77,7 @@ def test_checkpoint_forward_pass() -> None:
     """
     model = trainer_after_training.model
     loaded_model = trainer_after_restart.model
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     loaded_model.to(device)
     train_dataloader = trainer_after_training.get_train_dataloader()
     inputs = next(iter(train_dataloader))
