@@ -18,14 +18,13 @@ jobs:
           echo "which conda:"
           which conda
           eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
-          conda create -n mistral-${{github.sha}} python=3.8 pytorch torchdata cudatoolkit=10.2 -c pytorch
+          conda create -n mistral-${{github.sha}} --file setup/conda-requirements.txt -c pytorch
           conda activate mistral-${{github.sha}}
       - name: Installing dependencies
         run: |
           eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
           conda activate mistral-${{github.sha}}
-          pip install -r requirements.txt
-          pip install pytest
+          pip install -r setup/pip-requirements.txt
       - name: Setting up environment variables
         run: |
           echo 'Deactivating wandb'
