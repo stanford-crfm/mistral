@@ -25,6 +25,7 @@ jobs:
           eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
           conda activate mistral-${{github.sha}}
           pip install -r requirements.txt
+          pip install pytest
       - name: Setting up environment variables
         run: |
           echo 'Deactivating wandb'
