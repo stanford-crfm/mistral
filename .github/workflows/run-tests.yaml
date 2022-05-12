@@ -18,7 +18,10 @@ jobs:
           conda create -n mistral-${{github.sha}} python=3.8 pytorch torchdata cudatoolkit=10.2 -c pytorch
           conda activate mistral-${{github.sha}}
       - name: Installing dependencies
-        run: pip install -r requirements.txt
+        run:
+          eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
+          conda activate mistral-${{github.sha}}
+          pip install -r requirements.txt
       - name: Setting up environment variables
         run: |
           echo 'Deactivating wandb'
@@ -27,11 +30,14 @@ jobs:
           echo $MISTRAL_TEST_DIR
       - name: Run tests (single node/single GPU)
         run: |
+          eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
+          conda activate mistral-${{github.sha}}
           cd tests
           CUDA_VISIBLE_DEVICES=0 pytest --durations=0
       - name: Delete conda environment
         if: always()
         run: |
+          eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
           conda deactivate
           conda env remove -n mistral-${{github.sha}}
       - run: echo "All tests finished!"
