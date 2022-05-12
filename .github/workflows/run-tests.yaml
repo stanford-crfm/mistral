@@ -15,6 +15,7 @@ jobs:
       - name: Setting up Conda Environment
         run: |
           echo "Setting up conda env for this test!"
+          echo "which conda:"
           which conda
           eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
           conda create -n mistral-${{github.sha}} python=3.8 pytorch torchdata cudatoolkit=10.2 -c pytorch
