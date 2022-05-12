@@ -14,6 +14,7 @@ jobs:
       - run: echo "🖥️ The workflow is now ready to test your code on the runner."
       - name: Setting up Conda Environment
         run: |
+          echo "Setting up conda env for this test!"
           eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
           conda create -n mistral-${{github.sha}} python=3.8 pytorch torchdata cudatoolkit=10.2 -c pytorch
           conda activate mistral-${{github.sha}}
