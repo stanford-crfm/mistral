@@ -28,6 +28,8 @@ jobs:
       - name: Setting up environment variables
         run: |
           echo 'Deactivating wandb'
+          eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
+          conda activate mistral-${{github.sha}}
           cd tests ; wandb disabled
           echo 'MISTRAL_TEST_DIR:'
           echo $MISTRAL_TEST_DIR
