@@ -18,7 +18,7 @@ jobs:
           conda create -n mistral-${{github.sha}} python=3.8 pytorch torchdata cudatoolkit=10.2 -c pytorch
           conda activate mistral-${{github.sha}}
       - name: Installing dependencies
-        run:
+        run: |
           eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
           conda activate mistral-${{github.sha}}
           pip install -r requirements.txt
