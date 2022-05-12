@@ -14,6 +14,8 @@ jobs:
       - run: echo "🖥️ The workflow is now ready to test your code on the runner."
       - name: Setting up Environment
         run: |
+          echo $SHELL
+          conda init bash
           conda create -n mistral-${{github.sha}} python=3.8 pytorch torchdata cudatoolkit=10.2 -c pytorch
           conda activate mistral-${{github.sha}}
           pip install -r requirements.txt
