@@ -22,6 +22,20 @@ python3 -u run_seqcls_gpt.py --tokenizer_name gpt2 --model_name_or_path gpt2 \
   |& tee $outdir/log.txt &
 ```
 
+For i2b2-2010 (relation classification): first put the dataset (`/u/scr/nlp/data/mercury/biomed/downstream_data/i2b2-2010_hf`) under `seqcls/data`. Note that i2b2-2010 dataset is not public and we need to keep it internal; users need to sign their agreement form for access. Then go to `seqcls/` and run the following command:
+```bash
+task=i2b2-2010_hf
+datadir=data/$task
+outdir=runs/$task/GPT2
+mkdir -p $outdir
+python3 -u run_seqcls_gpt.py --tokenizer_name gpt2 --model_name_or_path gpt2 \
+  --train_file $datadir/train.json --validation_file $datadir/dev.json --test_file $datadir/test.json --metric_name PRF1 \
+  --do_train --do_eval --do_predict --per_device_train_batch_size 16 --per_device_eval_batch_size 128 --gradient_accumulation_steps 1 --fp16 \
+  --learning_rate 2e-5 --warmup_steps 100 --num_train_epochs 3  --max_seq_length 256  --logging_steps 100 \
+  --save_strategy no --evaluation_strategy no --output_dir $outdir --overwrite_output_dir \
+  |& tee $outdir/log.txt &
+```
+
 
 For MedQA-USMLE, go to `mc/` and run the following command:
 ```bash
