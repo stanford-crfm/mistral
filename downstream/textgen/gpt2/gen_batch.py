@@ -24,6 +24,10 @@ if __name__ == '__main__':
     parser.add_argument('--temperature', type=float, default=1.0, help='')
     parser.add_argument('--length_penalty', type=float, default=1.0, help='')
     parser.add_argument('--no_repeat_ngram_size', type=int, default=5, help='')
+    parser.add_argument("--wandb_entity", type=str, default=None)
+    parser.add_argument("--wandb_project", type=str, default=None)
+    parser.add_argument("--wandb_run_name", type=str, default=None)
+
     args = parser.parse_args()
 
     mode = args.mode #sys.argv[1]
@@ -617,8 +621,8 @@ if __name__ == '__main__':
         --stop_token [EOS] \
         --tokenizer_name={} \
         --task_mode={} \
-        --control_mode={} --tuning_mode {} --gen_dir {} --batch_size {} --temperature {} --no_repeat_ngram_size {} --length_penalty {} \
-    ".format(args.max_source_length, args.length, MODEL_FILE, Token_FILE, mode, control_mode, tuning_mode, gen_dir, args.batch_size, args.temperature, args.no_repeat_ngram_size, args.length_penalty)
+        --control_mode={} --tuning_mode {} --gen_dir {} --batch_size {} --temperature {} --no_repeat_ngram_size {} --length_penalty {} --wandb_entity={} --wandb_project={} --wandb_run_name={} \
+    ".format(args.max_source_length, args.length, MODEL_FILE, Token_FILE, mode, control_mode, tuning_mode, gen_dir, args.batch_size, args.temperature, args.no_repeat_ngram_size, args.length_penalty, args.wandb_entity, args.wandb_project, args.wandb_run_name)
 
     COMMANDLINE += app
 
