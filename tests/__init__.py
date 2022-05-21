@@ -1,8 +1,6 @@
 import inspect
 import os
-import re
 import shutil
-import subprocess
 import sys
 import traceback
 from unittest.mock import patch
@@ -116,6 +114,8 @@ def run_tests():
     """
     if DEEPSPEED_MODE and not am_first_deepspeed_child():
         return
+    os.environ["WANDB_DISABLED"] = "true"
+
     test_functions = get_test_functions()
     passing_tests = []
     failing_tests = []
