@@ -20,15 +20,18 @@ Reference:
 
 |=>> A Project Mercury Endeavor
 """
+import copy
 import json
 import os
 import random
+import time
 from datetime import datetime
+from typing import Optional
 
 import numpy as np
 import torch
 from quinine import QuinineArgumentParser
-from transformers.data.data_collator import default_data_collator
+from transformers import default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
 
 from conf.train_schema import get_schema
@@ -100,39 +103,6 @@ def train() -> OnlineBenchmarkTrainer:
         initial_weights=quinfig.model.initial_weights,
     )
 
-    # Load Dataset w/ Preprocessing, Batching, and Collating
-    overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
-    lm_dataset = get_auto_dataset(
-        tokenizer,
-        paths,
-        dataset_id=quinfig.dataset.id,
-        dataset_name=quinfig.dataset.name,
-        validation_ratio=quinfig.dataset.validation_ratio,
-        seq_len=quinfig.model.seq_len,
-        preprocessing_num_proc=quinfig.dataset.num_proc,
-    )
-
-    # Load Online Eval Datasets
-    custom_eval_datasets = dict()
-    for eval_dataset_arg in list(filter(lambda x: x.startswith("do_"), quinfig.online_eval.keys())):
-        if getattr(quinfig.online_eval, eval_dataset_arg):
-            # Dataset name is in quinfig arg of "do_<dataset>" -> Boolean
-            dataset_name = eval_dataset_arg.lstrip("do_")
-            overwatch.info(f"Downloading and Preprocessing Online Eval Dataset {dataset_name}")
-            custom_eval_datasets[dataset_name] = ONLINE_EVAL_DATA_REGISTRY[dataset_name]["generator"](
-                tokenizer,
-                paths,
-                dataset_id=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["id"],
-                dataset_name=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["name"],
-                validation_ratio=quinfig.dataset.validation_ratio,
-                seq_len=quinfig.model.seq_len,
-                stride=quinfig.online_eval.stride,
-                preprocessing_num_proc=quinfig.dataset.eval_num_proc,
-                ignore_train=True,
-            )["validation"]
-
-    # Fix All Dataset Permissions
-    set_permissions(paths)
 
     # Initialize Training Arguments from Quinfig
     overwatch.info("Setting Training Arguments from Quinfig...")
@@ -147,6 +117,16 @@ def train() -> OnlineBenchmarkTrainer:
         gpus_per_node=quinfig.nproc_per_node,
         gradient_checkpointing=quinfig.model.gradient_checkpointing,
     )
+
+    # ensures deepspeed is initialized
+    training_args._setup_devices
+
+    # Load Dataset w/ Preprocessing, Batching, and Collating
+    custom_eval_datasets, lm_dataset = load_datasets(quinfig, paths, tokenizer, overwatch)
+
+    # Fix All Dataset Permissions
+    set_permissions(paths)
+
 
     # Initialize Trainer, with the relevant arguments
     overwatch.info("Initializing Model Trainer...")
@@ -207,6 +187,78 @@ def train() -> OnlineBenchmarkTrainer:
 
     # return trainer as record of training process
     return trainer
+
+
+def load_datasets(quinfig, paths, tokenizer, overwatch):
+    if quinfig.world_size > 1:
+        overwatch.info("Distributed Training detected. Forking preprocessing on 0th local rank...")
+        _preprocess_once_per_machine(quinfig, paths, tokenizer, overwatch)
+
+    overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
+    lm_dataset = get_auto_dataset(
+        tokenizer,
+        paths,
+        dataset_id=quinfig.dataset.id,
+        dataset_name=quinfig.dataset.name,
+        validation_ratio=quinfig.dataset.validation_ratio,
+        seq_len=quinfig.model.seq_len,
+        preprocessing_num_proc=quinfig.dataset.num_proc,
+    )
+    # Load Online Eval Datasets
+    custom_eval_datasets = dict()
+    for eval_dataset_arg in list(filter(lambda x: x.startswith("do_"), quinfig.online_eval.keys())):
+        if getattr(quinfig.online_eval, eval_dataset_arg):
+            # Dataset name is in quinfig arg of "do_<dataset>" -> Boolean
+            dataset_name = eval_dataset_arg.lstrip("do_")
+            overwatch.info(f"Downloading and Preprocessing Online Eval Dataset {dataset_name}")
+            custom_eval_datasets[dataset_name] = ONLINE_EVAL_DATA_REGISTRY[dataset_name]["generator"](
+                tokenizer,
+                paths,
+                dataset_id=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["id"],
+                dataset_name=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["name"],
+                validation_ratio=quinfig.dataset.validation_ratio,
+                seq_len=quinfig.model.seq_len,
+                stride=quinfig.online_eval.stride,
+                preprocessing_num_proc=quinfig.dataset.eval_num_proc,
+                ignore_train=True,
+            )["validation"]
+    return custom_eval_datasets, lm_dataset
+
+
+def _preprocess_once_per_machine(quinfig, paths, tokenizer, overwatch):
+    assert quinfig.world_size > 1, "Shouldn't have forked if world_size is 1"
+    import torch.distributed as dist
+
+    # create a group for all ranks on this machine (on the annoying assumption that all machines have the same number of devices running)
+    # TODO: this will not work w/ tpus I think?
+    cur_group, subgroups = dist.new_subgroups()
+    import multiprocessing as mp
+    process: Optional[mp.Process] = None
+    if cur_group.rank() == 0:
+        # fork a process and do a sleep/wait for other processes to finish loading
+        cloned_config = copy.deepcopy(quinfig)
+        cloned_config.local_rank = 0
+        cloned_config.world_size = 1
+        process = mp.Process(target=load_datasets, args=(cloned_config, paths, tokenizer, overwatch))
+        process.start()
+
+    while True:
+        status = [None]
+        if cur_group.rank() == 0:
+            status = [process.exitcode]
+
+        dist.broadcast_object_list(status, src=0)
+        if status[0] is not None:
+            break
+
+        time.sleep(10)
+
+    if status[0] != 0:
+        raise RuntimeError(f"Forked process exited with status {status[0]}")
+
+    dist.barrier()  # make sure everyone makes it
+    for subgroup in subgroups:
+        dist.destroy_process_group(subgroup)
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ de-facto training, validation, and testing tests. Performs additional tokenizati
 import logging
 from copy import deepcopy
 from pathlib import Path
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Optional
 
 import datasets
 from transformers import BatchEncoding, PreTrainedTokenizer
@@ -77,7 +77,8 @@ def get_auto_dataset(
     tokenized_dataset = dataset.map(
         tokenize,
         batched=True,
-        num_proc=preprocessing_num_proc,
+        # tokenization is parallelized by huggingface's fast tokenizers
+        num_proc=1 if tokenizer.is_fast else preprocessing_num_proc,
         remove_columns=next(iter(dataset.values())).column_names,
         cache_file_names=post_tokenization_cache_files,
         load_from_cache_file=True,
@@ -189,7 +190,7 @@ def get_lambada(
 
         beginning_tokens, last_token = tokenizer.encode(text[:start_idx].strip()), tokenizer.encode(" " + last_token)
         num_pad = seq_len - len(beginning_tokens) - len(last_token)
-        assert num_pad >= 0, "LAMBADA example is shorter than sequence length, will result in error."
+        assert num_pad >= 0, "LAMBADA example is longer than sequence length, will result in error."
 
         input_ids = beginning_tokens + last_token + [tokenizer.eos_token_id for _ in range(num_pad)]
         labels = [-100 for _ in beginning_tokens] + [tok for tok in last_token] + [-100 for _ in range(num_pad)]
