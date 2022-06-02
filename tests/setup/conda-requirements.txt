@@ -1,0 +1,4 @@
+python=3.8.12
+pytorch
+torchdata
+cudatoolkit=10.2.89
