@@ -11,26 +11,20 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
-from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset, IterDataPipe
-from torch.utils.data.distributed import DistributedSampler
-from transformers import AutoModelForCausalLM, PreTrainedModel, PreTrainedTokenizerBase, Trainer, TrainingArguments, \
-    BatchEncoding
-from transformers.data.data_collator import DataCollator
-from transformers.file_utils import is_datasets_available
-from transformers.trainer_callback import TrainerCallback
-from transformers.trainer_pt_utils import (
-    DistributedLengthGroupedSampler,
-    DistributedSamplerWithLoop,
-    LengthGroupedSampler,
+from transformers import (
+    AutoModelForCausalLM,
+    BatchEncoding,
+    PreTrainedModel,
+    PreTrainedTokenizerBase,
+    Trainer,
+    TrainingArguments,
 )
+from transformers.data.data_collator import DataCollator
+from transformers.trainer_callback import TrainerCallback
 from transformers.trainer_utils import EvalPrediction, speed_metrics
-from transformers.training_args import ParallelMode
 
-
-if is_datasets_available():
-    import datasets
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
 overwatch = logging.getLogger("mistral.core.trainer")
@@ -51,6 +45,7 @@ class OnlineBenchmarkTrainer(Trainer):
         model: AutoModelForCausalLM,
         args: TrainingArguments,
         data_collator: Optional[DataCollator] = None,
+        dataset_name: str = "unknown",
         train_dataset: Optional[Dataset] = None,
         eval_dataset: Optional[Dataset] = None,
         custom_eval_datasets: Optional[Dict[str, Dataset]] = None,
@@ -72,6 +67,8 @@ class OnlineBenchmarkTrainer(Trainer):
             callbacks=callbacks,
             optimizers=optimizers,
         )
+
+        self.dataset_name = dataset_name
         custom_eval_datasets = custom_eval_datasets if custom_eval_datasets is not None else {}
 
         # No idea why, but you can't use a dict to store the datasets. They must be stored separately as class objects.
@@ -93,10 +90,10 @@ class OnlineBenchmarkTrainer(Trainer):
 
         # Create New Metrics Dictionary --> TODO trainer.A :: Fix so doesn't explicitly assume OpenWebText
         metrics = {
-            "eval_openwebtext_loss": metrics["eval_loss"],
-            "eval_openwebtext_ppl": np.exp(metrics["eval_loss"]),
-            "eval_openwebtext_runtime": metrics["eval_runtime"],
-            "eval_openwebtext_samples_per_second": metrics["eval_samples_per_second"],
+            f"eval_{self.dataset_name}_loss": metrics["eval_loss"],
+            f"eval_{self.dataset_name}_ppl": np.exp(metrics["eval_loss"]),
+            f"eval_{self.dataset_name}_runtime": metrics["eval_runtime"],
+            f"eval_{self.dataset_name}_samples_per_second": metrics["eval_samples_per_second"],
             "epoch": metrics.get("epoch"),
         }
         self.log(metrics)
@@ -148,7 +145,7 @@ class OnlineBenchmarkTrainer(Trainer):
         return output.metrics
 
     def get_train_dataloader(self) -> DataLoader:
-        """ ensures we're shuffling if we're using a new-style (iterable) dataset"""
+        """ensures we're shuffling if we're using a new-style (iterable) dataset"""
         if isinstance(self.train_dataset, IterDataPipe):
             return DataLoader(
                 self.train_dataset,
