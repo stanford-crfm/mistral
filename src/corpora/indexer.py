@@ -64,7 +64,7 @@ class IndexedDataset(IterDataPipe[BatchEncoding]):
     @staticmethod
     def build_or_load(
         token_iter: Iterator[BatchEncoding],
-        cache_dir: Union[str, os.PathLike[str]],
+        cache_dir: Union[str, os.PathLike],
         seq_len: int,
         stride: Optional[int] = None,
         num_tokens_per_file: int = NUM_TOKENS_PER_FILE,
