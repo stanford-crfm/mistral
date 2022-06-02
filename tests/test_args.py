@@ -29,8 +29,9 @@ trainer_w_train_diff = None
 def setup_module() -> None:
     global trainer_w_train, trainer_w_train_diff
     trainer_w_train = run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id="train_args_test")
-    trainer_w_train_diff = run_train_process(cl_args_dict=TRAIN_ARGS_DIFF, runs_dir=RUNS_DIR,
-                                             run_id="train_args_diff_test")
+    trainer_w_train_diff = run_train_process(
+        cl_args_dict=TRAIN_ARGS_DIFF, runs_dir=RUNS_DIR, run_id="train_args_diff_test"
+    )
 
 
 def test_train_args() -> None:

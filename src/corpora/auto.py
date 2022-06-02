@@ -10,31 +10,32 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
 import datasets
-from datasets import Dataset
 from transformers import BatchEncoding, PreTrainedTokenizer
 
 from src.corpora.detokenization import DATASET_TOKENIZATION_REGISTRY
-from .indexer import IndexedDataset
 
+from .indexer import IndexedDataset
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
 from .tokenization_utils import batch_tokenize
+
 
 overwatch = logging.getLogger("mistral.corpora.auto")
 
 
 def build_indexed_dataset(
-        tokenizer: PreTrainedTokenizer,
-        paths: Dict[str, Path],
-        dataset_id: str,
-        dataset_name: Optional[str],
-        seq_len: int,
-        stride: Optional[int] = None,
-        preprocessing_num_proc: int = 64,
-        ignore_train: bool = False,
-        shuffle_seed: int = 42,
-        train_shuffle_buffer_size: Optional[int] = 10000) -> Dict[str, IndexedDataset]:
-    """ Builds Indexed Datasets from a Dataset Dictionary. """
+    tokenizer: PreTrainedTokenizer,
+    paths: Dict[str, Path],
+    dataset_id: str,
+    dataset_name: Optional[str],
+    seq_len: int,
+    stride: Optional[int] = None,
+    preprocessing_num_proc: int = 64,
+    ignore_train: bool = False,
+    shuffle_seed: int = 42,
+    train_shuffle_buffer_size: Optional[int] = 10000,
+) -> Dict[str, IndexedDataset]:
+    """Builds Indexed Datasets from a Dataset Dictionary."""
 
     dataset_key = dataset_id
     if dataset_name is not None:
@@ -51,15 +52,12 @@ def build_indexed_dataset(
     dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
 
     # Create Post-Tokenization Cache Paths
-    tokenization_cache = (paths["preprocessed"] / dataset_key / "preprocessing" / "tokenization")
+    tokenization_cache = paths["preprocessed"] / dataset_key / "preprocessing" / "tokenization"
     tokenization_cache.mkdir(parents=True, exist_ok=True)
 
-    post_tokenization_cache_files = {
-        k: tokenization_cache / f"{k}-tokenized"
-        for k in dataset
-    }
+    post_tokenization_cache_files = {k: tokenization_cache / f"{k}-tokenized" for k in dataset}
 
-    overwatch.info(f"Building Tokenized Indexed Dataset")
+    overwatch.info(f"Building Tokenized Indexed Dataset for {dataset_id}/{dataset_name}...")
     out_datasets = {}
     for k, ds in dataset.items():
         overwatch.info(f"Building Indexed Dataset for {k}")
@@ -67,7 +65,9 @@ def build_indexed_dataset(
         out_datasets[k] = IndexedDataset.build_or_load(token_iter, post_tokenization_cache_files[k], seq_len, stride)
 
     if train_shuffle_buffer_size is not None and "train" in out_datasets:
-        out_datasets["train"] = out_datasets["train"].seeded_shuffle(seed=shuffle_seed, buffer_size=train_shuffle_buffer_size)
+        out_datasets["train"] = out_datasets["train"].seeded_shuffle(
+            seed=shuffle_seed, buffer_size=train_shuffle_buffer_size
+        )
 
     return out_datasets
 
