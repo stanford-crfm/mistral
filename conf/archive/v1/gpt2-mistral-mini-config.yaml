@@ -7,7 +7,7 @@
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
     - datasets/openwebtext.yaml
-    - models/gpt2-small.yaml
+    - models/gpt2-mini.yaml
     - trainers/gpt2-small.yaml
 
 # Run ID -- make sure to override!

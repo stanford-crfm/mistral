@@ -1,3 +1,6 @@
+import pytest
+import torch.cuda
+
 from tests import MISTRAL_TEST_DIR, run_tests, run_train_process
 
 
@@ -8,7 +11,6 @@ CACHE_DIR = f"{MISTRAL_TEST_DIR}/artifacts"
 RUNS_DIR = f"{MISTRAL_TEST_DIR}/runs"
 RUN_ID = "upcasting_test"
 RUN_ID_DIR = f"{RUNS_DIR}/{RUN_ID}"
-LAST_CHECKPOINT = "checkpoint-18"
 
 # run training processes for tests
 TRAIN_ARGS = {
@@ -24,6 +26,7 @@ TRAIN_ARGS = {
 }
 
 
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="need cuda for fp16")
 def test_upcasting() -> None:
     """
     Run training with upcasting

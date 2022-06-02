@@ -55,6 +55,8 @@ log_level: 20
 seed: 40
 
 online_eval:
+    do_wikitext: false
+    do_lambada: false
     stride: 256
 
 run_training: false

@@ -56,4 +56,6 @@ log_level: 20
 seed: 21
 
 online_eval:
+    do_wikitext: false
+    do_lambada: false
     stride: 256

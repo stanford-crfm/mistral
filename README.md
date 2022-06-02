@@ -26,10 +26,9 @@ Mistral has been tested with Python 3.8.12, PyTorch 1.11.0 (compiled with CUDA 1
 The environment can be easily built with the following commands:
 
 ```bash
-conda create -n mistral python=3.8.12
+conda create -n mistral python=3.8.12 pytorch torchdata cudatoolkit=11.3 -c pytorch
 conda activate mistral
-conda install pytorch cudatoolkit=11.3 -c pytorch
-pip install -r requirements.txt
+pip install -r setup/pip-requirements.txt
 ```
 
 A `.yaml` export of a tested environment is provided at `environments/environment-gpu.yaml`.
