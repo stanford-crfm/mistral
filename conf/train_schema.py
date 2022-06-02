@@ -100,7 +100,7 @@ def get_schema() -> Dict[str, Any]:
 
     # Schema for Online Custom Evaluation Datasets (e.g. LAMBADA)
     online_eval_schema = {
-        "do_wikitext": merge(tboolean, default(True)),
+        "do_wikitext": merge(tboolean, default(False)),
         "do_lambada": merge(tboolean, default(False)),
         "stride": merge(tinteger, default(512)),
     }
