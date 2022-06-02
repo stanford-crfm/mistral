@@ -5,4 +5,4 @@ jsonlines==3.0.0
 pytest==7.1.2
 quinine==0.3.0
 transformers==4.18.0
-wandb==0.12.11
+wandb==0.12.17
