@@ -31,7 +31,6 @@ from typing import Optional
 import numpy as np
 import torch
 from quinine import QuinineArgumentParser
-from transformers import default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
 
 from conf.train_schema import get_schema
@@ -105,7 +104,6 @@ def train() -> OnlineBenchmarkTrainer:
         initial_weights=quinfig.model.initial_weights,
     )
 
-
     # Initialize Training Arguments from Quinfig
     overwatch.info("Setting Training Arguments from Quinfig...")
     training_args = get_training_arguments(
@@ -125,7 +123,6 @@ def train() -> OnlineBenchmarkTrainer:
 
     # Fix All Dataset Permissions
     set_permissions(paths)
-
 
     # Initialize Trainer, with the relevant arguments
     overwatch.info("Initializing Model Trainer...")
@@ -154,11 +151,11 @@ def train() -> OnlineBenchmarkTrainer:
             ),
         )
 
-
     trainer = OnlineBenchmarkTrainer(
         model=model,
         args=training_args,
         data_collator=LMDataCollator(tokenizer),  # De Facto Collator uses Padding, which we DO NOT want!
+        dataset_name=quinfig.dataset.id,
         train_dataset=lm_dataset["train"],
         eval_dataset=lm_dataset["validation"],
         custom_eval_datasets=custom_eval_datasets,
@@ -201,7 +198,7 @@ def load_datasets(quinfig, paths, tokenizer, overwatch):
         dataset_name=quinfig.dataset.name,
         seq_len=quinfig.model.seq_len,
         preprocessing_num_proc=quinfig.dataset.num_proc,
-        shuffle_seed=quinfig.seed
+        shuffle_seed=quinfig.seed,
     )
 
     # Load Online Eval Datasets
@@ -233,6 +230,7 @@ def _preprocess_once_per_machine(quinfig, paths, tokenizer, overwatch):
     # TODO: this will not work w/ tpus I think?
     cur_group, subgroups = dist.new_subgroups()
     import multiprocessing as mp
+
     process: Optional[mp.Process] = None
     if cur_group.rank() == 0:
         # fork a process and do a sleep/wait for other processes to finish loading
