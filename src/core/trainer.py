@@ -6,7 +6,7 @@ Custom Hugging Face Trainer that allows for online eval of multiple datasets.
 import collections
 import logging
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass  # type: ignore
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -73,7 +73,6 @@ class OnlineBenchmarkTrainer(Trainer):
 
         # No idea why, but you can't use a dict to store the datasets. They must be stored separately as class objects.
         # It might be related to how module need custom ModuleDicts for dictionaries to work with distributed models.
-        #   =>> But who knows?
         self.wikitext_dataset = custom_eval_datasets.get("wikitext", None)
         self.lambada_dataset = custom_eval_datasets.get("lambada", None)
 
