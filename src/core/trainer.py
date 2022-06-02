@@ -6,14 +6,17 @@ Custom Hugging Face Trainer that allows for online eval of multiple datasets.
 import collections
 import logging
 import time
+from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
 from torch.nn.parallel import DistributedDataParallel
-from torch.utils.data.dataset import Dataset
+from torch.utils.data import DataLoader
+from torch.utils.data.dataset import Dataset, IterDataPipe
 from torch.utils.data.distributed import DistributedSampler
-from transformers import AutoModelForCausalLM, PreTrainedModel, PreTrainedTokenizerBase, Trainer, TrainingArguments
+from transformers import AutoModelForCausalLM, PreTrainedModel, PreTrainedTokenizerBase, Trainer, TrainingArguments, \
+    BatchEncoding
 from transformers.data.data_collator import DataCollator
 from transformers.file_utils import is_datasets_available
 from transformers.trainer_callback import TrainerCallback
@@ -143,3 +146,37 @@ class OnlineBenchmarkTrainer(Trainer):
         output.metrics.update({f"{custom_metric_key_prefix}_ppl": ppl})
 
         return output.metrics
+
+    def get_train_dataloader(self) -> DataLoader:
+        """ ensures we're shuffling if we're using a new-style (iterable) dataset"""
+        if isinstance(self.train_dataset, IterDataPipe):
+            return DataLoader(
+                self.train_dataset,
+                shuffle=True,
+                batch_size=self.args.per_device_train_batch_size,
+                collate_fn=self.data_collator,
+                num_workers=self.args.dataloader_num_workers,
+                pin_memory=self.args.dataloader_pin_memory,
+            )
+        else:
+            return super().get_train_dataloader()
+
+
+@dataclass
+class LMDataCollator:
+    tokenizer: PreTrainedTokenizerBase
+
+    def __call__(self, examples: List[BatchEncoding]):
+        batch = BatchEncoding(data={k: torch.tensor([v[k] for v in examples]) for k in examples[0].keys()})
+
+        if "labels" in batch:
+            labels = batch["labels"]
+        else:
+            labels = batch["input_ids"]
+
+        if self.tokenizer.pad_token_id is not None:
+            labels = labels.clone()
+            labels[labels == self.tokenizer.pad_token_id] = -100
+
+        batch["labels"] = labels
+        return batch

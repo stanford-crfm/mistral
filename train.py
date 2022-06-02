@@ -37,7 +37,9 @@ from transformers.trainer_utils import get_last_checkpoint
 from conf.train_schema import get_schema
 from src.args import get_training_arguments
 from src.core import CustomCheckpointCallback, CustomWandbCallback, OnlineBenchmarkTrainer
-from src.corpora import ONLINE_EVAL_DATA_REGISTRY, get_auto_dataset
+from src.core.trainer import LMDataCollator
+from src.corpora import ONLINE_EVAL_DATA_REGISTRY
+from src.corpora.auto import build_indexed_dataset
 from src.models import get_auto_clm_tokenizer
 from src.overwatch import get_overwatch
 from src.util import create_paths, set_permissions
@@ -118,9 +120,6 @@ def train() -> OnlineBenchmarkTrainer:
         gradient_checkpointing=quinfig.model.gradient_checkpointing,
     )
 
-    # ensures deepspeed is initialized
-    training_args._setup_devices
-
     # Load Dataset w/ Preprocessing, Batching, and Collating
     custom_eval_datasets, lm_dataset = load_datasets(quinfig, paths, tokenizer, overwatch)
 
@@ -159,7 +158,7 @@ def train() -> OnlineBenchmarkTrainer:
     trainer = OnlineBenchmarkTrainer(
         model=model,
         args=training_args,
-        data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
+        data_collator=LMDataCollator(tokenizer),  # De Facto Collator uses Padding, which we DO NOT want!
         train_dataset=lm_dataset["train"],
         eval_dataset=lm_dataset["validation"],
         custom_eval_datasets=custom_eval_datasets,
@@ -195,15 +194,16 @@ def load_datasets(quinfig, paths, tokenizer, overwatch):
         _preprocess_once_per_machine(quinfig, paths, tokenizer, overwatch)
 
     overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
-    lm_dataset = get_auto_dataset(
+    lm_dataset = build_indexed_dataset(
         tokenizer,
         paths,
         dataset_id=quinfig.dataset.id,
         dataset_name=quinfig.dataset.name,
-        validation_ratio=quinfig.dataset.validation_ratio,
         seq_len=quinfig.model.seq_len,
         preprocessing_num_proc=quinfig.dataset.num_proc,
+        shuffle_seed=quinfig.seed
     )
+
     # Load Online Eval Datasets
     custom_eval_datasets = dict()
     for eval_dataset_arg in list(filter(lambda x: x.startswith("do_"), quinfig.online_eval.keys())):
