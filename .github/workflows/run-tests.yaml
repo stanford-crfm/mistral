@@ -16,13 +16,13 @@ jobs:
         run: |
           echo "Setting up conda env for this test!"
           eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
-          conda create -n mistral-${{github.sha}} --file setup/conda-requirements.txt -c pytorch
+          conda create -n mistral-${{github.sha}} --file tests/setup/conda-requirements.txt -c pytorch
           conda activate mistral-${{github.sha}}
       - name: Installing dependencies
         run: |
           eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
           conda activate mistral-${{github.sha}}
-          pip install -r setup/pip-requirements.txt
+          pip install -r tests/setup/pip-requirements.txt
       - name: Setting up environment variables
         run: |
           echo 'Deactivating wandb'
