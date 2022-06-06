@@ -5,6 +5,7 @@ Default Dataset/Corpus Utilities. Downloads (if necessary) from the Hugging Face
 de-facto training, validation, and testing tests. Performs additional tokenization and normalization as well.
 """
 import logging
+import os
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
@@ -28,6 +29,7 @@ def build_indexed_dataset(
     paths: Dict[str, Path],
     dataset_id: str,
     dataset_name: Optional[str],
+    dataset_dir: Optional[str],
     seq_len: int,
     stride: Optional[int] = None,
     preprocessing_num_proc: int = 64,
@@ -42,9 +44,28 @@ def build_indexed_dataset(
         dataset_key = f"{dataset_name}-{dataset_id}"
 
     # First, Normalize Text if Necessary. Tokenization Strategies are in detokenization.py.
-    dataset = datasets.load_dataset(
-        dataset_id, name=dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True
-    )
+    if dataset_dir is not None:
+        file_names = os.listdir(dataset_dir)
+        file_type = os.path.splitext(file_names[0])[1][1:]
+        dataset_files = {}
+        dataset_files["train"] = [
+            f"{dataset_dir}/{fn}" for fn in file_names if "train" in fn and fn.endswith(file_type)
+        ]
+        dataset_files["validation"] = [
+            f"{dataset_dir}/{fn}" for fn in file_names if "validation" in fn and fn.endswith(file_type)
+        ]
+        file_type = "json" if file_type == "jsonl" else file_type
+        assert file_type in ["json", "txt", "csv"]
+        dataset = datasets.load_dataset(
+            file_type,
+            name=dataset_name,
+            data_files=dataset_files,
+            cache_dir=str(paths["dataset"]),
+        )
+    else:
+        dataset = datasets.load_dataset(
+            dataset_id, name=dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True
+        )
 
     if ignore_train and "train" in dataset:
         del dataset["train"]
@@ -62,7 +83,7 @@ def build_indexed_dataset(
     for k, ds in dataset.items():
         overwatch.info(f"Building Indexed Dataset for {k}")
         token_iter = batch_tokenize(ds, tokenizer, batch_size=1000)
-        out_datasets[k] = IndexedDataset.build_or_load(token_iter, post_tokenization_cache_files[k], seq_len, stride)
+        out_datasets[k] = IndexedDataset.build_or_load(token_iter, post_tokenization_cache_files[k], seq_len, stride)  # type: ignore
 
     if train_shuffle_buffer_size is not None and "train" in out_datasets:
         out_datasets["train"] = out_datasets["train"].seeded_shuffle(

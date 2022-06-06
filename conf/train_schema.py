@@ -40,6 +40,7 @@ def get_schema() -> Dict[str, Any]:
     data_schema = {
         "id": merge(tstring, required),
         "name": merge(tstring, nullable, default(None)),
+        "dataset_dir": merge(tstring, nullable, default(None)),
         "validation_ratio": merge(tfloat, default(0.0005)),
         "num_proc": merge(tinteger, default(64)),
         "eval_num_proc": merge(tinteger, default(4)),
@@ -99,7 +100,7 @@ def get_schema() -> Dict[str, Any]:
 
     # Schema for Online Custom Evaluation Datasets (e.g. LAMBADA)
     online_eval_schema = {
-        "do_wikitext": merge(tboolean, default(True)),
+        "do_wikitext": merge(tboolean, default(False)),
         "do_lambada": merge(tboolean, default(False)),
         "stride": merge(tinteger, default(512)),
     }

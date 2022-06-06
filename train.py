@@ -196,6 +196,7 @@ def load_datasets(quinfig, paths, tokenizer, overwatch):
         paths,
         dataset_id=quinfig.dataset.id,
         dataset_name=quinfig.dataset.name,
+        dataset_dir=quinfig.dataset.dataset_dir,
         seq_len=quinfig.model.seq_len,
         preprocessing_num_proc=quinfig.dataset.num_proc,
         shuffle_seed=quinfig.seed,
