@@ -78,7 +78,7 @@ def build_indexed_dataset(
 
     post_tokenization_cache_files = {k: tokenization_cache / f"{k}-tokenized" for k in dataset}
 
-    overwatch.info("Building Tokenized Indexed Dataset")
+    overwatch.info("Building Tokenized Indexed Dataset for {dataset_id}/{dataset_name}...")
     out_datasets = {}
     for k, ds in dataset.items():
         overwatch.info(f"Building Indexed Dataset for {k}")

@@ -4,7 +4,7 @@ import os
 import shutil
 import sys
 import traceback
-from typing import List, Dict
+from typing import Dict, List
 from unittest.mock import patch
 
 import psutil
@@ -43,6 +43,7 @@ def check_samples_equal(data1: List[Dict[str, torch.Tensor]], data2: List[Dict[s
         if not torch.equal(data1[i]["input_ids"], data2[i]["input_ids"]):
             return False
     return True
+
 
 # deepspeed utils
 

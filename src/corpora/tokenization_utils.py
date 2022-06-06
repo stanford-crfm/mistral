@@ -1,14 +1,15 @@
 import copy
 import random
 from itertools import chain
-from typing import Iterable, List, TypeVar, Optional, Iterator, Sized
+from typing import Iterable, Iterator, List, Optional, Sized, TypeVar
 
 from datasets import Dataset
-from torch.utils.data import functional_datapipe, IterDataPipe
+from torch.utils.data import IterDataPipe, functional_datapipe
 from transformers import BatchEncoding
 
-T = TypeVar('T')
-T_co = TypeVar('T_co', covariant=True)
+
+T = TypeVar("T")
+T_co = TypeVar("T_co", covariant=True)
 
 
 def batched(iterable: Iterable[T], batch_size: int) -> Iterable[List[T]]:
@@ -27,10 +28,13 @@ def batch_tokenize(ds: Dataset, tokenizer, batch_size: int, text_column="text") 
         yield tokenizer(batch)
 
 
-def concatenate_and_group_texts(encoding: BatchEncoding, seq_len: int,
-                                stride: Optional[int] = None,
-                                drop_remainder: bool = True,
-                                mask_stride_overlap=True) -> Iterator[BatchEncoding]:
+def concatenate_and_group_texts(
+    encoding: BatchEncoding,
+    seq_len: int,
+    stride: Optional[int] = None,
+    drop_remainder: bool = True,
+    mask_stride_overlap=True,
+) -> Iterator[BatchEncoding]:
     """Groups texts in a batch together. Typically, you'll want to use this with a fairly large
     set of texts, e.g. 1000 docs.
 
@@ -51,13 +55,13 @@ def concatenate_and_group_texts(encoding: BatchEncoding, seq_len: int,
     stride = stride or seq_len
 
     # Drop the "very last" bit of the dataset that doesn't fit into block size...
-    if drop_remainder and total_length % stride != 0 :
+    if drop_remainder and total_length % stride != 0:
         total_length = ((total_length - seq_len + stride) // stride) * stride
 
     # Split by Chunks of Maximum Length
     # we want to take chunks up until we've covered all "total_length" tokens with a sliding window of size "stride"
     for begin in range(0, total_length - seq_len + stride, stride):
-        data = {k: v[begin:begin+seq_len] for k, v in concatenated.items()}
+        data = {k: v[begin : begin + seq_len] for k, v in concatenated.items()}
 
         if mask_stride_overlap and stride != seq_len:
             labels = data.get("labels", data["input_ids"])
@@ -77,23 +81,20 @@ def _mask_overlap(labels, target_len, stride, sentinel=-100):
             if i < len(labels):
                 labels[i] = sentinel
     else:
-        labels[0:target_len - stride] = sentinel
+        labels[0 : target_len - stride] = sentinel
 
     return labels
 
 
-@functional_datapipe('seeded_shuffle')
+@functional_datapipe("seeded_shuffle")
 class SeededShufflerIterDataPipe(IterDataPipe[T_co]):
     """Very similar to ShufflerIterDataPipe, but with a seed, and it ignores the set_shuffle_settings stuff. If you don't
     want to shuffle, then don't use the shuffle combinator..."""
+
     datapipe: IterDataPipe[T_co]
     buffer_size: int
 
-    def __init__(self,
-                 datapipe: IterDataPipe[T_co],
-                 seed: int,
-                 *,
-                 buffer_size: int = 10000) -> None:
+    def __init__(self, datapipe: IterDataPipe[T_co], seed: int, *, buffer_size: int = 10000) -> None:
         super().__init__()
         assert buffer_size > 0, "buffer_size should be larger than 0"
         self.datapipe = datapipe
@@ -109,7 +110,7 @@ class SeededShufflerIterDataPipe(IterDataPipe[T_co]):
 
     def __iter__(self) -> Iterator[T_co]:
         generator = random.Random(self.seed)
-        buffer = []
+        buffer: List[T_co] = []
         for x in self.datapipe:
             if len(buffer) == self.buffer_size:
                 yield SeededShufflerIterDataPipe.buffer_replace(generator, buffer, x)
@@ -123,5 +124,3 @@ class SeededShufflerIterDataPipe(IterDataPipe[T_co]):
         if isinstance(self.datapipe, Sized):
             return len(self.datapipe)
         raise TypeError("{} instance doesn't have valid length".format(type(self).__name__))
-
-
