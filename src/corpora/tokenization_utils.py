@@ -110,7 +110,7 @@ class SeededShufflerIterDataPipe(IterDataPipe[T_co]):
 
     def __iter__(self) -> Iterator[T_co]:
         generator = random.Random(self.seed)
-        buffer = []
+        buffer: List[T_co] = []
         for x in self.datapipe:
             if len(buffer) == self.buffer_size:
                 yield SeededShufflerIterDataPipe.buffer_replace(generator, buffer, x)

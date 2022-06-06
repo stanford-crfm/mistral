@@ -15,7 +15,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Iterator, Optional
+from typing import Iterator, Optional, Union
 
 import datasets
 import numpy as np
@@ -64,7 +64,7 @@ class IndexedDataset(IterDataPipe[BatchEncoding]):
     @staticmethod
     def build_or_load(
         token_iter: Iterator[BatchEncoding],
-        cache_dir: str,
+        cache_dir: Union[str, os.PathLike],
         seq_len: int,
         stride: Optional[int] = None,
         num_tokens_per_file: int = NUM_TOKENS_PER_FILE,
@@ -133,7 +133,7 @@ class IndexedDataset(IterDataPipe[BatchEncoding]):
         except (KeyboardInterrupt, InterruptedError):
             current_writer.close()
             current_writer = None
-            file_out.unlink(missing_ok=True)
+            file_out.unlink(missing_ok=True)  # type: ignore
             raise
 
     def _load_ledger(self):

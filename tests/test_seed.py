@@ -1,6 +1,3 @@
-from itertools import islice
-from typing import Dict, List
-
 import torch
 
 from tests import MISTRAL_TEST_DIR, check_samples_equal, get_samples, run_tests, run_train_process
