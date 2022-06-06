@@ -1,9 +1,10 @@
 from itertools import islice
-from typing import List, Dict
+from typing import Dict, List
 
 import torch
 
-from tests import MISTRAL_TEST_DIR, run_tests, run_train_process, get_samples, check_samples_equal
+from tests import MISTRAL_TEST_DIR, check_samples_equal, get_samples, run_tests, run_train_process
+
 
 # paths
 CACHE_DIR = f"{MISTRAL_TEST_DIR}/artifacts"
@@ -37,8 +38,9 @@ def setup_module() -> None:
     global trainer_seed_7, trainer_seed_10, trainer_seed_7_copy
     trainer_seed_7 = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_7, runs_dir=RUNS_DIR, run_id="trainer_seed_7")
     trainer_seed_10 = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_10, runs_dir=RUNS_DIR, run_id="trainer_seed_10")
-    trainer_seed_7_copy = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_7, runs_dir=RUNS_DIR,
-                                            run_id="trainer_seed_7_copy")
+    trainer_seed_7_copy = run_train_process(
+        cl_args_dict=TRAIN_ARGS_SEED_7, runs_dir=RUNS_DIR, run_id="trainer_seed_7_copy"
+    )
 
 
 def is_randomized(key):
@@ -72,8 +74,6 @@ def test_data_order() -> None:
 
     seed_7_dataloader = trainer_seed_7.get_train_dataloader()
     seed_10_dataloader = trainer_seed_10.get_train_dataloader()
-
-
 
     seed_7_data, seed_10_data = get_samples(seed_7_dataloader), get_samples(seed_10_dataloader)
 

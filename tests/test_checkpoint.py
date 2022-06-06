@@ -3,7 +3,8 @@ import os
 
 import torch
 
-from tests import MISTRAL_TEST_DIR, run_tests, run_train_process, get_samples, check_samples_equal
+from tests import MISTRAL_TEST_DIR, check_samples_equal, get_samples, run_tests, run_train_process
+
 
 # common paths and resources for tests
 

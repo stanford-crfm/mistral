@@ -23,9 +23,10 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from torch.utils.data import IterDataPipe
 from tqdm import tqdm
-from transformers import BatchEncoding, AutoTokenizer, PreTrainedTokenizerFast
+from transformers import AutoTokenizer, BatchEncoding, PreTrainedTokenizerFast
 
 from src.corpora.tokenization_utils import batch_tokenize, concatenate_and_group_texts
+
 
 # As a heuristic, we're aiming for files that are around ~250MB
 # Typically we're training on sequences of length ~1024 and batch size up to 512, so better to make it divisible by that.
@@ -61,12 +62,14 @@ class IndexedDataset(IterDataPipe[BatchEncoding]):
                 yield from concatenate_and_group_texts(entry, self.seq_len, self.stride)
 
     @staticmethod
-    def build_or_load(token_iter: Iterator[BatchEncoding],
-                      cache_dir: str,
-                      seq_len: int,
-                      stride: Optional[int] = None,
-                      num_tokens_per_file: int = NUM_TOKENS_PER_FILE,
-                      file_template: str = 'docs-{}.parquet') -> 'IndexedDataset':
+    def build_or_load(
+        token_iter: Iterator[BatchEncoding],
+        cache_dir: str,
+        seq_len: int,
+        stride: Optional[int] = None,
+        num_tokens_per_file: int = NUM_TOKENS_PER_FILE,
+        file_template: str = "docs-{}.parquet",
+    ) -> "IndexedDataset":
         os.makedirs(cache_dir, exist_ok=True)
         ledger_file = os.path.join(cache_dir, LEDGER_FILE)
 
@@ -143,7 +146,7 @@ class IndexedDataset(IterDataPipe[BatchEncoding]):
 
 
 def read_cache_file(file, flatten: bool = False) -> Iterator[BatchEncoding]:
-    """ Reads the cache files produced by cache_and_group and yields tokenized sequences.
+    """Reads the cache files produced by cache_and_group and yields tokenized sequences.
     If flatten is false, this returns the docs as they were presented to the caching process. If flatten is True,
     then the documents returned are actually concatenated documents, where the number is the number of documents
     presented as a batch to the caching process."""
@@ -151,12 +154,15 @@ def read_cache_file(file, flatten: bool = False) -> Iterator[BatchEncoding]:
         if flatten:
             # insert a newaxis to the beginning so that it appears to be bs=1
             yield BatchEncoding(
-                {b.field(i).name: b.column(i).values.to_numpy(zero_copy_only=True)[np.newaxis, :] for i in
-                 range(b.num_columns)}
+                {
+                    b.field(i).name: b.column(i).values.to_numpy(zero_copy_only=True)[np.newaxis, :]
+                    for i in range(b.num_columns)
+                }
             )
         else:
             yield BatchEncoding(
-                {b.field(i).name: b.column(i).to_numpy(zero_copy_only=False) for i in range(b.num_columns)})
+                {b.field(i).name: b.column(i).to_numpy(zero_copy_only=False) for i in range(b.num_columns)}
+            )
 
 
 def _as_record_batch(doc: BatchEncoding) -> pa.RecordBatch:
@@ -164,13 +170,13 @@ def _as_record_batch(doc: BatchEncoding) -> pa.RecordBatch:
     return pa.RecordBatch.from_arrays(list(columns), names)
 
 
-if __name__ == '__main__':
-    tokenizer: PreTrainedTokenizerFast = AutoTokenizer.from_pretrained('gpt2')
+if __name__ == "__main__":
+    tokenizer: PreTrainedTokenizerFast = AutoTokenizer.from_pretrained("gpt2")
     dataset = datasets.load_dataset("dlwh/wikitext_2_detokenized", split="train")
     token_iter = batch_tokenize(dataset, tokenizer, batch_size=1000)
-    indexer = IndexedDataset.build_or_load(batch_tokenize(dataset, tokenizer, batch_size=1000),
-                                           "cache/wikitext-2-indexed", seq_len=512, stride=None)
+    indexer = IndexedDataset.build_or_load(
+        batch_tokenize(dataset, tokenizer, batch_size=1000), "cache/wikitext-2-indexed", seq_len=512, stride=None
+    )
 
     for i, batch in enumerate(indexer):
         print(i, batch)
-
