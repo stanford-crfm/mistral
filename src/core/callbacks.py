@@ -87,10 +87,10 @@ class CustomWandbCallback(WandbCallback):
         """Simple method to log memory usage at the end of every training batch."""
         if state.is_world_process_zero and torch.cuda.is_available():
             memory_usage = {
-                f"{prefix}/memory_allocated": torch.cuda.memory_allocated() / 2**20,
-                f"{prefix}/memory_max_allocated": torch.cuda.max_memory_allocated() / 2**20,
-                f"{prefix}/memory_reserved": torch.cuda.memory_reserved() / 2**20,
-                f"{prefix}/memory_max_reserved": torch.cuda.max_memory_reserved() / 2**20,
+                f"{prefix}/memory_allocated": torch.cuda.memory_allocated() / 2 ** 20,
+                f"{prefix}/memory_max_allocated": torch.cuda.max_memory_allocated() / 2 ** 20,
+                f"{prefix}/memory_reserved": torch.cuda.memory_reserved() / 2 ** 20,
+                f"{prefix}/memory_max_reserved": torch.cuda.max_memory_reserved() / 2 ** 20,
             }
             # Log to _all_ loggers
             self._wandb.log(memory_usage, step=state.global_step)

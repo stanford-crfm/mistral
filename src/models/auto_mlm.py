@@ -1,7 +1,7 @@
 """
-auto_clm.py
+auto_mlm.py
 
-Default Causal Language Model (CLM) & Tokenizer Specification and Initialization. Downloads Model Configuration (if
+Default Masked Language Model (MLM) & Tokenizer Specification and Initialization. Downloads Model Configuration (if
 necessary) from the  Hugging Face `transformers` Hub, instantiates pretrained Tokenizer, and initializes model using
 the necessary AutoModel class.
 """
@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import Dict, Tuple
 
 import torch
-from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizer
-from transformers.models.gpt2 import GPT2Config, GPT2LMHeadModel
+from transformers import AutoConfig, AutoModelForMaskedLM, AutoTokenizer, PreTrainedTokenizer
+from transformers.models.bert import BertConfig
 
 from ..util import REGISTRY
 
@@ -20,7 +20,7 @@ from ..util import REGISTRY
 overwatch = logging.getLogger("mistral.models.auto")
 
 
-def get_auto_clm_tokenizer(
+def get_auto_mlm_tokenizer(
     model_id: str,
     paths: Dict[str, Path],
     model_configs: dict = None,
@@ -29,15 +29,13 @@ def get_auto_clm_tokenizer(
     reorder_and_upcast_attn: bool = True,
     scale_attn_by_inverse_layer_idx: bool = True,
     initial_weights: str = None,
-) -> Tuple[AutoModelForCausalLM, PreTrainedTokenizer]:
+) -> Tuple[AutoModelForMaskedLM, PreTrainedTokenizer]:
     """Download/Load AutoConfig and Instantiate Corresponding Model and Tokenizer."""
 
     # Create Configuration
-    if "gpt2" in model_id and model_configs:
-        overwatch.info(f"Building Hugging Face GPT2Config from provided configs: {model_configs} ...")
-        config = GPT2Config.from_dict(model_configs)
-        config.reorder_and_upcast_attn = reorder_and_upcast_attn
-        config.scale_attn_by_inverse_layer_idx = scale_attn_by_inverse_layer_idx
+    if "bert" in model_id and model_configs:
+        overwatch.info(f"Building Hugging Face BERTConfig from provided configs: {model_configs} ...")
+        config = BertConfig.from_dict(model_configs)
     else:
         overwatch.info(f"Fetching Hugging Face AutoConfig for Model: `{REGISTRY[model_id]}`...")
         config = AutoConfig.from_pretrained(REGISTRY[model_id], cache_dir=paths["configs"])
@@ -53,18 +51,8 @@ def get_auto_clm_tokenizer(
         overwatch.error("Tokenizer Training/Initialization (from Scratch) not yet implemented!")
         raise NotImplementedError()
 
-    # Partial Gradient Checkpointing (currently only supported for GPT-2 models)
-    if "gpt2" in model_id:
-        overwatch.info(f"Initializing Custom GPT-2 Model from Configuration: `{REGISTRY[model_id]}`...")
-        model = GPT2LMHeadModel(config)
-        if gradient_checkpointing:
-            model.gradient_checkpointing_enable()
-
-    # No Adaptive Gradient Checkpointing
-    else:
-        # Initialize Model
-        overwatch.info(f"Initializing Tabula Rasa Model from Configuration: `{REGISTRY[model_id]}`...")
-        model = AutoModelForCausalLM.from_config(config)
+    overwatch.info(f"Initializing Tabula Rasa Model from Configuration: `{REGISTRY[model_id]}`...")
+    model = AutoModelForMaskedLM.from_config(config)
 
     # Run GPT-Specific Initialization, if applicable
     model.resize_token_embeddings(len(tokenizer))

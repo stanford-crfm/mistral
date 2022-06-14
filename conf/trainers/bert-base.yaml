@@ -1,5 +1,5 @@
-# gpt2-small.yaml
-#   Trainer config for Full GPT-2 Medium, with the full fixed batch size of 512 (with gradient accumulation).
+# bert-base.yaml
+#   Trainer config for Full BERT-base, with the full fixed batch size of 2048 (with gradient accumulation).
 #   This contract exactly follows that of HF.TrainingArguments so we can pass as a simple **kwargs -- make sure this
 #   continues to stay valid!
 #       Reference: https://huggingface.co/transformers/main_classes/trainer.html#trainingarguments
@@ -12,8 +12,8 @@ training_arguments:
     do_train: true
     evaluation_strategy: steps
 
-    # Set these based on GPU RAM/your available hardware (4 w/o gradient checkpointing, 8 w/ partial checkpointing)
-    per_device_train_batch_size: 4
+    # Set these based on GPU RAM/your available hardware
+    per_device_train_batch_size: 8
     per_device_eval_batch_size: 16
 
     # We set this dynamically based on DDP Computation [steps = effective_batch / (per_gpu_batch * gpus * nodes)]
@@ -23,21 +23,21 @@ training_arguments:
     prediction_loss_only: true
 
     # Learning Rate & Optimization Parameters, assumes AdamW
-    learning_rate: 0.00015
+    learning_rate: 0.0006
     weight_decay: 0.1
     adam_beta1: 0.9
-    adam_beta2: 0.999
-    adam_epsilon: 1.0e-8
+    adam_beta2: 0.98
+    adam_epsilon: 1.0e-6
 
     # Gradient Norm
     max_grad_norm: 1.0
 
     # Maximum Training Steps (Overrides epochs!)
-    max_steps: 400000
+    max_steps: 100000
 
     # LR Scheduling Parameters -- Warmup Steps should be 1% of total steps (Could use ratio)
     lr_scheduler_type: linear   # Cosine not supported if we want to use DeepSpeed Optimizers (gets overwritten!)
-    warmup_steps: 4000
+    warmup_steps: 5000
 
     # Logging Parameters -- Logging Directory (Tensorboard - is this necessary?) should be Overwritten at Runtime!
     run_name: null

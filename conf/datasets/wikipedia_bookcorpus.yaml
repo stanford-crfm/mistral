@@ -1,0 +1,13 @@
+# wikipedia.yaml
+#   Configuration for Wikipedia Dataset (https://huggingface.co/datasets/wikipedia).
+---
+dataset:
+    id: wikipedia,bookcorpus
+    name: 20200501.en,plain_text
+    validation_ratio: 0.0005
+
+    # Number of Preprocessing Workers
+    num_proc: 10
+
+    # Number of Evaluation Preprocessing Workers
+    eval_num_proc: 4

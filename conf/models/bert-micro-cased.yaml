@@ -1,8 +1,8 @@
-# gpt2-small-config.yaml
-#   Configuration for the GPT-2 Small Model.
+# bert-micro-config.yaml
+#   Configuration for the BERT-micro Model.
 ---
 model:
-    id: "gpt2-small"
+    id: "bert-base-cased"
 
     # Boolean whether to use Gradient Checkpointing to save GPU Memory at the expense of runtime
     gradient_checkpointing: false
@@ -11,11 +11,14 @@ model:
     pretrained_tokenizer: true
 
     # Sequence Length
-    seq_len: 1024
+    seq_len: 512
 
-    # Stability
+    # Stability -- Upcasting and Scaled Dot-Product Reordering
     reorder_and_upcast_attn: true
     scale_attn_by_inverse_layer_idx: true
 
     # Initialize Weights from File
     initial_weights: null
+
+    # Configure Model From File
+    config_path: conf/models/bert-micro-cased.json

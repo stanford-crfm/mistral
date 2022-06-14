@@ -6,25 +6,28 @@ Custom Hugging Face Trainer that allows for online eval of multiple datasets.
 import collections
 import logging
 import time
-from dataclasses import dataclass  # type: ignore
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
-from torch.utils.data.dataset import Dataset, IterDataPipe
-from transformers import (
-    AutoModelForCausalLM,
-    BatchEncoding,
-    PreTrainedModel,
-    PreTrainedTokenizerBase,
-    Trainer,
-    TrainingArguments,
-)
+from torch.nn.parallel import DistributedDataParallel
+from torch.utils.data.dataset import Dataset
+from torch.utils.data.distributed import DistributedSampler
+from transformers import AutoModelForCausalLM, PreTrainedModel, PreTrainedTokenizerBase, Trainer, TrainingArguments
 from transformers.data.data_collator import DataCollator
+from transformers.file_utils import is_datasets_available
 from transformers.trainer_callback import TrainerCallback
+from transformers.trainer_pt_utils import (
+    DistributedLengthGroupedSampler,
+    DistributedSamplerWithLoop,
+    LengthGroupedSampler,
+)
 from transformers.trainer_utils import EvalPrediction, speed_metrics
+from transformers.training_args import ParallelMode
 
+
+if is_datasets_available():
+    import datasets
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
 overwatch = logging.getLogger("mistral.core.trainer")
@@ -45,7 +48,6 @@ class OnlineBenchmarkTrainer(Trainer):
         model: AutoModelForCausalLM,
         args: TrainingArguments,
         data_collator: Optional[DataCollator] = None,
-        dataset_name: str = "unknown",
         train_dataset: Optional[Dataset] = None,
         eval_dataset: Optional[Dataset] = None,
         custom_eval_datasets: Optional[Dict[str, Dataset]] = None,
@@ -67,14 +69,54 @@ class OnlineBenchmarkTrainer(Trainer):
             callbacks=callbacks,
             optimizers=optimizers,
         )
-
-        self.dataset_name = dataset_name
         custom_eval_datasets = custom_eval_datasets if custom_eval_datasets is not None else {}
 
         # No idea why, but you can't use a dict to store the datasets. They must be stored separately as class objects.
         # It might be related to how module need custom ModuleDicts for dictionaries to work with distributed models.
+        #   =>> But who knows?
         self.wikitext_dataset = custom_eval_datasets.get("wikitext", None)
         self.lambada_dataset = custom_eval_datasets.get("lambada", None)
+
+    def _maybe_log_save_evaluate(self, tr_loss, model, trial, epoch, ignore_keys_for_eval):
+        """
+        Taken from https://github.com/huggingface/transformers/blob/v4.5.0/src/transformers/trainer.py#L1248
+        We add activation logging
+        """
+        if self.control.should_log:
+            logs: Dict[str, float] = {}
+            tr_loss_scalar = tr_loss.item()
+            # reset tr_loss to zero
+            tr_loss -= tr_loss
+
+            logs["loss"] = round(tr_loss_scalar / (self.state.global_step - self._globalstep_last_logged), 4)
+            logs["learning_rate"] = self._get_learning_rate()
+
+            self._total_loss_scalar += tr_loss_scalar
+            self._globalstep_last_logged = self.state.global_step
+
+            # Add activation logging
+            # This logging only works for MistralGPT2LMHeadModel
+            # Retrieve PyTorch module from DeepSpeedEngine
+            if self.deepspeed or isinstance(model, DistributedDataParallel):
+                model = model.module
+
+            if hasattr(model, "transformer") and hasattr(model.transformer.h[0].attn, "activation_stats"):
+                for block_i, block in enumerate(model.transformer.h):
+                    layer_activation_stats = {
+                        f"activations/layer{block_i}_" + k: v for k, v in block.attn.activation_stats.items()
+                    }
+                    logs.update(layer_activation_stats)
+
+            self.log(logs)
+
+        metrics = None
+        if self.control.should_evaluate:
+            metrics = self.evaluate()
+            self._report_to_hp_search(trial, epoch, metrics)
+
+        if self.control.should_save:
+            self._save_checkpoint(model, trial, metrics=metrics)
+            self.control = self.callback_handler.on_save(self.args, self.state, self.control)
 
     def evaluate(
         self,
@@ -89,10 +131,10 @@ class OnlineBenchmarkTrainer(Trainer):
 
         # Create New Metrics Dictionary --> TODO trainer.A :: Fix so doesn't explicitly assume OpenWebText
         metrics = {
-            f"eval_{self.dataset_name}_loss": metrics["eval_loss"],
-            f"eval_{self.dataset_name}_ppl": np.exp(metrics["eval_loss"]),
-            f"eval_{self.dataset_name}_runtime": metrics["eval_runtime"],
-            f"eval_{self.dataset_name}_samples_per_second": metrics["eval_samples_per_second"],
+            "eval_openwebtext_loss": metrics["eval_loss"],
+            "eval_openwebtext_ppl": np.exp(metrics["eval_loss"]),
+            "eval_openwebtext_runtime": metrics["eval_runtime"],
+            "eval_openwebtext_samples_per_second": metrics["eval_samples_per_second"],
             "epoch": metrics.get("epoch"),
         }
         self.log(metrics)
@@ -143,36 +185,65 @@ class OnlineBenchmarkTrainer(Trainer):
 
         return output.metrics
 
-    def get_train_dataloader(self) -> DataLoader:
-        """ensures we're shuffling if we're using a new-style (iterable) dataset"""
-        if isinstance(self.train_dataset, IterDataPipe):
-            return DataLoader(
-                self.train_dataset,
-                shuffle=True,
-                batch_size=self.args.per_device_train_batch_size,
-                collate_fn=self.data_collator,
-                num_workers=self.args.dataloader_num_workers,
-                pin_memory=self.args.dataloader_pin_memory,
-            )
+    def _get_train_sampler(self) -> Optional[torch.utils.data.sampler.Sampler]:
+        """
+        Mostly copied from https://github.com/huggingface/transformers/blob/master/src/transformers/trainer.py#L509
+
+        We modify the Distributed Samplers by adding the `seed` argument
+        """
+        if isinstance(self.train_dataset, torch.utils.data.IterableDataset) or not isinstance(
+            self.train_dataset, collections.abc.Sized
+        ):
+            return None
+
+        # Build the sampler.
+        if self.args.group_by_length:
+            if is_datasets_available() and isinstance(self.train_dataset, datasets.Dataset):
+                lengths = (
+                    self.train_dataset[self.args.length_column_name]
+                    if self.args.length_column_name in self.train_dataset.column_names
+                    else None
+                )
+            else:
+                lengths = None
+            model_input_name = self.tokenizer.model_input_names[0] if self.tokenizer is not None else None
+            if self.args.world_size <= 1:
+                return LengthGroupedSampler(
+                    self.train_dataset, self.args.train_batch_size, lengths=lengths, model_input_name=model_input_name
+                )
+            else:
+                # @Mercury =>> Critical Change :: Pass seed to Distributed Sampler to randomize Data Order!
+                return DistributedLengthGroupedSampler(
+                    self.train_dataset,
+                    self.args.train_batch_size,
+                    num_replicas=self.args.world_size,
+                    rank=self.args.process_index,
+                    lengths=lengths,
+                    model_input_name=model_input_name,
+                    seed=self.args.seed,
+                )
+
         else:
-            return super().get_train_dataloader()
-
-
-@dataclass
-class LMDataCollator:
-    tokenizer: PreTrainedTokenizerBase
-
-    def __call__(self, examples: List[BatchEncoding]):
-        batch = BatchEncoding(data={k: torch.tensor([v[k] for v in examples]) for k in examples[0].keys()})
-
-        if "labels" in batch:
-            labels = batch["labels"]
-        else:
-            labels = batch["input_ids"]
-
-        if self.tokenizer.pad_token_id is not None:
-            labels = labels.clone()
-            labels[labels == self.tokenizer.pad_token_id] = -100
-
-        batch["labels"] = labels
-        return batch
+            if self.args.world_size <= 1:
+                return DistributedSampler(self.train_dataset, num_replicas=1, rank=0, seed=self.args.seed)
+            elif (
+                self.args.parallel_mode in [ParallelMode.TPU, ParallelMode.SAGEMAKER_MODEL_PARALLEL]
+                and not self.args.dataloader_drop_last
+            ):
+                # @Mercury =>> Critical Change :: Pass seed to Distributed Sampler to randomize Data Order!
+                # Use a loop for TPUs when drop_last is False to have all batches have the same size.
+                return DistributedSamplerWithLoop(
+                    self.train_dataset,
+                    batch_size=self.args.per_device_train_batch_size,
+                    num_replicas=self.args.world_size,
+                    rank=self.args.process_index,
+                    seed=self.args.seed,
+                )
+            else:
+                # @Mercury =>> Critical Change :: Pass seed to Distributed Sampler to randomize Data Order!
+                return DistributedSampler(
+                    self.train_dataset,  # type: ignore
+                    num_replicas=self.args.world_size,
+                    rank=self.args.process_index,
+                    seed=self.args.seed,
+                )

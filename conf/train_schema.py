@@ -3,7 +3,6 @@ train_schema.py
 
 Cerberus schema used by Quinine for train.py.
 """
-import logging
 from typing import Any, Dict
 
 from quinine.common.cerberus import (
@@ -21,18 +20,6 @@ from quinine.common.cerberus import (
 )
 
 
-def deprecated_field(msg):
-    """Can be used in a schema to indicate that a field has been deprecated."""
-
-    def _deprecated_field(field, value, _error):
-        if value is not None:
-            logging.warning(f"{field} is deprecated and will be removed in a future release.")
-            if msg:
-                logging.warning(msg)
-
-    return {"check_with": _deprecated_field}
-
-
 def get_schema() -> Dict[str, Any]:
     """Get the Cerberus schema for the Quinine config used in train.py."""
 
@@ -40,7 +27,6 @@ def get_schema() -> Dict[str, Any]:
     data_schema = {
         "id": merge(tstring, required),
         "name": merge(tstring, nullable, default(None)),
-        "dataset_dir": merge(tstring, nullable, default(None)),
         "validation_ratio": merge(tfloat, default(0.0005)),
         "num_proc": merge(tinteger, default(64)),
         "eval_num_proc": merge(tinteger, default(4)),
@@ -49,18 +35,14 @@ def get_schema() -> Dict[str, Any]:
     # Schema for Model
     model_schema = {
         "id": merge(tstring, required),
-        "gradient_checkpointing": merge(
-            tboolean,
-            nullable,
-            default(None),
-            deprecated_field("This config is now in training_arguments to better match HF."),
-        ),
+        "gradient_checkpointing": merge(tboolean, default(False)),
         "pretrained_tokenizer": merge(tboolean, default(True)),
         "seq_len": merge(tinteger, default(1024)),
         "reorder_and_upcast_attn": merge(tboolean, nullable, default(True)),
         "scale_attn_by_inverse_layer_idx": merge(tboolean, nullable, default(True)),
         "initial_weights": merge(tstring, nullable, default(None)),
         "config_path": merge(tstring, nullable, default(None)),
+        "mlm_probability": merge(tfloat, default(0.15)),
     }
 
     # Schema for Huggingface Trainer and Training Arguments
@@ -95,13 +77,12 @@ def get_schema() -> Dict[str, Any]:
         "deepspeed": merge(tstring, nullable, default(None)),
         "dataloader_num_workers": merge(tinteger, default(4)),
         "local_rank": merge(tinteger, nullable, default(None)),
-        "gradient_checkpointing": merge(tboolean, default(False)),
     }
 
     # Schema for Online Custom Evaluation Datasets (e.g. LAMBADA)
     online_eval_schema = {
-        "do_wikitext": merge(tboolean, default(False)),
-        "do_lambada": merge(tboolean, default(False)),
+        "do_wikitext": merge(tboolean, default(True)),
+        "do_lambada": merge(tboolean, default(True)),
         "stride": merge(tinteger, default(512)),
     }
 

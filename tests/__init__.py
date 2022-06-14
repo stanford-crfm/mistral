@@ -1,20 +1,19 @@
 import inspect
-import itertools
 import os
+import re
 import shutil
+import subprocess
 import sys
 import traceback
-from typing import Dict, List
 from unittest.mock import patch
 
 import psutil
-import torch
 
 from src.core.trainer import OnlineBenchmarkTrainer
 from train import train
 
 
-MISTRAL_TEST_DIR = os.getenv("MISTRAL_TEST_DIR") or "."
+MISTRAL_TEST_DIR = os.getenv("MISTRAL_TEST_DIR")
 
 # standard utils
 
@@ -28,21 +27,6 @@ def to_cl_args(args_dict):
         args_list.append(f"--{k}")
         args_list.append(v)
     return args_list
-
-
-def get_samples(dataloader, num_samples=20):
-    return list(itertools.islice(iter(dataloader), num_samples))
-
-
-def check_samples_equal(data1: List[Dict[str, torch.Tensor]], data2: List[Dict[str, torch.Tensor]]) -> bool:
-    # enough to check that the input_ids are the same
-    # remember to use torch.equal() for tensors
-    if len(data1) != len(data2):
-        return False
-    for i in range(len(data1)):
-        if not torch.equal(data1[i]["input_ids"], data2[i]["input_ids"]):
-            return False
-    return True
 
 
 # deepspeed utils
@@ -132,8 +116,6 @@ def run_tests():
     """
     if DEEPSPEED_MODE and not am_first_deepspeed_child():
         return
-    os.environ["WANDB_DISABLED"] = "true"
-
     test_functions = get_test_functions()
     passing_tests = []
     failing_tests = []

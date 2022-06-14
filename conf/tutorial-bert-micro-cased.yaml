@@ -1,29 +1,29 @@
-# gpt2-mistral-small-config.yaml
-#   Full Mistral GPT-2 Small Training Config, currently working with the OpenWebText Dataset, GPT-2 Small Architecture,
-#   and full batch size (512). Runs with DeepSpeed ZeRO-2, with a per-device BSZ of 16.
+# tutorial-gpt2-micro.yaml
+#   Demo GPT-2 Micro Training Config, currently working with the WikiText103 Dataset, GPT-2 Micro Architecture,
+#   and batch size of 2. Runs with DeepSpeed ZeRO-2, with a per-device BSZ of 2.
 #
 #   Inheritance and core paths can all be overridden from the command line or by re-writing these files.
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
-    - datasets/openwebtext.yaml
-    - models/gpt2-mini.yaml
-    - trainers/gpt2-small.yaml
+    - datasets/wikitext103.yaml
+    - models/bert-micro-cased.yaml
+    - trainers/bert-base.yaml
 
 # Run ID -- make sure to override!
 run_id: null
 
 # Weights & Biases
 wandb: mistral-gpt2
-group: gpt2-small
+group: bert-micro
 
 # Artifacts & Caching
 artifacts:
-    cache_dir: /scr-ssd/mercury/mistral/artifacts
-    run_dir: /scr-ssd/mercury/mistral/runs
+    cache_dir: /u/scr/nlp/data/mercury/add-bert/data/artifacts
+    run_dir: /u/scr/nlp/data/mercury/add-bert/data/runs
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
-effective_bsz: 512
+effective_bsz: 16
 
 # Resume from Checkpoint
 resume: false
@@ -33,6 +33,7 @@ resume_checkpoint: null
 #   - Frequency (`freq`) at which to save checkpoints (# steps)
 #   - Bound (`until`) on global step for given frequency (checkpoint every `freq` steps until global step = `until`)
 checkpoint_frequency:
+    - [2, 10]
     - [10, 100]
     - [50, 2000]
     - [100, 20000]
@@ -53,3 +54,8 @@ log_level: 20
 
 # Random Seed
 seed: 21
+
+# Set Eval Stride
+online_eval:
+    do_wikitext: false
+    do_lambada: false

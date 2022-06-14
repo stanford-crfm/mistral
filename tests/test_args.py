@@ -1,5 +1,3 @@
-from copy import copy
-
 from tests import MISTRAL_TEST_DIR, run_tests, run_train_process
 
 
@@ -11,7 +9,7 @@ TRAIN_ARGS = {
     "nnodes": "1",
     "nproc_per_node": "1",
     "config": "conf/train.yaml",
-    "training_arguments.fp16": "false",
+    "training_arguments.fp16": "true",
     "training_arguments.per_device_train_batch_size": "1",
     "artifacts.cache_dir": CACHE_DIR,
     "log_level": "50",
@@ -19,19 +17,23 @@ TRAIN_ARGS = {
     "run_final_eval": "false",
 }
 
-TRAIN_ARGS_DIFF = copy(TRAIN_ARGS)
-TRAIN_ARGS_DIFF["config"] = "conf/train-diff.yaml"
+trainer_w_train = run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id="train_args_test")
 
-trainer_w_train = None
-trainer_w_train_diff = None
+TRAIN_ARGS_DIFF = {
+    "nnodes": "1",
+    "nproc_per_node": "1",
+    "config": "conf/train-diff.yaml",
+    "training_arguments.fp16": "true",
+    "training_arguments.per_device_train_batch_size": "1",
+    "artifacts.cache_dir": CACHE_DIR,
+    "log_level": "50",
+    "run_training": "false",
+    "run_final_eval": "false",
+}
 
-
-def setup_module() -> None:
-    global trainer_w_train, trainer_w_train_diff
-    trainer_w_train = run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id="train_args_test")
-    trainer_w_train_diff = run_train_process(
-        cl_args_dict=TRAIN_ARGS_DIFF, runs_dir=RUNS_DIR, run_id="train_args_diff_test"
-    )
+trainer_w_train_diff = run_train_process(
+    cl_args_dict=TRAIN_ARGS_DIFF, runs_dir=RUNS_DIR, run_id="train_args_diff_test"
+)
 
 
 def test_train_args() -> None:

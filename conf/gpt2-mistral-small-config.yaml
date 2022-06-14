@@ -6,7 +6,7 @@
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
-    - datasets/wikitext103.yaml
+    - datasets/openwebtext.yaml
     - models/gpt2-small.yaml
     - trainers/gpt2-small.yaml
 
@@ -19,8 +19,8 @@ group: gpt2-small
 
 # Artifacts & Caching
 artifacts:
-    cache_dir: /path/to/artifacts
-    run_dir: /path/to/runs
+    cache_dir: /scr-ssd/mercury/mistral/artifacts
+    run_dir: /scr-ssd/mercury/mistral/runs
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
 effective_bsz: 512
