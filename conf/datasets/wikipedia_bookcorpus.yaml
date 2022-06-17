@@ -3,7 +3,7 @@
 ---
 dataset:
     id: wikipedia,bookcorpus
-    name: 20200501.en,plain_text
+    name: 20220301.en,plain_text
     validation_ratio: 0.0005
 
     # Number of Preprocessing Workers
