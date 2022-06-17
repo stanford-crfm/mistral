@@ -14,13 +14,13 @@ inherit:
 run_id: null
 
 # Weights & Biases
-wandb:
-group:
+wandb: mistral-gpt2
+group: bert-base
 
 # Artifacts & Caching
 artifacts:
-    cache_dir: artifacts
-    run_dir: runs
+    cache_dir: /u/scr/nlp/data/mercury/add-bert/data/artifacts
+    run_dir: /u/scr/nlp/data/mercury/add-bert/data/runs 
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
 effective_bsz: 2048
