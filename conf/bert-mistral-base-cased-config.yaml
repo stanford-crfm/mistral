@@ -14,7 +14,7 @@ inherit:
 run_id: null
 
 # Weights & Biases
-wandb: mistral-gpt2
+wandb: tilt-synthetic
 group: bert-base
 
 # Artifacts & Caching
