@@ -14,13 +14,13 @@ inherit:
 run_id: null
 
 # Weights & Biases
-wandb:
-group:
+wandb: mistral-demo
+group: gpt2-micro
 
 # Artifacts & Caching
 artifacts:
-    cache_dir: /path/to/artifacts
-    run_dir: /path/to/runs
+    cache_dir: /u/scr/nlp/data/mercury/mistral-demo
+    run_dir: /u/scr/nlp/data/mercury/mistral-demo
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
 effective_bsz: 32
