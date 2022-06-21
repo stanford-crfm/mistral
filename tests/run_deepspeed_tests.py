@@ -14,12 +14,17 @@ for test in tests:
     # run tests
     try:
         subprocess.check_call(
-            "CUDA_VISIBLE_DEVICES=0,1 deepspeed --num_gpus 2 --num_nodes 1 {test} > test.out 2> test.err",
+            f"CUDA_VISIBLE_DEVICES=0,1 deepspeed --num_gpus 2 --num_nodes 1 {test} > test.out 2> test.err",
             shell=True,
         )
     except Exception:
         errors += 1
-    subprocess.call("cat test.log ; rm test.out test.err test.log", shell=True)
+    if os.path.exists("test.log"):
+        subprocess.call("cat test.log", shell=True)
+
+for log_path in ["test.out", "test.err", "test.log"]:
+    if os.path.exists(log_path):
+        os.remove(log_path)
 
 if errors > 0:
     sys.exit(1)
