@@ -41,7 +41,7 @@ jobs:
         run: | 
           eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
           conda activate mistral-${{github.sha}}
-          pwd
+          export PYTHONPATH=/home/stanzabuild/mistral-github-actions/actions-runner/_work/mistral/mistral
           cd tests
           CUDA_VISIBLE_DEVICES=0,1 deepspeed --num_gpus 2 --num_nodes 1 test_fp.py
       - name: Delete conda environment
