@@ -19,7 +19,7 @@ for test in tests:
         )
     except Exception:
         errors += 1
-    subprocess.call("cat test.log ; rm test.out test.err test.log")
+    subprocess.call("cat test.log ; rm test.out test.err test.log", shell=True)
 
 if errors > 0:
     sys.exit(1)
