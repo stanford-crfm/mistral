@@ -36,7 +36,18 @@ jobs:
           eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
           conda activate mistral-${{github.sha}}
           cd tests
+          echo 'Clearing artifacts'
+          rm -rf $MISTRAL_TEST_DIR/artifacts
           CUDA_VISIBLE_DEVICES=0 pytest --durations=0
+      - name: Run tests (Deepspeed 2xGPUs)
+        run: | 
+          eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
+          conda activate mistral-${{github.sha}}
+          export PYTHONPATH=/home/stanzabuild/mistral-github-actions/actions-runner/_work/mistral/mistral
+          cd tests
+          echo 'Clearing artifacts'
+          rm -rf $MISTRAL_TEST_DIR/artifacts
+          python run_deepspeed_tests.py
       - name: Delete conda environment
         if: always()
         run: |

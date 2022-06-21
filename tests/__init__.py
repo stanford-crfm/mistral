@@ -88,7 +88,6 @@ def deepspeedify(cl_args_dict):
     info = deepspeed_launch_info()
     cl_args_dict["nproc_per_node"] = str(info["gpus"])
     cl_args_dict["nnodes"] = str(info["nodes"])
-    # cl_args_dict["training_arguments.deepspeed"] = "conf/deepspeed/z2-small-conf.json"
     cl_args_dict["training_arguments.deepspeed"] = "conf/deepspeed/z2-small-conf.json"
 
 
@@ -126,37 +125,66 @@ def get_test_functions():
     return all_test_functions
 
 
+def get_setup():
+    """
+    Return this test's setup
+    """
+    functions = inspect.getmembers(sys.modules["__main__"])
+    possible_setup = [
+        (name, obj) for (name, obj) in functions if (name == "setup_module" and obj.__module__ == "__main__")
+    ]
+    if possible_setup:
+        return possible_setup[0][1]
+    else:
+        return None
+
+
 def run_tests():
     """
     Run each function, catch and report AssertionError's
     """
+    os.environ["WANDB_DISABLED"] = "true"
+    print("Running setup_module ...")
+    setup_function = get_setup()
+    if setup_function:
+        try:
+            setup_function()
+            print("Setup successful.")
+        except Exception:
+            setup_function()
+            pass
+    else:
+        print("No setup_module()")
     if DEEPSPEED_MODE and not am_first_deepspeed_child():
         return
-    os.environ["WANDB_DISABLED"] = "true"
-
     test_functions = get_test_functions()
     passing_tests = []
     failing_tests = []
     assertion_errors = []
-    print("Running tests:")
-    for (name, test_function) in test_functions:
-        print("")
-        print(name)
-        try:
-            test_function()
-            passing_tests.append(name)
-        except AssertionError as e:
-            failing_tests.append(name)
-            assertion_errors.append((e, traceback.format_exc()))
-    print("")
-    print("Test report:")
-    print(f"{len(passing_tests)} passed, {len(failing_tests)} failed")
-    print("")
-    print("Failing tests:")
-    for test, error in zip(failing_tests, assertion_errors):
-        print("")
-        print(f"{test}")
-        print(error[1])
-        print(error[0])
+    with open("test.log", "w") as out_file:
+        test_module = sys.modules["__main__"].__file__
+        out_file.write(f"Running tests for {test_module}:\n")
+        for (name, test_function) in test_functions:
+            out_file.write(name + "\n")
+            try:
+                test_function()
+                passing_tests.append(name)
+            except AssertionError as e:
+                failing_tests.append(name)
+                assertion_errors.append((e, traceback.format_exc()))
+        out_file.write("\n")
+        out_file.write("Test report:\n")
+        out_file.write(f"{len(passing_tests)} passed, {len(failing_tests)} failed\n")
+        out_file.write("\n")
+        out_file.write("Failing tests:\n")
+        for test, error in zip(failing_tests, assertion_errors):
+            out_file.write("\n")
+            out_file(f"{test}\n")
+            out_file.write(error[1])
+            out_file.write("\n")
+            out_file.write(error[0])
+            out_file.write("\n")
+        if len(failing_tests) == 0:
+            out_file.write("\n")
     if len(failing_tests) > 0:
         sys.exit(1)

@@ -26,12 +26,20 @@ TRAIN_ARGS = {
 }
 
 
+def setup_module() -> None:
+    global basic_trainer
+    try:
+        basic_trainer = run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id=RUN_ID)
+    except Exception:
+        basic_trainer = None
+
+
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="need cuda for fp16")
 def test_upcasting() -> None:
     """
     Run training with upcasting
     """
-    run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id=RUN_ID)
+    assert basic_trainer is not None
 
 
 if __name__ == "__main__":
