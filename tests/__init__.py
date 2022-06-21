@@ -166,19 +166,19 @@ def run_tests():
         for (name, test_function) in test_functions:
             out_file.write("\n")
             out_file.write(name + "\n")
-        try:
-            test_function()
-            passing_tests.append(name)
-        except AssertionError as e:
-            failing_tests.append(name)
-            assertion_errors.append((e, traceback.format_exc()))
+            try:
+                test_function()
+                passing_tests.append(name)
+            except AssertionError as e:
+                failing_tests.append(name)
+                assertion_errors.append((e, traceback.format_exc()))
         out_file.write("\n")
         out_file.write("Test report:\n")
         out_file.write(f"{len(passing_tests)} passed, {len(failing_tests)} failed\n")
         out_file.write("\n")
         out_file.write("Failing tests:\n")
         for test, error in zip(failing_tests, assertion_errors):
-            out_file("\n")
+            out_file.write("\n")
             out_file(f"{test}\n")
             out_file.write(error[1])
             out_file.write("\n")
