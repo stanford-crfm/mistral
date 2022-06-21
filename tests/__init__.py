@@ -185,6 +185,6 @@ def run_tests():
             out_file.write(error[0])
             out_file.write("\n")
         if len(failing_tests) == 0:
-            print("\n")
+            out_file.write("\n")
     if len(failing_tests) > 0:
         sys.exit(1)
