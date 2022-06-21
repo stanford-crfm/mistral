@@ -162,7 +162,8 @@ def run_tests():
     failing_tests = []
     assertion_errors = []
     with open("test.log", "w") as out_file:
-        out_file.write("Running tests:\n")
+        test_module = sys.modules["__main__"].__file__
+        out_file.write(f"Running tests for {test_module}:\n")
         for (name, test_function) in test_functions:
             out_file.write("\n")
             out_file.write(name + "\n")
