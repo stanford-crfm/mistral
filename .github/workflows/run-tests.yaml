@@ -43,7 +43,9 @@ jobs:
           conda activate mistral-${{github.sha}}
           export PYTHONPATH=/home/stanzabuild/mistral-github-actions/actions-runner/_work/mistral/mistral
           cd tests
-          CUDA_VISIBLE_DEVICES=0,1 deepspeed --num_gpus 2 --num_nodes 1 test_checkpoint.py
+          CUDA_VISIBLE_DEVICES=0,1 deepspeed --num_gpus 2 --num_nodes 1 test_checkpoint.py > test.out 2> test.err
+          cat test.log
+          rm test.out test.err test.log
       - name: Delete conda environment
         if: always()
         run: |

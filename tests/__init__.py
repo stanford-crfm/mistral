@@ -161,25 +161,28 @@ def run_tests():
     passing_tests = []
     failing_tests = []
     assertion_errors = []
-    print("Running tests:")
-    for (name, test_function) in test_functions:
-        print("")
-        print(name)
+    with open("test.log", "w") as out_file:
+        out_file.write("Running tests:\n")
+        for (name, test_function) in test_functions:
+            out_file.write("\n")
+            out_file.write(name + "\n")
         try:
             test_function()
             passing_tests.append(name)
         except AssertionError as e:
             failing_tests.append(name)
             assertion_errors.append((e, traceback.format_exc()))
-    print("")
-    print("Test report:")
-    print(f"{len(passing_tests)} passed, {len(failing_tests)} failed")
-    print("")
-    print("Failing tests:")
-    for test, error in zip(failing_tests, assertion_errors):
-        print("")
-        print(f"{test}")
-        print(error[1])
-        print(error[0])
+        out_file.write("\n")
+        out_file.write("Test report:\n")
+        out_file.write(f"{len(passing_tests)} passed, {len(failing_tests)} failed\n")
+        out_file.write("\n")
+        out_file.write("Failing tests:\n")
+        for test, error in zip(failing_tests, assertion_errors):
+            out_file("\n")
+            out_file(f"{test}\n")
+            out_file.write(error[1])
+            out_file.write("\n")
+            out_file.write(error[0])
+            out_file.write("\n")
     if len(failing_tests) > 0:
         sys.exit(1)
