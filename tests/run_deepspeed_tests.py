@@ -21,6 +21,7 @@ for test in tests:
         errors += 1
     if os.path.exists("test.log"):
         subprocess.call("cat test.log", shell=True)
+        print("")
 
 for log_path in ["test.out", "test.err", "test.log"]:
     if os.path.exists(log_path):
