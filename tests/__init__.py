@@ -165,7 +165,6 @@ def run_tests():
         test_module = sys.modules["__main__"].__file__
         out_file.write(f"Running tests for {test_module}:\n")
         for (name, test_function) in test_functions:
-            out_file.write("\n")
             out_file.write(name + "\n")
             try:
                 test_function()
