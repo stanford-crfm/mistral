@@ -54,8 +54,8 @@ def is_randomized(key):
 
 
 def test_weight_initializations() -> None:
-    trainer_seed_7 = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_7, runs_dir=RUNS_DIR, run_id="trainer_seed_7")
-    trainer_seed_10 = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_10, runs_dir=RUNS_DIR, run_id="trainer_seed_10")
+    # trainer_seed_7 = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_7, runs_dir=RUNS_DIR, run_id="trainer_seed_7")
+    # trainer_seed_10 = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_10, runs_dir=RUNS_DIR, run_id="trainer_seed_10")
 
     assert trainer_seed_7.model.state_dict().keys() == trainer_seed_10.model.state_dict().keys()
     for key in trainer_seed_7.model.state_dict().keys():
@@ -66,8 +66,8 @@ def test_weight_initializations() -> None:
 
 
 def test_data_order() -> None:
-    trainer_seed_7 = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_7, runs_dir=RUNS_DIR, run_id="trainer_seed_7")
-    trainer_seed_10 = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_10, runs_dir=RUNS_DIR, run_id="trainer_seed_10")
+    # trainer_seed_7 = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_7, runs_dir=RUNS_DIR, run_id="trainer_seed_7")
+    # trainer_seed_10 = run_train_process(cl_args_dict=TRAIN_ARGS_SEED_10, runs_dir=RUNS_DIR, run_id="trainer_seed_10")
 
     seed_7_dataloader = trainer_seed_7.get_train_dataloader()
     seed_10_dataloader = trainer_seed_10.get_train_dataloader()
