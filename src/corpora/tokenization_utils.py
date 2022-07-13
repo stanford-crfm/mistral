@@ -4,7 +4,11 @@ from itertools import chain
 from typing import Iterable, Iterator, List, Optional, Sized, TypeVar
 
 from datasets import Dataset
-from torch.utils.data import IterDataPipe, functional_datapipe
+try:
+    from torchdata.datapipes.iter import IterDataPipe, functional_datapipe
+except ImportError:
+    from torch.utils.data import IterDataPipe, functional_datapipe
+
 from transformers import BatchEncoding
 
 
