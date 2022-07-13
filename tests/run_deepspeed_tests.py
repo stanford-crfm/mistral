@@ -13,8 +13,9 @@ for test in tests:
             os.remove(log_path)
     # run tests
     try:
+        print("Running test:", test)
         subprocess.check_call(
-            f"CUDA_VISIBLE_DEVICES=0,1 deepspeed --num_gpus 2 --num_nodes 1 {test} > test.out 2> test.err",
+            f"CUDA_VISIBLE_DEVICES=0,1 deepspeed --num_gpus 2 --num_nodes 1 {test}",
             shell=True,
         )
     except Exception:
