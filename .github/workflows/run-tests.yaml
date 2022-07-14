@@ -6,7 +6,6 @@ jobs:
     runs-on: self-hosted
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
       - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v2
@@ -16,13 +15,13 @@ jobs:
         run: |
           echo "Setting up conda env for this test!"
           eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
-          conda create -n mistral-${{github.sha}} --file tests/setup/conda-requirements.txt -c pytorch
+          bash setup/setup.sh mistral-${{github.sha}} 
           conda activate mistral-${{github.sha}}
-      - name: Installing dependencies
+      - name: Installing test dependencies
         run: |
           eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
           conda activate mistral-${{github.sha}}
-          pip install -r tests/setup/pip-requirements.txt
+          pip install -r setup/test-requirements.txt
       - name: Setting up environment variables
         run: |
           echo 'Deactivating wandb'
@@ -43,7 +42,7 @@ jobs:
         run: | 
           eval "$(conda 'shell.bash' 'hook' 2>/dev/null)" # make conda happy
           conda activate mistral-${{github.sha}}
-          export PYTHONPATH=/home/stanzabuild/mistral-github-actions/actions-runner/_work/mistral/mistral
+          export PYTHONPATH=${GITHUB_WORKSPACE}
           cd tests
           echo 'Clearing artifacts'
           rm -rf $MISTRAL_TEST_DIR/artifacts
