@@ -21,4 +21,3 @@ if [ "$CONDA_DEFAULT_ENV" = "${ENV_NAME}" ]; then
     pip install -r ${SCRIPT_DIR}/pip-requirements.txt
 fi
 echo "Successfully created mistral environment '${ENV_NAME}'!"
-
