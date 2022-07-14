@@ -12,7 +12,14 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from torch.utils.data.dataset import Dataset, IterDataPipe
+from torch.utils.data.dataset import Dataset
+
+
+try:
+    from torchdata.datapipes.iter import IterDataPipe
+except ImportError:
+    from torch.utils.data import IterDataPipe
+
 from transformers import (
     AutoModelForCausalLM,
     BatchEncoding,

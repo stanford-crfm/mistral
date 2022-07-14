@@ -5,7 +5,6 @@ Mistral is not a replacement for Hugging Face. Rather, we extend the current fun
 by fixing stability issues with GPT training, adding evaluation scripts and supporting distributed training
 with the DeepSpeed optimization library.
 
-
 **Stability**
 
 When training GPT-2 Small models with Hugging Face, some of the models crashed due to numerical instability.
@@ -14,17 +13,14 @@ and upcasting to FP32. We also scaled down the weights by dividing by the layer 
 These changes have been upstreamed to the Hugging Face repository, when using ``reorder_and_upcast_attn: true``
 and ``scale_attn_by_inverse_layer_idx: true`` in the model config for GPT-2.
 
-
 **Evaluation**
 
 We added online evaluation so we can get PPL on arbitrary datasets while training.
-
 
 **Parallelism**
 
 We noticed that integrating parallelism (e.g. tensor model-parallelism and pipelining) breaks the current
 Hugging Face APIs.
-
 
 **Distributed Training**
 
@@ -32,4 +28,7 @@ We provide ready-to-use scripts and configuration files to run distributed train
 Google Cloud Platform and Kubernetes.
 
 
+**Future**
 
+We are closely working with folks from Hugging Face. We plan to integrate Mistral into the Hugging Face library
+in the future.
