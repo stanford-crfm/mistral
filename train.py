@@ -51,9 +51,8 @@ def train() -> OnlineBenchmarkTrainer:
     quinfig = QuinineArgumentParser(schema=get_schema()).parse_quinfig()
 
     # Set Distributed Arguments
-    # TODO train.A :: @Laurel, @Karan -- `local_rank` not in Quinfig w/ torch.distributed.launch?
     quinfig.world_size = int(os.getenv("WORLD_SIZE", quinfig.nproc_per_node))
-    quinfig.local_rank = int(os.getenv("LOCAL_RANK", -1))
+    quinfig.local_rank = int(os.getenv("LOCAL_RANK", quinfig.local_rank))
 
     # Create Unique Run Name (for Logging, Checkpointing, and W&B) :: Initialize all Directories
     run_id = quinfig.run_id
