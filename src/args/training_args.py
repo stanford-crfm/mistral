@@ -69,7 +69,10 @@ def get_training_arguments(
         f"Setting Gradient Accumulation Steps = `{training_args.gradient_accumulation_steps}` [BSZ: {effective_bsz} "
         f"World Size: {world_size} Device BSZ: {quinfig_args.per_device_train_batch_size}]"
     )
-    if training_args.gradient_accumulation_steps <= 0 or effective_bsz % training_args.gradient_accumulation_steps != 0:
+    if (
+        training_args.gradient_accumulation_steps <= 0
+        or effective_bsz % training_args.gradient_accumulation_steps != 0
+    ):
         raise ValueError("Incompatible sizes for gradient accumulation!")
 
     return TrainingArguments(**training_args)
