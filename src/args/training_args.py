@@ -21,11 +21,10 @@ def get_training_arguments(
     quinfig_args: Munch,
     run_name: str,
     output_dir: Path,
-    seed: int = 21,
-    local_rank: int = 0,
-    effective_bsz: int = 512,
-    nodes: int = 1,
-    gpus_per_node: int = 8,
+    seed: int,
+    local_rank: int,
+    world_size: int,
+    effective_bsz: int,
     gradient_checkpointing: Optional[bool] = None,
 ) -> TrainingArguments:
     """Initialize Training Arguments from Quinfig and Runtime-Defined Variables."""
@@ -64,11 +63,13 @@ def get_training_arguments(
 
     # Compute Gradient Accumulation Dynamically
     training_args.gradient_accumulation_steps = effective_bsz // (
-        quinfig_args.per_device_train_batch_size * gpus_per_node * nodes
+        quinfig_args.per_device_train_batch_size * world_size
     )
     overwatch.info(
-        f"Setting Gradient Accumulation Steps = `{training_args.gradient_accumulation_steps}` [Node(s): {nodes} - "
-        f"GPU(s): {gpus_per_node} - Device BSZ: {quinfig_args.per_device_train_batch_size}]"
+        f"Setting Gradient Accumulation Steps = `{training_args.gradient_accumulation_steps}` [BSZ: {effective_bsz} "
+        f"World Size: {world_size} Device BSZ: {quinfig_args.per_device_train_batch_size}]"
     )
+    if training_args.gradient_accumulation_steps <= 0 or effective_bsz % training_args.gradient_accumulation_steps != 0:
+        raise ValueError("Incompatible sizes for gradient accumulation!")
 
     return TrainingArguments(**training_args)

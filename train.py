@@ -112,9 +112,8 @@ def train() -> OnlineBenchmarkTrainer:
         output_dir=paths["runs"],
         seed=quinfig.seed,
         local_rank=quinfig.local_rank,
+        world_size=quinfig.world_size,
         effective_bsz=quinfig.effective_bsz,
-        nodes=quinfig.nnodes,
-        gpus_per_node=quinfig.nproc_per_node,
         gradient_checkpointing=quinfig.model.gradient_checkpointing,
     )
 
