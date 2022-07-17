@@ -6,7 +6,7 @@
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
-    - datasets/wikitext2.yaml
+    - datasets/wikitext2-detokenized.yaml
     - models/gpt2-micro.yaml
     - trainers/gpt2-small.yaml
 

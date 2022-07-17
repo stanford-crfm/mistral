@@ -1,0 +1,11 @@
+# wikitext_2_detokenized.yaml
+#   Configuration for pre-detokenized WikiText-2 Dataset (https://huggingface.co/datasets/dlwh/wikitext_2_detokenized)
+---
+dataset:
+    id: dlwh/wikitext_2_detokenized
+
+    # Number of Preprocessing Workers
+    num_proc: 4
+
+    # Number of Evaluation Preprocessing Workers
+    eval_num_proc: 4
