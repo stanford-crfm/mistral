@@ -1,0 +1,22 @@
+# gpt2-micro-config.yaml
+#   Configuration for the GPT-2 Micro Model.
+---
+model:
+    # this example relies on a user specified config file
+    id: "gpt2-small"
+
+    # Boolean whether to use the pre-existing Hugging Face AutoTokenizer (or train a new one from scratch)
+    pretrained_tokenizer: true
+
+    # Sequence Length
+    seq_len: 256
+
+    # Stability
+    reorder_and_upcast_attn: true
+    scale_attn_by_inverse_layer_idx: true
+
+    # Initialize Weights from File
+    initial_weights: null
+
+    # Configure Model From File
+    config_path: conf/models/mistral-micro.json
