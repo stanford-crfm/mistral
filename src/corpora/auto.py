@@ -52,7 +52,7 @@ def build_indexed_dataset(
             f"{dataset_dir}/{fn}" for fn in file_names if "train" in fn and fn.endswith(file_type)
         ]
         dataset_files["validation"] = [
-            f"{dataset_dir}/{fn}" for fn in file_names if "validation" in fn and fn.endswith(file_type)
+            f"{dataset_dir}/{fn}" for fn in file_names if "val" in fn and fn.endswith(file_type)
         ]
         file_type = "json" if file_type == "jsonl" else file_type
         assert file_type in ["json", "txt", "csv"]
