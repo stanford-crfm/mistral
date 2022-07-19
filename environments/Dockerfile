@@ -33,4 +33,4 @@ ENV CUDA_HOME=/usr/local/cuda
 ENV CUDA_PATH=/usr/local/cuda
 
 # Make RUN commands use the new environment
-SHELL ["conda", "run", "-n", "mistral", "/bin/bash", "-c"]
+SHELL ["conda", "run", "-n", "mistral-latest", "/bin/bash", "-c"]
