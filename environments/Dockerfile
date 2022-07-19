@@ -33,4 +33,5 @@ ENV CUDA_HOME=/usr/local/cuda
 ENV CUDA_PATH=/usr/local/cuda
 
 # Make RUN commands use the new environment
+# Make sure the name of the Conda envionrment mactches the one in environment-gpu.yaml
 SHELL ["conda", "run", "-n", "mistral-latest", "/bin/bash", "-c"]
