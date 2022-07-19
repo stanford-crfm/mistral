@@ -6,3 +6,4 @@ pytest==7.1.2
 quinine==0.3.0
 transformers==4.18.0
 wandb==0.12.17
+zstandard>=0.17.0
