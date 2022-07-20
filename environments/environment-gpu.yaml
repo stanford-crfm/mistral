@@ -1,3 +1,4 @@
+# Keep this in sync with the requirements in setup/
 name: mistral
 channels:
   - pytorch
@@ -70,6 +71,7 @@ dependencies:
     - py-cpuinfo==8.0.0
     - pyarrow==7.0.0
     - pyparsing==3.0.7
+    - pytest==7.1.2
     - python-dateutil==2.8.2
     - pytz==2021.3
     - pyyaml==5.4
@@ -88,9 +90,10 @@ dependencies:
     - toolz==0.11.2
     - toposort==1.5
     - tqdm==4.63.0
-    - transformers==4.17.0
+    - transformers==4.18.0
     - urllib3==1.26.8
-    - wandb==0.12.11
+    - wandb==0.12.17
     - xxhash==3.0.0
     - yarl==1.7.2
     - yaspin==2.1.0
+    - zstandard==0.17.0
