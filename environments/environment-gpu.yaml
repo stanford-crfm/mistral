@@ -1,4 +1,4 @@
-name: mistral-latest
+name: mistral
 channels:
   - pytorch
   - defaults
@@ -94,4 +94,3 @@ dependencies:
     - xxhash==3.0.0
     - yarl==1.7.2
     - yaspin==2.1.0
-prefix: /nlp/scr/jebolton/miniconda3/envs/mistral-latest
