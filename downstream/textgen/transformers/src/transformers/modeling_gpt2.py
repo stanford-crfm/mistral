@@ -118,7 +118,7 @@ def load_tf_weights_in_gpt2(model, config, gpt2_checkpoint_path):
 
 
 class Attention(nn.Module):
-    def __init__(self, nx, n_ctx, config, scale=False, is_cross_attention=False):
+    def __init__(self, nx, n_ctx, config, scale=False, is_cross_attention=False, reorder_attn=True, upcast_attn=True):
         super().__init__()
 
         n_state = nx  # in Attention: n_state=768 (nx=n_embd)
@@ -141,6 +141,7 @@ class Attention(nn.Module):
         self.attn_dropout = nn.Dropout(config.attn_pdrop)
         self.resid_dropout = nn.Dropout(config.resid_pdrop)
         self.pruned_heads = set()
+        self.reorder_attn, self.upcast_attn = reorder_attn, upcast_attn
 
     def prune_heads(self, heads):
         if len(heads) == 0:
@@ -160,9 +161,62 @@ class Attention(nn.Module):
         self.pruned_heads = self.pruned_heads.union(heads)
 
     def _attn(self, q, k, v, attention_mask=None, head_mask=None, output_attentions=False):
-        w = torch.matmul(q, k)
+        #w = torch.matmul(q, k)
+        #if self.scale:
+            #w = w / (float(v.size(-1)) ** 0.5)
+
         if self.scale:
-            w = w / (float(v.size(-1)) ** 0.5)
+            # Get QKV Dimensions
+            bsz, num_heads, seq_len, dk = q.size()
+
+            # MISTRAL =>> Scale by SQRT(head_dim) * layer_number -- taken from Megatron LM!
+            scale_factor = 1 / ((float(v.size(-1)) ** 0.5) * self.layer_num)
+
+            if self.reorder_attn:
+                # Preallocate Scaled Dot-Product Tensor
+                w = torch.empty(  # type: ignore
+                    bsz * num_heads,
+                    seq_len,
+                    seq_len,
+                    dtype=q.dtype,
+                    device=torch.cuda.current_device(),
+                )
+
+                # Upcasting --> Disable autocast AND manually call .float()
+                if self.upcast_attn:
+                    # Reorder via `baddbmm` Time (Scale K by 1 / root(dk) first!)
+                    with autocast(enabled=False):
+                        q, k = q.reshape(-1, seq_len, dk), k.reshape(-1, dk, seq_len)
+                        w = torch.baddbmm(
+                            w.float(),
+                            q.float(),
+                            k.float(),
+                            beta=0.0,
+                            alpha=scale_factor,
+                        )
+                        w = w.reshape(bsz, num_heads, seq_len, seq_len)
+
+                # No Upcasting
+                else:
+                    q, k = q.reshape(-1, seq_len, dk), k.reshape(-1, dk, seq_len)
+                    w = torch.baddbmm(w, q, k, beta=0.0, alpha=scale_factor)
+                    w = w.reshape(bsz, num_heads, seq_len, seq_len)
+
+            else:
+                # Upcasting --> Disable autocast AND manually call .float()
+                if self.upcast_attn:
+                    with autocast(enabled=False):
+                        w = torch.matmul(q.float(), k.float())
+                        w *= scale_factor
+
+                # No Upcasting
+                else:
+                    w = torch.matmul(q, k)
+                    w *= scale_factor
+
+        else:
+            w = torch.matmul(q, k)
+
         nd, ns = w.size(-2), w.size(-1)
 
         if not self.is_cross_attention:
