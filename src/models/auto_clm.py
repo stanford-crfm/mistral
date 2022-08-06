@@ -12,9 +12,10 @@ from typing import Dict, Tuple
 import torch
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizer
 from transformers.models.gpt2 import GPT2Config, GPT2LMHeadModel
+from tokenizers import Tokenizer, models, pre_tokenizers
 
 from ..util import REGISTRY
-
+from ..corpora.tokenization_utils import PassthroughTokenizer
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
 overwatch = logging.getLogger("mistral.models.auto")
@@ -25,6 +26,7 @@ def get_auto_clm_tokenizer(
     paths: Dict[str, Path],
     model_configs: dict = None,
     use_pretrained_tokenizer: bool = True,
+    use_passthrough_tokenizer: bool = False,
     reorder_and_upcast_attn: bool = True,
     scale_attn_by_inverse_layer_idx: bool = True,
     initial_weights: str = None,
@@ -48,6 +50,9 @@ def get_auto_clm_tokenizer(
     overwatch.info(f"Fetching Hugging Face [Fast] AutoTokenizer for Model: `{REGISTRY[model_id]}`...")
     if use_pretrained_tokenizer:
         tokenizer = AutoTokenizer.from_pretrained(REGISTRY[model_id], config=config, cache_dir=paths["tokenizer"])
+    elif use_passthrough_tokenizer:
+        overwatch.info("Using a Pretokenized Dataset")
+        tokenizer = PassthroughTokenizer(config.vocab_size)
     else:
         overwatch.error("Tokenizer Training/Initialization (from Scratch) not yet implemented!")
         raise NotImplementedError()
