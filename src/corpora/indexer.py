@@ -64,7 +64,7 @@ class IndexedDataset(IterDataPipe[BatchEncoding]):
 
     def __iter__(self):
         for file_name in self._files():
-            for entry in read_cache_file(file_name, flatten=True):
+            for entry in read_cache_file(f"{self.cache_dir}/{file_name}", flatten=True):
                 yield from concatenate_and_group_texts(entry, self.seq_len, self.stride)
 
     @staticmethod
@@ -87,7 +87,7 @@ class IndexedDataset(IterDataPipe[BatchEncoding]):
         current_writer: Optional[pq.ParquetWriter] = None
         current_num_tokens = 0
         tq: tqdm = tqdm(desc=f"file {file_index} progress", total=num_tokens_per_file, unit="token")
-        file_out: Optional[Path] = None
+        file_out: Optional[str] = None
 
         # list of (file_name, num_tokens), to be output at the end if we finish the whole iterator
         ledger_files = []
@@ -110,11 +110,12 @@ class IndexedDataset(IterDataPipe[BatchEncoding]):
                     close_writer()
 
                 if not current_writer:
-                    file_out = Path(f"{cache_dir}/{file_template.format(file_index)}")
-                    file_out.parent.mkdir(parents=True, exist_ok=True)
+                    file_out = file_template.format(file_index)
+                    path = Path(f"{cache_dir}/{file_out}")
+                    path.parent.mkdir(parents=True, exist_ok=True)
                     file_index += 1
 
-                    current_writer = pq.ParquetWriter(file_out, batch.schema, version="2.6", compression="ZSTD")
+                    current_writer = pq.ParquetWriter(path, batch.schema, version="2.6", compression="ZSTD")
 
                     current_num_tokens = 0
 
