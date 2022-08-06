@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Dict, Tuple
 
 import torch
+
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizer
 from transformers.models.gpt2 import GPT2Config, GPT2LMHeadModel
 from tokenizers import Tokenizer, models, pre_tokenizers
@@ -37,11 +38,14 @@ def get_auto_clm_tokenizer(
     if "gpt2" in model_id and model_configs:
         overwatch.info(f"Building Hugging Face GPT2Config from provided configs: {model_configs} ...")
         config = GPT2Config.from_dict(model_configs)
-        config.reorder_and_upcast_attn = reorder_and_upcast_attn
-        config.scale_attn_by_inverse_layer_idx = scale_attn_by_inverse_layer_idx
     else:
         overwatch.info(f"Fetching Hugging Face AutoConfig for Model: `{REGISTRY[model_id]}`...")
         config = AutoConfig.from_pretrained(REGISTRY[model_id], cache_dir=paths["configs"])
+
+    # mistral config is just gpt2 with the following additional stability fixes
+    if "mistral" in model_id or "gpt2" in model_id:
+        config.reorder_and_upcast_attn = reorder_and_upcast_attn
+        config.scale_attn_by_inverse_layer_idx = scale_attn_by_inverse_layer_idx
 
     # IMPORTANT :: Set `use_cache` to False -- we don't need it ever and it conflicts with gradient checkpointing!
     config.use_cache = False

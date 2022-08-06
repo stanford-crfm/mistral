@@ -2,7 +2,7 @@
 #   Configuration for the GPT-2 Medium Model.
 ---
 model:
-    id: "gpt2-medium"
+    id: "mistral-medium"
 
     # Boolean whether to use the pre-existing Hugging Face AutoTokenizer (or train a new one from scratch)
     pretrained_tokenizer: true

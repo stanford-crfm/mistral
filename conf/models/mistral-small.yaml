@@ -1,8 +1,8 @@
-# gpt2-micro-config.yaml
-#   Configuration for the GPT-2 Micro Model.
+# gpt2-small-config.yaml
+#   Configuration for the GPT-2 Small Model.
 ---
 model:
-    id: "gpt2-small"
+    id: "mistral-small"
 
     # Boolean whether to use the pre-existing Hugging Face AutoTokenizer (or train a new one from scratch)
     pretrained_tokenizer: true
@@ -16,6 +16,3 @@ model:
 
     # Initialize Weights from File
     initial_weights: null
-
-    # Configure Model From File
-    config_path: conf/models/gpt2-mini.json

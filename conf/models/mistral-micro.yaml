@@ -2,6 +2,7 @@
 #   Configuration for the GPT-2 Micro Model.
 ---
 model:
+    # this example relies on a user specified config file
     id: "gpt2-small"
 
     # Boolean whether to use the pre-existing Hugging Face AutoTokenizer (or train a new one from scratch)
@@ -18,4 +19,4 @@ model:
     initial_weights: null
 
     # Configure Model From File
-    config_path: conf/models/gpt2-micro.json
+    config_path: conf/models/mistral-micro.json
