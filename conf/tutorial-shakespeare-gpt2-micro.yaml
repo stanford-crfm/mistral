@@ -1,6 +1,6 @@
 # tutorial-shakespeare-gpt2-micro.yaml
-#   Demo GPT-2 Micro Training Config, currently working with the example Shakespeare Dataset, GPT-2 Micro Architecture,
-#   and batch size of 2. Runs with DeepSpeed ZeRO-2, with a per-device BSZ of 2.
+#   Demo GPT-2 Micro Training config, currently working with the example Shakespeare dataset,
+#   GPT-2 Micro Architecture, and batch size of 2. Runs with DeepSpeed ZeRO-2, with a per-device BSZ of 2.
 #
 #   Inheritance and core paths can all be overridden from the command line or by re-writing these files.
 ---
