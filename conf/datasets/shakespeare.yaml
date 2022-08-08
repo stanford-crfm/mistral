@@ -1,0 +1,13 @@
+# shakespeare.yaml
+# Configuration for Shakespeare dataset at tutorials/custom-dataset/shakespeare.
+---
+dataset:
+    id: shakespeare
+    name: shakespeare
+    dataset_dir: tutorials/custom-dataset/shakespeare
+
+    # Number of Preprocessing Workers
+    num_proc: 4
+
+    # Number of Evaluation Preprocessing Workers
+    eval_num_proc: 4
