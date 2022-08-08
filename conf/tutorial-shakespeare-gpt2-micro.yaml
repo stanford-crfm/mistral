@@ -21,7 +21,7 @@ group: shakespeare-gpt2-micro
 # Artifacts & Caching
 artifacts:
     cache_dir: ~/cache
-    run_dir: ~/run
+    run_dir: ~/checkpoints
 
 # Save Effective Batch Size for Easy Handling ==> Main Code asserts infra + training_config results in this!
 effective_bsz: 32
