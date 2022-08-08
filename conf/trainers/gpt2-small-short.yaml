@@ -2,7 +2,7 @@
 #   Trainer Debugging config for GPT-2 Small. The max_steps is set to 4000 to quickly iterate and debug.
 ---
 inherit:
-    - gpt2-small-short.yaml
+    - gpt2-small.yaml
 
 training_arguments:
     # Set these based on GPU RAM/your available hardware
