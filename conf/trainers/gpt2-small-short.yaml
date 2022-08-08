@@ -1,0 +1,23 @@
+# gpt2-small-short.yaml
+#   Trainer Debugging config for GPT-2 Small. The max_steps is set to 4000 to quickly iterate and debug.
+---
+inherit:
+    - trainers/gpt2-small-short.yaml
+
+training_arguments:
+    # Set these based on GPU RAM/your available hardware
+    per_device_train_batch_size: 16
+    per_device_eval_batch_size: 16
+
+    # Learning Rate & Optimization Parameters, assumes AdamW
+    adam_beta2: 0.95
+
+    # Maximum Training Steps (Overrides epochs!)
+    max_steps: 4000
+
+    # LR Scheduling Parameters -- Warmup Steps should be 1% of total steps (Could use ratio)
+    warmup_steps: 40
+
+    # Saving and Evaluation Steps
+    eval_steps: 100
+    save_steps: 500

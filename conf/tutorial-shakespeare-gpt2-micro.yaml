@@ -8,7 +8,7 @@
 inherit:
     - datasets/shakespeare.yaml
     - models/gpt2-micro.yaml
-    - trainers/debug.yaml
+    - trainers/gpt2-small-short.yaml
 
 # Run ID -- make sure to override!
 run_id: shakespeare-gpt2-micro
