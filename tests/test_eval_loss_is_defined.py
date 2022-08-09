@@ -4,7 +4,6 @@ import numpy
 
 from src.core import OnlineBenchmarkTrainer
 from tests import MISTRAL_TEST_DIR, run_tests, run_train_process
-import torch.distributed
 
 
 # paths
@@ -28,7 +27,9 @@ metrics: dict = None
 
 def setup_module() -> None:
     global trainer, metrics
-    trainer, metrics = run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id="train_eval_loss_is_defined", also_evaluate=True)
+    trainer, metrics = run_train_process(
+        cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id="train_eval_loss_is_defined", also_evaluate=True
+    )
 
 
 def test_train_args() -> None:
