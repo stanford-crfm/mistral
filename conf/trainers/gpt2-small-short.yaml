@@ -20,4 +20,4 @@ training_arguments:
 
     # Saving and Evaluation Steps
     eval_steps: 100
-    save_steps: 500
+    save_steps: 1000
