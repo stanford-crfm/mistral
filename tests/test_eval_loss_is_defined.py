@@ -33,6 +33,5 @@ def test_train_args() -> None:
     assert numpy.isfinite(metrics["eval_loss"])
 
 
-
 if __name__ == "__main__":
     run_tests()
