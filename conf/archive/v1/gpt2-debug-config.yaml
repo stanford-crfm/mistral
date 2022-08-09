@@ -6,7 +6,7 @@
 inherit:
     - datasets/openwebtext.yaml
     - models/gpt2-small.yaml
-    - trainers/debug.yaml
+    - trainers/gpt2-small-short.yaml
 
 # Run ID -- defaults to `null`; override as you like!
 run_id: null
