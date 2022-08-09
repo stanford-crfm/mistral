@@ -30,7 +30,7 @@ def setup_module() -> None:
 
 def test_train_args() -> None:
     metrics = trainer.evaluate()
-    assert any(numpy.isfinite(v) and re.match("eval.*loss", k) for k,v in metrics.items())
+    assert any(numpy.isfinite(v) and re.match("eval.*loss", k) for k, v in metrics.items())
 
 
 if __name__ == "__main__":

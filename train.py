@@ -56,7 +56,6 @@ def train() -> OnlineBenchmarkTrainer:
     if quinfig.world_size == -1:
         quinfig.world_size = 1
 
-
     # Create Unique Run Name (for Logging, Checkpointing, and W&B) :: Initialize all Directories
     run_id = quinfig.run_id
     if run_id is None:
