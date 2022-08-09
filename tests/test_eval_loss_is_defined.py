@@ -16,7 +16,8 @@ TRAIN_ARGS = {
     "training_arguments.per_device_train_batch_size": "1",
     "artifacts.cache_dir": CACHE_DIR,
     "log_level": "50",
-    "run_training": "false",
+    "run_training": "true",
+    "training_arguments.max_steps": "2",  # just enough steps so HF doesn't complain about using zero 2 for inference
     "run_final_eval": "false",
 }
 
@@ -25,7 +26,7 @@ trainer: OnlineBenchmarkTrainer = None
 
 def setup_module() -> None:
     global trainer
-    trainer = run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id="train_test_eval_loss_is_defined")
+    trainer = run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id="train_eval_loss_is_defined")
 
 
 def test_train_args() -> None:
