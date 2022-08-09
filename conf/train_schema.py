@@ -93,7 +93,7 @@ def get_schema() -> Dict[str, Any]:
         "fp16_backend": merge(tstring, default("auto")),
         "sharded_ddp": merge(tstring, nullable, default(None)),
         "deepspeed": merge(tstring, nullable, default(None)),
-        "dataloader_num_workers": merge(tinteger, default(4)),
+        "dataloader_num_workers": merge(tinteger, default(0)),
         "local_rank": merge(tinteger, nullable, default(None)),
         "gradient_checkpointing": merge(tboolean, default(False)),
     }
