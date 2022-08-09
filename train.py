@@ -53,6 +53,9 @@ def train() -> OnlineBenchmarkTrainer:
     # Set Distributed Arguments
     quinfig.world_size = int(os.getenv("WORLD_SIZE", quinfig.nproc_per_node))
     quinfig.local_rank = int(os.getenv("LOCAL_RANK", quinfig.local_rank))
+    if quinfig.world_size == -1:
+        quinfig.world_size = 1
+
 
     # Create Unique Run Name (for Logging, Checkpointing, and W&B) :: Initialize all Directories
     run_id = quinfig.run_id
