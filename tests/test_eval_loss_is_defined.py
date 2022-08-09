@@ -1,5 +1,3 @@
-from copy import copy
-
 import numpy
 
 from src.core import OnlineBenchmarkTrainer
