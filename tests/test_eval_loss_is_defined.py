@@ -1,4 +1,4 @@
-from copy import copy
+import re
 
 import numpy
 
@@ -25,12 +25,12 @@ trainer: OnlineBenchmarkTrainer = None
 
 def setup_module() -> None:
     global trainer
-    trainer = run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id="train_args_test")
+    trainer = run_train_process(cl_args_dict=TRAIN_ARGS, runs_dir=RUNS_DIR, run_id="train_test_eval_loss_is_defined")
 
 
 def test_train_args() -> None:
     metrics = trainer.evaluate()
-    assert numpy.isfinite(metrics["eval_loss"])
+    assert any(numpy.isfinite(v) and re.match("eval.*loss", k) for k,v in metrics.items())
 
 
 if __name__ == "__main__":
