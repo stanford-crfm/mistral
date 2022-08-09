@@ -28,6 +28,7 @@ def setup_module() -> None:
 
 def test_train_args() -> None:
     metrics = trainer.evaluate()
+    print(metrics)
     assert numpy.isfinite(metrics["eval_loss"])
 
 
