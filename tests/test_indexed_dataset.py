@@ -1,10 +1,10 @@
+import shutil
 import tempfile
 from typing import Iterator
 
 from transformers import BatchEncoding
 
 from src.corpora.indexer import IndexedDataset
-import shutil
 
 
 def test_can_move_dataset_cache():
