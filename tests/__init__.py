@@ -4,7 +4,7 @@ import os
 import shutil
 import sys
 import traceback
-from typing import Dict, List
+from typing import Dict, List, Tuple, Union
 from unittest.mock import patch
 
 import psutil
@@ -91,9 +91,12 @@ def deepspeedify(cl_args_dict):
     cl_args_dict["training_arguments.deepspeed"] = "conf/deepspeed/z2-small-conf.json"
 
 
-def run_train_process(cl_args_dict, runs_dir, run_id, use_deepspeed=DEEPSPEED_MODE) -> OnlineBenchmarkTrainer:
+def run_train_process(
+    cl_args_dict, runs_dir, run_id, use_deepspeed=DEEPSPEED_MODE, also_evaluate: bool = False
+) -> Union[OnlineBenchmarkTrainer, Tuple[OnlineBenchmarkTrainer, dict]]:
     """
-    Run training with given cl args and run dir.
+    Run training with given cl args and run dir. If `also_evaluate`, also
+    return a final metrics dict
     """
     # clear training dir
     cl_args_dict["artifacts.run_dir"] = runs_dir
@@ -110,7 +113,13 @@ def run_train_process(cl_args_dict, runs_dir, run_id, use_deepspeed=DEEPSPEED_MO
     with patch.object(sys, "argv", cl_args):
         # run main training process
         trainer = train()
-    return trainer
+        # I don't understand why, but once we exit this function, we can't run trainer.evaluate anymore...
+        # Since we don't actually need to do that, I'm not going to figurei t out
+        if also_evaluate:
+            metrics = trainer.evaluate()
+            return trainer, metrics
+        else:
+            return trainer
 
 
 def get_test_functions():

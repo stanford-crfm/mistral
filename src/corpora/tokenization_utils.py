@@ -27,6 +27,9 @@ def batched(iterable: Iterable[T], batch_size: int) -> Iterable[List[T]]:
             yield batch
             batch = []
 
+    if batch:
+        yield batch
+
 
 def batch_tokenize(ds: Dataset, tokenizer, batch_size: int, text_column="text") -> Iterator[BatchEncoding]:
     """Yields batches of tokenized sentences from the given dataset."""

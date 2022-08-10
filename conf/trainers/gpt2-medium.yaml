@@ -65,7 +65,7 @@ training_arguments:
     deepspeed: null
 
     # Dataloader Parallelism
-    dataloader_num_workers: 4
+    dataloader_num_workers: 0
 
     # Should be overwritten from the Top-Level Config or CLI!
     local_rank: null
