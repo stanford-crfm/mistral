@@ -7,7 +7,7 @@
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
     - datasets/shakespeare.yaml
-    - models/gpt2-micro.yaml
+    - models/mistral-micro.yaml
     - trainers/gpt2-small-short.yaml
 
 # Run ID -- make sure to override!

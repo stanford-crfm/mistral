@@ -1,5 +1,5 @@
-# gpt2-mistral-small-config.yaml
-#   Full Mistral GPT-2 Small Training Config, currently working with the OpenWebText Dataset, GPT-2 Small Architecture,
+# mistral-medium-config.yaml
+#   Full Mistral GPT-2 Medium Training Config, currently working with the OpenWebText Dataset, GPT-2 Small Architecture,
 #   and full batch size (512). Runs with DeepSpeed ZeRO-2, with a per-device BSZ of 16.
 #
 #   Inheritance and core paths can all be overridden from the command line or by re-writing these files.

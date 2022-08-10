@@ -1,4 +1,4 @@
-# gpt2-medium-config.yaml
+# mistral-medium-config.yaml
 #   Configuration for the GPT-2 Medium Model.
 ---
 model:

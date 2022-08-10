@@ -1,4 +1,4 @@
-# gpt2-small-config.yaml
+# mistral-small.yaml
 #   Configuration for the GPT-2 Small Model.
 ---
 model:

@@ -1,4 +1,4 @@
-# gpt2-micro-config.yaml
+# mistral-micro-config.yaml
 #   Configuration for the GPT-2 Micro Model.
 ---
 model:
