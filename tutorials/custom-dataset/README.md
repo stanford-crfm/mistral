@@ -10,9 +10,11 @@ Put text into `*.jsonl` files, one document per line.
 ...
 ```
 
-You can have arbitrarily many files. Files matching `*train*` will be used as training data and files with `*validation*` will be used as validation data.
+You can have arbitrarily many files. Files matching `*train*` will be used as
+training data and files with `*validation*` will be used as validation data.
 
-An example might be:
+For example, if you are training on PubMed data, you would have something like
+this:
 
 ```
 /path/to/pubmed_local
@@ -21,32 +23,23 @@ An example might be:
 ```
 
 Each line of those files would be a document in the format described above.
+An example of a custom dataset can be found at
+`tutorials/custom-dataset/shakespeare`.
+
 
 ## Set up dataset config file in `conf/datasets`
 
-```
-# pubmed_local.yaml
-#   Configuration for local PubMed data
----
-dataset:
-    id: pubmed_local
-    name: pubmed_local
-    validation_ratio: null
+In the dataset config file, specify the number of workers you need to
+process the data and the path to the custom dataset on your machine.
 
-    # Number of Preprocessing Workers
-    num_proc: 64
+An example config file for the Shakespeare dataset is at
+`conf/datasets/shakespeare.yaml`.
 
-    # Number of Evaluation Preprocessing Workers
-    eval_num_proc: 4
-
-    # JSON files to load
-    dataset_dir: /path/to/pubmed_local
-```
 
 ## Specify Your New Dataset In The Overall Experiment Config
 
-Remember to specify this dataset in your overall experiment config. This is typically
-done at the top in the inherit section.
+Remember to specify this dataset in your overall experiment config. This is
+typically done at the top in the inherit section. For example,
 
 ```
 # Inherit Dataset, Tokenization, Model, and Training Details
@@ -55,3 +48,7 @@ inherit:
     - models/gpt2-small.yaml
     - trainers/gpt2-small.yaml
 ```
+
+An example of the config file can be found at
+`conf/tutorial-shakespeare-gpt2-micro.yaml`. We train a GPT-2 micro
+(~11m parameters) model on Shakespeare text for that example.
