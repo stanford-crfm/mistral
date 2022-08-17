@@ -16,4 +16,11 @@ REGISTRY = {
 }
 
 # Absolute Paths
-PATH_REGISTRY = {"gpt2-small": "gpt2", "gpt2-medium": "gpt2", "gpt2-large": "gpt2", "gpt2-xl": "gpt2"}
+PATH_REGISTRY = {
+    "gpt2-small": "gpt2",
+    "gpt2-medium": "gpt2",
+    "gpt2-large": "gpt2",
+    "gpt2-xl": "gpt2",
+    "mistral-small": "gpt2",
+    "mistral-medium": "gpt2-medium",
+}

@@ -1,4 +1,4 @@
-# gpt2-small.yaml
+# gpt2-medium.yaml
 #   Trainer config for Full GPT-2 Medium, with the full fixed batch size of 512 (with gradient accumulation).
 #   This contract exactly follows that of HF.TrainingArguments so we can pass as a simple **kwargs -- make sure this
 #   continues to stay valid!
@@ -65,7 +65,7 @@ training_arguments:
     deepspeed: null
 
     # Dataloader Parallelism
-    dataloader_num_workers: 4
+    dataloader_num_workers: 0
 
     # Should be overwritten from the Top-Level Config or CLI!
     local_rank: null

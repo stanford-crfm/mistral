@@ -75,4 +75,11 @@ def get_training_arguments(
     ):
         raise ValueError("Incompatible sizes for gradient accumulation!")
 
-    return TrainingArguments(**training_args)
+    args = TrainingArguments(**training_args)
+
+    # TODO(dlwh): report this bug to transformers
+    assert (
+        args.dataloader_num_workers == 0 or world_size == 1
+    ), "dataloader_num_workers must be 0 for multi-gpu training in HF right now"
+
+    return args

@@ -40,7 +40,7 @@ Environments and non-Python dependencies can be managed with conda, and Python d
 
 #### Prerequisites
 
-First, make sure to update `conf/tutorial-gpt2-micro.yaml` with the directories you want to store the Hugging Face
+First, make sure to update `conf/mistral-micro.yaml` with the directories you want to store the Hugging Face
 cache and model runs.
 
 ```
@@ -59,7 +59,7 @@ For single-node single-gpu training, run:
 ```bash
 conda activate mistral
 cd mistral
-CUDA_VISIBLE_DEVICES=0 python train.py --config conf/tutorial-gpt2-micro.yaml --nnodes 1 --nproc_per_node 1 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 2 --run_id tutorial-gpt2-micro
+CUDA_VISIBLE_DEVICES=0 python train.py --config conf/mistral-micro.yaml --nnodes 1 --nproc_per_node 1 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 2 --run_id tutorial-gpt2-micro
 ```
 
 #### Multi-node multi-GPU training with DeepSpeed
