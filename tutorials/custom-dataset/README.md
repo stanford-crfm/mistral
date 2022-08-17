@@ -45,7 +45,7 @@ typically done at the top in the inherit section. For example,
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
     - datasets/pubmed_local.yaml
-    - models/gpt2-small.yaml
+    - models/mistral-small.yaml
     - trainers/gpt2-small.yaml
 ```
 

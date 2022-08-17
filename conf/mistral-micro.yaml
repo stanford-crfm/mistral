@@ -1,4 +1,4 @@
-# tutorial-gpt2-micro.yaml
+# mistral-micro.yaml
 #   Demo GPT-2 Micro Training Config, currently working with the WikiText103 Dataset, GPT-2 Micro Architecture,
 #   and batch size of 2. Runs with DeepSpeed ZeRO-2, with a per-device BSZ of 2.
 #
