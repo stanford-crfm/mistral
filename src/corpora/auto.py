@@ -64,7 +64,7 @@ def build_indexed_dataset(
         )
     else:
         dataset = datasets.load_dataset(
-            dataset_id, name=dataset_name, cache_dir=str(paths["dataset"]), keep_in_memory=True
+            dataset_id, name=dataset_name, cache_dir=str(paths["dataset"])
         )
 
     if ignore_train and "train" in dataset:
