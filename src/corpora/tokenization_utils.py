@@ -1,7 +1,7 @@
 import copy
 import random
 from itertools import chain
-from typing import Iterable, Iterator, List, Optional, Sized, TypeVar
+from typing import Iterable, Iterator, List, Optional, Sized, Tuple, TypeVar
 
 from datasets import Dataset
 
@@ -12,6 +12,7 @@ except ImportError:
     from torch.utils.data import IterDataPipe, functional_datapipe
 
 from transformers import BatchEncoding
+from transformers.tokenization_utils import PreTrainedTokenizer
 
 
 T = TypeVar("T")
@@ -26,9 +27,6 @@ def batched(iterable: Iterable[T], batch_size: int) -> Iterable[List[T]]:
         if len(batch) == batch_size:
             yield batch
             batch = []
-
-    if batch:
-        yield batch
 
 
 def batch_tokenize(ds: Dataset, tokenizer, batch_size: int, text_column="text") -> Iterator[BatchEncoding]:
@@ -133,3 +131,26 @@ class SeededShufflerIterDataPipe(IterDataPipe[T_co]):
         if isinstance(self.datapipe, Sized):
             return len(self.datapipe)
         raise TypeError("{} instance doesn't have valid length".format(type(self).__name__))
+
+
+class PassthroughTokenizer(PreTrainedTokenizer):
+    def __init__(self, vocab_size, **kwargs):
+        super().__init__(**kwargs)
+        self._vocab_size = vocab_size
+
+    @property
+    def vocab_size(self) -> int:
+        return self._vocab_size
+
+    def save_vocabulary(self, save_directory: str, filename_prefix: Optional[str] = None) -> Tuple[str, ...]:
+        return ()
+
+    def _tokenize(self, text, **kwargs):
+        tokens = [int(token) for token in text.strip().split(" ")]
+        return tokens
+
+    def _convert_token_to_id(self, token: str) -> int:
+        return int(token)
+
+    def _convert_id_to_token(self, index: int) -> str:
+        return str(index)

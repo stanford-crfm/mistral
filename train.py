@@ -100,6 +100,7 @@ def train() -> OnlineBenchmarkTrainer:
         paths,
         model_configs=model_configs,
         use_pretrained_tokenizer=quinfig.model.pretrained_tokenizer,
+        use_passthrough_tokenizer=quinfig.model.passthrough_tokenizer,
         reorder_and_upcast_attn=quinfig.model.reorder_and_upcast_attn,
         scale_attn_by_inverse_layer_idx=quinfig.model.scale_attn_by_inverse_layer_idx,
         initial_weights=quinfig.model.initial_weights,
