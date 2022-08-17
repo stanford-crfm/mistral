@@ -1,7 +1,7 @@
 import copy
 import random
 from itertools import chain
-from typing import Iterable, Iterator, List, Optional, Sized, TypeVar, Tuple
+from typing import Iterable, Iterator, List, Optional, Sized, Tuple, TypeVar
 
 from datasets import Dataset
 
@@ -132,6 +132,7 @@ class SeededShufflerIterDataPipe(IterDataPipe[T_co]):
             return len(self.datapipe)
         raise TypeError("{} instance doesn't have valid length".format(type(self).__name__))
 
+
 class PassthroughTokenizer(PreTrainedTokenizer):
     def __init__(self, vocab_size, **kwargs):
         super().__init__(**kwargs)
@@ -141,11 +142,11 @@ class PassthroughTokenizer(PreTrainedTokenizer):
     def vocab_size(self) -> int:
         return self._vocab_size
 
-    def save_vocabulary(self, save_directory: str, filename_prefix: Optional[str] = None) -> Tuple[str]:
+    def save_vocabulary(self, save_directory: str, filename_prefix: Optional[str] = None) -> Tuple[str, ...]:
         return ()
 
     def _tokenize(self, text, **kwargs):
-        tokens = [int(token) for token in text.strip().split(' ')]
+        tokens = [int(token) for token in text.strip().split(" ")]
         return tokens
 
     def _convert_token_to_id(self, token: str) -> int:
@@ -153,4 +154,3 @@ class PassthroughTokenizer(PreTrainedTokenizer):
 
     def _convert_id_to_token(self, index: int) -> str:
         return str(index)
-

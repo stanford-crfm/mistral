@@ -12,10 +12,10 @@ from typing import Dict, Tuple
 import torch
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizer
 from transformers.models.gpt2 import GPT2Config, GPT2LMHeadModel
-from tokenizers import Tokenizer, models, pre_tokenizers
 
-from ..util import REGISTRY
 from ..corpora.tokenization_utils import PassthroughTokenizer
+from ..util import REGISTRY
+
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
 overwatch = logging.getLogger("mistral.models.auto")
@@ -51,7 +51,9 @@ def get_auto_clm_tokenizer(
 
     # Create Tokenizer
     overwatch.info(f"Fetching Hugging Face [Fast] AutoTokenizer for Model: `{REGISTRY[model_id]}`...")
-    assert not (use_pretrained_tokenizer and use_passthrough_tokenizer), "Pretrained and Passthrough tokenization are mutually exclusive"
+    assert not (
+        use_pretrained_tokenizer and use_passthrough_tokenizer
+    ), "Pretrained and Passthrough tokenization are mutually exclusive"
     if use_pretrained_tokenizer:
         tokenizer = AutoTokenizer.from_pretrained(REGISTRY[model_id], config=config, cache_dir=paths["tokenizer"])
     elif use_passthrough_tokenizer:
