@@ -56,6 +56,7 @@ def get_schema() -> Dict[str, Any]:
             deprecated_field("This config is now in training_arguments to better match HF."),
         ),
         "pretrained_tokenizer": merge(tboolean, default(True)),
+        "passthrough_tokenizer": merge(tboolean, default(False)),
         "seq_len": merge(tinteger, default(1024)),
         "reorder_and_upcast_attn": merge(tboolean, nullable, default(True)),
         "scale_attn_by_inverse_layer_idx": merge(tboolean, nullable, default(True)),
