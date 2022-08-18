@@ -103,8 +103,8 @@ def finetune():
     set_seed(training_args.seed)
     # set up model
     config = AutoConfig.from_pretrained(model_args.model_name_or_path)
-    config.reorder_and_upcast_attn = False
-    config.scale_attn_by_inverse_layer_idx = False
+    #config.reorder_and_upcast_attn = True
+    #config.scale_attn_by_inverse_layer_idx = True
     model = AutoModelForCausalLM.from_pretrained(
         model_args.model_name_or_path,
         config=config,
