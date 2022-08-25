@@ -47,12 +47,16 @@ from transformers import (
     BertForMaskedLM, BertModel,
     BertTokenizer, BertTokenizerFast, AutoConfig,
     set_seed,
-    GPT2LMHeadModelAdapter,
-    LineByLineSumBatchGenTextDataset,
-    DataCollatorForSumBatchGenLanguageModeling,
+    #GPT2LMHeadModelAdapter,
+    #LineByLineSumBatchGenTextDataset,
+    #DataCollatorForSumBatchGenLanguageModeling,
     AutoModelWithLMHead,
     AutoTokenizer,
 )
+
+from sum_data_collator import DataCollatorForSumBatchGenLanguageModeling
+from sum_dataset import LineByLineSumBatchGenTextDataset
+
 import sys, os
 sys.path.insert(1, '/u/scr/xlisali/contrast_LM/transformers/examples/control')
 from train_control import PrefixTuning, PrefixEmbTuning
