@@ -41,10 +41,11 @@ def get_auto_dataset(
     if dataset_dir is not None:
         file_names = os.listdir(dataset_dir)
         file_type = os.path.splitext(file_names[0])[1][1:]
-        file_type = "json" if file_type == "jsonl" else file_type
         dataset_files = {}
-        dataset_files["train"] = [f"{dataset_dir}/{fn}" for fn in file_names if "train" in fn]
-        dataset_files["validation"] = [f"{dataset_dir}/{fn}" for fn in file_names if "validation" in fn]
+        dataset_files["train"] = [f"{dataset_dir}/{fn}" for fn in file_names if "train" in fn and fn.endswith(file_type)]
+        dataset_files["validation"] = [f"{dataset_dir}/{fn}" for fn in file_names if "validation" in fn and fn.endswith(file_type)]
+        file_type = "json" if file_type == "jsonl" else file_type
+        assert file_type in ["json", "txt", "csv"]
         dataset = datasets.load_dataset(
             file_type,
             name=dataset_name,
