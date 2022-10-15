@@ -103,6 +103,7 @@ def finetune():
     set_seed(training_args.seed)
     # set up model
     config = AutoConfig.from_pretrained(model_args.model_name_or_path)
+    print(config)
     #config.reorder_and_upcast_attn = True
     #config.scale_attn_by_inverse_layer_idx = True
     model = AutoModelForCausalLM.from_pretrained(
@@ -115,6 +116,7 @@ def finetune():
     tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path)
     # add extra pad token
     tokenizer.add_special_tokens({"pad_token": "[PAD]"})
+    tokenizer.add_special_tokens({"bos_token": "<|startoftext|>"})
     embedding_layer = model.resize_token_embeddings(len(tokenizer))
     # set up data collator
     data_collator = DataCollatorForSumLanguageModeling(tokenizer=tokenizer)
@@ -131,7 +133,10 @@ def finetune():
         data_collator=data_collator
     )
     # launch fine tuning
+    #trainer.train(resume_from_checkpoint=f"{model_args.model_name_or_path}")
     trainer.train()
+    # save final model
+    trainer.save_model()
 
 
 if __name__ == "__main__":
