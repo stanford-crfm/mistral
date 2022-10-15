@@ -117,6 +117,8 @@ def finetune():
     # add extra pad token
     tokenizer.add_special_tokens({"pad_token": "[PAD]"})
     tokenizer.add_special_tokens({"bos_token": "<|startoftext|>"})
+    for x in range(1,10):
+        tokenizer.add_token(f"<|prefix{x}|>")
     embedding_layer = model.resize_token_embeddings(len(tokenizer))
     # set up data collator
     data_collator = DataCollatorForSumLanguageModeling(tokenizer=tokenizer)
