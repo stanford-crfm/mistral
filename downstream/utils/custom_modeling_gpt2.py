@@ -52,6 +52,7 @@ GPT2_PRETRAINED_MODEL_ARCHIVE_LIST = [
     # See all GPT-2 models at https://huggingface.co/models?filter=gpt2
 ]
 from transformers.models.gpt2.modeling_gpt2 import GPT2Model, GPT2PreTrainedModel
+#from .hf_flash_gpt_2 import GPT2FlashModel
 
 
 class GPT2ForTokenClassification(GPT2PreTrainedModel):
@@ -141,6 +142,7 @@ class GPT2ForMultipleChoice(GPT2PreTrainedModel):
         super().__init__(config)
         # self.num_labels = config.num_labels
         self.transformer = GPT2Model(config)
+        #self.transformer = GPT2FlashModel(config)
         # self.score = nn.Linear(config.n_embd, self.num_labels, bias=False)
         self.classifier = nn.Linear(config.n_embd, 1)
 
