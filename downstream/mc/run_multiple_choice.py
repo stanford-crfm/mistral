@@ -325,9 +325,10 @@ def main():
     #Added for GPT2
     if tokenizer.pad_token_id is None:
         print('Adding [PAD] token to tokenizer and model word embeddings.')
-        num_added_tokens = tokenizer.add_special_tokens({'pad_token': '[PAD]', 'cls_token': '[CLS]'})
+        num_added_tokens = tokenizer.add_special_tokens({'pad_token': '[PAD]', 'cls_token': '[CLS]', 'sep_token': '[SEP]'})
         embedding_layer = model.resize_token_embeddings(len(tokenizer))
         config.pad_token_id = tokenizer.pad_token_id
+
 
 
     # When using your own dataset or a different dataset from swag, you will probably need to change this.
@@ -368,8 +369,8 @@ def main():
 
         #Added for GPT2
         if config.model_type == "gpt2":
-            first_sentences  = [s + tokenizer.eos_token for s in first_sentences]
-            second_sentences = [s + tokenizer.eos_token for s in second_sentences]
+            first_sentences  = [s + tokenizer.sep_token for s in first_sentences]
+            second_sentences = [s + tokenizer.sep_token for s in second_sentences]
 
         # Tokenize
         tokenized_examples = tokenizer(
