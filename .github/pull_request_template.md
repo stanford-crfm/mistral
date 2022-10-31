@@ -1,6 +1,3 @@
-**BEFORE YOU START**: please make sure your pull request is against the `dev` branch.
-We cannot accept pull requests against the `main` branch.
-
 ## Description
 A brief and concise description of what your pull request is trying to accomplish.
 
