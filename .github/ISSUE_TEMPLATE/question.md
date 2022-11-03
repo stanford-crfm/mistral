@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 ** Before you start, make sure to check out: **
-* Documentation on our [Read The Docs](https://nlp.stanford.edu/local/mistral/docs/_build/html/index.html) site.
+* Documentation on our [Read The Docs](https://nlp.stanford.edu/mistral/) site.
 * [GitHub Issues](https://github.com/stanford-mercury/mistral/issues)
 
 These sources may already contain the answer to your question!
