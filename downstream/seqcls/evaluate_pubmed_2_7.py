@@ -1,0 +1,66 @@
+import os
+import subprocess
+
+from random import shuffle
+
+env_setup_cmd = "task=pubmedqa_hf ; datadir=data/$task ; export WANDB_PROJECT='biomedical-nlp-eval'"
+
+checkpoints = ["/u/scr/nlp/data/mercury/pubmed/mistral-abhi/downstream/mc/pubmed-gpt-2.7b-300k-steps"]
+
+#lrs = [5e-6, 2e-6, 1e-5, 2e-5]
+lrs = [2e-6, 5e-6]
+batch_sizes = [8, 16, 32]
+epochs = [5, 10, 15, 20, 30, 35, 40, 45, 50]
+
+experiments = []
+
+for checkpoint in checkpoints:
+    for lr in lrs:
+        for num_epochs in epochs:
+            for batch_size in batch_sizes:
+                checkpoint_name = os.path.basename(checkpoint)
+                experiment_name = f"{checkpoint_name}_lr={lr}_epochs={num_epochs}_batch_size={batch_size}_task=pubmedqa"
+                new_experiment = {
+                    "checkpoint": checkpoint,
+                    "lr": lr,
+                    "batch_size": batch_size,
+                    "num_epochs": num_epochs,
+                    "name": experiment_name,
+                }
+                experiments.append(new_experiment)
+
+shuffle(experiments)
+
+for experiment in experiments:
+    for seed in ["1", "2", "3"]:
+        lr = experiment["lr"]
+        checkpoint = experiment["checkpoint"]
+        num_epochs = experiment["num_epochs"]
+        batch_size = experiment["batch_size"]
+        name = experiment["name"] + f"-seed-{seed}"
+        grad_accum = int(int(batch_size) / 8)
+        subprocess.call(
+            "mkdir -p"
+            f" /u/scr/nlp/data/mercury/pubmed/xl-model-eval/pubmedqa_gpt2_small_biomedical_tokenizer/runs/{name}",
+            shell=True,
+        )
+        exp_cmd = (
+            "python -m torch.distributed.launch --nproc_per_node=8 --nnodes=1 --node_rank=0 run_seqcls_gpt.py"
+            f" --tokenizer_name stanford-crfm/pubmed_gpt_tokenizer --model_name_or_path {checkpoint} --train_file"
+            " $datadir/train.json --validation_file $datadir/dev.json --test_file $datadir/test.json --do_train"
+            " --do_eval --do_predict --per_device_train_batch_size 1 --gradient_accumulation_steps"
+            f" {grad_accum} --learning_rate {lr} --warmup_ratio 0.5 --num_train_epochs {num_epochs}  --max_seq_length"
+            " 512  --logging_steps 100 --save_strategy no --evaluation_strategy no --output_dir"
+            f" /u/scr/nlp/data/mercury/pubmed/pubmed_gpt_2_7_b_eval/runs/{name} --overwrite_output_dir --bf16"
+            f" --seed {seed} --run_name {name}"
+        )
+        print(exp_cmd)
+        try:
+            subprocess.call(f"{env_setup_cmd} ; {exp_cmd}", shell=True)
+            subprocess.call(
+                "rm -f"
+                f" /u/scr/nlp/data/mercury/pubmed/pubmed_gpt_2_7_b_eval/runs/{name}/pytorch_model.bin",
+                shell=True,
+            )
+        except:
+            pass
