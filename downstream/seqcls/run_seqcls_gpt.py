@@ -52,7 +52,7 @@ from transformers.utils.versions import require_version
 
 sys.path.insert(0, '..')
 from utils.custom_modeling_gpt2 import GPT2ForSequenceClassification
-from utils.custom_modeling_gpt_neo import GPTNeoForSequenceClassification
+#from utils.custom_modeling_gpt_neo import GPTNeoForSequenceClassification
 
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
@@ -368,6 +368,7 @@ def main():
     if tokenizer.pad_token_id is None:
         print('Adding [PAD] token to tokenizer and model word embeddings.')
         num_added_tokens = tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+        tokenizer.add_tokens(["<|CONTEXT|>", "<|QUESTION|>", "<|ANSWER|>"])
         embedding_layer = model.resize_token_embeddings(len(tokenizer))
         config.pad_token_id = tokenizer.pad_token_id
 
@@ -378,7 +379,7 @@ def main():
         # Again, we try to have some nice defaults but don't hesitate to tweak to your use case.
         non_label_column_names = [name for name in raw_datasets["train"].column_names if name != "label"]
         if "sentence1" in non_label_column_names and "sentence2" in non_label_column_names:
-            sentence1_key, sentence2_key = "sentence1", "sentence2"
+            sentence1_key, sentence2_key = "sentence2", "sentence1"
         elif "sentence" in non_label_column_names:
             sentence1_key, sentence2_key = "sentence", None
         else:
@@ -425,10 +426,19 @@ def main():
         )
     max_seq_length = min(data_args.max_seq_length, tokenizer.model_max_length)
 
+    def modify_sentence1(text):
+        return "<|CONTEXT|>" + text
+
+    def modify_sentence2(text):
+        return "<|QUESTION|>" + text + "<|ANSWER|>"
+
     def preprocess_function(examples):
+        
         # Tokenize the texts
+        sentence1_examples = list(map(modify_sentence1, examples[sentence1_key]))
+        sentence2_examples = list(map(modify_sentence2, examples[sentence2_key]))
         args = (
-            (examples[sentence1_key],) if sentence2_key is None else (examples[sentence1_key], examples[sentence2_key])
+            (examples[sentence1_key],) if sentence2_key is None else (sentence1_examples, sentence2_examples)
         )
 
         result = tokenizer(*args, padding=padding, max_length=max_seq_length, truncation=True)
@@ -552,7 +562,7 @@ def main():
         )
         metrics["train_samples"] = min(max_train_samples, len(train_dataset))
 
-        trainer.save_model()  # Saves the tokenizer too for easy upload
+        #trainer.save_model()  # Saves the tokenizer too for easy upload
 
         trainer.log_metrics("train", metrics)
         trainer.save_metrics("train", metrics)
