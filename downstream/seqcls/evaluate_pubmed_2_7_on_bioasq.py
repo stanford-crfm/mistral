@@ -12,31 +12,40 @@ env_setup_cmd = (
 
 checkpoints = ["/u/scr/nlp/data/mercury/pubmed/mistral-abhi/downstream/mc/pubmed-gpt-2.7b-300k-steps"]
 
-settings = json.loads(open(sys.argv[1]).read())
-seeds = settings["seeds"]
+
+settings = []
+for line in open(sys.argv[1]):
+    if not line:
+        continue
+    settings.append(json.loads(line))
+
 experiments = []
 
-for checkpoint in checkpoints:
-    for lr in settings["lrs"]:
-        for num_epochs in settings["epochs"]:
-            for batch_size in settings["batch_sizes"]:
-                checkpoint_name = os.path.basename(checkpoint)
-                experiment_name = (
-                    f"{checkpoint_name}_lr={lr}_epochs={num_epochs}_batch_size={batch_size}_task=bioasq"
-                )
-                new_experiment = {
-                    "checkpoint": checkpoint,
-                    "lr": lr,
-                    "batch_size": batch_size,
-                    "num_epochs": num_epochs,
-                    "name": experiment_name,
-                }
-                experiments.append(new_experiment)
+for setting in settings:
+    for checkpoint in checkpoints:
+        for lr in setting["lrs"]:
+            for num_epochs in setting["epochs"]:
+                for batch_size in setting["batch_sizes"]:
+                    seq_len = seq_len = 1024 if not "seq_len" in setting else setting["seq_len"]
+                    checkpoint_name = os.path.basename(checkpoint)
+                    experiment_name = (
+                        f"{checkpoint_name}_lr={lr}_epochs={num_epochs}_batch_size={batch_size}_seq_len={seq_len}_task=pubmedqa"
+                    )
+                    new_experiment = {
+                        "checkpoint": checkpoint,
+                        "lr": lr,
+                        "batch_size": batch_size,
+                        "num_epochs": num_epochs,
+                        "name": experiment_name,
+                        "seeds": setting["seeds"],
+                        "seq_len": seq_len
+                    }
+                    experiments.append(new_experiment)
 
 shuffle(experiments)
 
 for experiment in experiments:
-    for seed in seeds:
+    for seed in experiment["seeds"]:
         lr = experiment["lr"]
         checkpoint = experiment["checkpoint"]
         num_epochs = experiment["num_epochs"]
@@ -49,7 +58,7 @@ for experiment in experiments:
             " $datadir/train.json --validation_file $datadir/dev.json --test_file $datadir/test.json --do_train"
             " --do_eval --do_predict --per_device_train_batch_size 1 --gradient_accumulation_steps"
             f" {grad_accum} --learning_rate {lr} --warmup_ratio 0.5 --num_train_epochs {num_epochs}  --max_seq_length"
-            " 700  --logging_steps 100 --save_strategy no --evaluation_strategy no --output_dir"
+            f" {seq_len}  --logging_steps 100 --save_strategy no --evaluation_strategy no --output_dir"
             f" /u/scr/nlp/data/mercury/pubmed/pubmed_gpt_2_7_b_eval/bioasq/runs/{name} --overwrite_output_dir --bf16"
             f" --seed {seed} --run_name {name}"
         )

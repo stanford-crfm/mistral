@@ -12,37 +12,40 @@ env_setup_cmd = (
 
 checkpoints = ["/u/scr/nlp/data/mercury/pubmed/mistral-abhi/downstream/mc/pubmed-gpt-2.7b-300k-steps"]
 
-# lrs = [5e-6, 2e-6, 1e-5, 2e-5]
-# lrs = [2e-6, 5e-6]
-# batch_sizes = [8, 16, 32]
-# epochs = [5, 10, 15, 20, 30, 35, 40, 45, 50]
 
-settings = json.loads(open(sys.argv[1]).read())
-seeds = settings["seeds"]
+settings = []
+for line in open(sys.argv[1]):
+    if not line:
+        continue
+    settings.append(json.loads(line))
+
 experiments = []
 
-for checkpoint in checkpoints:
-    for lr in settings["lrs"]:
-        for num_epochs in settings["epochs"]:
-            for batch_size in settings["batch_sizes"]:
-                checkpoint_name = os.path.basename(checkpoint)
-                experiment_name = (
-                    f"{checkpoint_name}_lr={lr}_epochs={num_epochs}_batch_size={batch_size}_task=pubmedqa"
-                )
-                new_experiment = {
-                    "checkpoint": checkpoint,
-                    "lr": lr,
-                    "batch_size": batch_size,
-                    "num_epochs": num_epochs,
-                    "name": experiment_name,
-                }
-                experiments.append(new_experiment)
+for setting in settings:
+    for checkpoint in checkpoints:
+        for lr in setting["lrs"]:
+            for num_epochs in setting["epochs"]:
+                for batch_size in setting["batch_sizes"]:
+                    seq_len = 512 if not "seq_len" in setting else setting["seq_len"]
+                    checkpoint_name = os.path.basename(checkpoint)
+                    experiment_name = (
+                        f"{checkpoint_name}_lr={lr}_epochs={num_epochs}_batch_size={batch_size}_seq_len={seq_len}_task=pubmedqa"
+                    )
+                    new_experiment = {
+                        "checkpoint": checkpoint,
+                        "lr": lr,
+                        "batch_size": batch_size,
+                        "num_epochs": num_epochs,
+                        "name": experiment_name,
+                        "seeds": setting["seeds"],
+                        "seq_len": seq_len
+                    }
+                    experiments.append(new_experiment)
 
 shuffle(experiments)
 
 for experiment in experiments:
-    # for seed in ["1", "2", "3", "4", "5"]:
-    for seed in seeds:
+    for seed in experiment["seeds"]:
         lr = experiment["lr"]
         checkpoint = experiment["checkpoint"]
         num_epochs = experiment["num_epochs"]
@@ -55,15 +58,15 @@ for experiment in experiments:
             " $datadir/train.json --validation_file $datadir/dev.json --test_file $datadir/test.json --do_train"
             " --do_eval --do_predict --per_device_train_batch_size 1 --gradient_accumulation_steps"
             f" {grad_accum} --learning_rate {lr} --warmup_ratio 0.5 --num_train_epochs {num_epochs}  --max_seq_length"
-            " 512  --logging_steps 100 --save_strategy no --evaluation_strategy no --output_dir"
-            f" /u/scr/nlp/data/mercury/pubmed/pubmed_gpt_2_7_b_eval/runs/{name} --overwrite_output_dir --bf16"
+            f" {seq_len}  --logging_steps 100 --save_strategy no --evaluation_strategy no --output_dir"
+            f" /u/scr/nlp/data/mercury/pubmed/pubmed_gpt_2_7_b_eval/pubmedqa/runs/{name} --overwrite_output_dir --bf16"
             f" --seed {seed} --run_name {name}"
         )
         print(exp_cmd)
         try:
             subprocess.call(f"{env_setup_cmd} ; {exp_cmd}", shell=True)
             subprocess.call(
-                f"rm -f /u/scr/nlp/data/mercury/pubmed/pubmed_gpt_2_7_b_eval/runs/{name}/pytorch_model.bin",
+                f"rm -f /u/scr/nlp/data/mercury/pubmed/pubmed_gpt_2_7_b_eval/pubmedqa/runs/{name}/pytorch_model.bin",
                 shell=True,
             )
         except:
