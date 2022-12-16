@@ -13,7 +13,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
-
+from transformers.trainer_pt_utils import IterableDatasetShard
 
 try:
     from torchdata.datapipes.iter import IterDataPipe
@@ -153,7 +153,7 @@ class OnlineBenchmarkTrainer(Trainer):
     def get_train_dataloader(self) -> DataLoader:
         """ensures we're shuffling if we're using a new-style (iterable) dataset"""
         if isinstance(self.train_dataset, IterDataPipe):
-            return DataLoader(
+            train_dataset =  DataLoader(
                 self.train_dataset,
                 shuffle=True,
                 batch_size=self.args.per_device_train_batch_size,
@@ -161,6 +161,18 @@ class OnlineBenchmarkTrainer(Trainer):
                 num_workers=self.args.dataloader_num_workers,
                 pin_memory=self.args.dataloader_pin_memory,
             )
+
+            if self.args.world_size > 1:
+                train_dataset = IterableDatasetShard(
+                    train_dataset,
+                    batch_size=self.args.train_batch_size,
+                    drop_last=self.args.dataloader_drop_last,
+                    num_processes=self.args.world_size,
+                    process_index=self.args.process_index,
+                )
+
+
+            return train_dataset
         else:
             return super().get_train_dataloader()
 
