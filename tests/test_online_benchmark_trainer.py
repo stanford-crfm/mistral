@@ -2,16 +2,16 @@ import logging
 
 from transformers import TrainingArguments
 
+
 try:
     from torchdata.datapipes.iter import IterDataPipe
 except ImportError:
     from torch.utils.data import IterDataPipe
 
-
 from src.core.trainer import OnlineBenchmarkTrainer
 
-def test_ob_trainer_different_processes_different_data():
 
+def test_ob_trainer_different_processes_different_data():
     class DummyModel(object):
         def __init__(self, *args, **kwargs):
             pass
@@ -24,8 +24,8 @@ def test_ob_trainer_different_processes_different_data():
 
         def forward(self, *args, **kwargs):
             return None
-    class FakeTrainingArguments(TrainingArguments):
 
+    class FakeTrainingArguments(TrainingArguments):
         def __init__(self, process_index):
             self._process_index = process_index
 
@@ -52,7 +52,6 @@ def test_ob_trainer_different_processes_different_data():
         def max_steps(self):
             return 100
 
-
     class FakeTrainDataset(IterDataPipe):
         def __init__(self):
             pass
@@ -60,7 +59,6 @@ def test_ob_trainer_different_processes_different_data():
         def __iter__(self):
             for i in range(128):
                 yield {"input_ids": [i] * 3, "labels": [i]}
-
 
     """Test that online benchmark trainer gives different data to different processes."""
     trainer1 = OnlineBenchmarkTrainer(
@@ -84,4 +82,3 @@ def test_ob_trainer_different_processes_different_data():
     d2 = [[[y.item() for y in x] for x in d["input_ids"]] for d in d2]
 
     assert d1 != d2
-
