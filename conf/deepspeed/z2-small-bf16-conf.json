@@ -14,7 +14,7 @@
     "params": {
       "total_num_steps": "auto",
       "warmup_max_lr": 0.0006,
-      "warmup_num_steps": 10000
+      "warmup_num_steps": "auto"
     }
   },
 
