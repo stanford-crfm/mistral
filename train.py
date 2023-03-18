@@ -20,41 +20,36 @@ Reference:
 
 |=>> A Project Mercury Endeavor
 """
-import copy
 import json
 import os
 import random
-import time
 from datetime import datetime
-from typing import Optional
 
 import numpy as np
 import torch
 from quinine import QuinineArgumentParser
+from transformers.data.data_collator import default_data_collator
 from transformers.trainer_utils import get_last_checkpoint
 
 from conf.train_schema import get_schema
 from src.args import get_training_arguments
 from src.core import CustomCheckpointCallback, CustomWandbCallback, OnlineBenchmarkTrainer
-from src.core.trainer import LMDataCollator
-from src.corpora import ONLINE_EVAL_DATA_REGISTRY
-from src.corpora.auto import build_indexed_dataset
+from src.corpora import ONLINE_EVAL_DATA_REGISTRY, get_auto_dataset
 from src.models import get_auto_clm_tokenizer
 from src.overwatch import get_overwatch
 from src.util import create_paths, set_permissions
 
 
-def train() -> OnlineBenchmarkTrainer:
+def main() -> OnlineBenchmarkTrainer:
     # Parse Quinfig (via Quinine Argparse Binding)
     print("[*] Mercury :: Launching =>>> \N{rocket} \N{see-no-evil monkey} \N{rocket}")
     print('\t=>> "This wind, it is not an ending..." (Robert Jordan - A Memory of Light)')
     quinfig = QuinineArgumentParser(schema=get_schema()).parse_quinfig()
 
     # Set Distributed Arguments
+    # TODO train.A :: @Laurel, @Karan -- `local_rank` not in Quinfig w/ torch.distributed.launch?
     quinfig.world_size = int(os.getenv("WORLD_SIZE", quinfig.nproc_per_node))
-    quinfig.local_rank = int(os.getenv("LOCAL_RANK", quinfig.local_rank))
-    if quinfig.world_size == -1:
-        quinfig.world_size = 1
+    quinfig.local_rank = int(os.getenv("LOCAL_RANK", -1))
 
     # Create Unique Run Name (for Logging, Checkpointing, and W&B) :: Initialize all Directories
     run_id = quinfig.run_id
@@ -99,12 +94,48 @@ def train() -> OnlineBenchmarkTrainer:
         quinfig.model.id,
         paths,
         model_configs=model_configs,
+        gradient_checkpointing=quinfig.model.gradient_checkpointing,
         use_pretrained_tokenizer=quinfig.model.pretrained_tokenizer,
-        use_passthrough_tokenizer=quinfig.model.passthrough_tokenizer,
         reorder_and_upcast_attn=quinfig.model.reorder_and_upcast_attn,
         scale_attn_by_inverse_layer_idx=quinfig.model.scale_attn_by_inverse_layer_idx,
         initial_weights=quinfig.model.initial_weights,
     )
+
+    # Load Dataset w/ Preprocessing, Batching, and Collating
+    overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
+    lm_dataset = get_auto_dataset(
+        tokenizer,
+        paths,
+        dataset_id=quinfig.dataset.id,
+        dataset_name=quinfig.dataset.name,
+        dataset_dir=quinfig.dataset.dataset_dir,
+        validation_ratio=quinfig.dataset.validation_ratio,
+        seq_len=quinfig.model.seq_len,
+        preprocessing_num_proc=quinfig.dataset.num_proc,
+        detokenize=quinfig.dataset.detokenize,
+    )
+
+    # Load Online Eval Datasets
+    custom_eval_datasets = dict()
+    for eval_dataset_arg in list(filter(lambda x: x.startswith("do_"), quinfig.online_eval.keys())):
+        if getattr(quinfig.online_eval, eval_dataset_arg):
+            # Dataset name is in quinfig arg of "do_<dataset>" -> Boolean
+            dataset_name = eval_dataset_arg.lstrip("do_")
+            overwatch.info(f"Downloading and Preprocessing Online Eval Dataset {dataset_name}")
+            custom_eval_datasets[dataset_name] = ONLINE_EVAL_DATA_REGISTRY[dataset_name]["generator"](
+                tokenizer,
+                paths,
+                dataset_id=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["id"],
+                dataset_name=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["name"],
+                validation_ratio=quinfig.dataset.validation_ratio,
+                seq_len=quinfig.model.seq_len,
+                stride=quinfig.online_eval.stride,
+                preprocessing_num_proc=quinfig.dataset.eval_num_proc,
+                ignore_train=True,
+            )["validation"]
+
+    # Fix All Dataset Permissions
+    set_permissions(paths)
 
     # Initialize Training Arguments from Quinfig
     overwatch.info("Setting Training Arguments from Quinfig...")
@@ -114,16 +145,10 @@ def train() -> OnlineBenchmarkTrainer:
         output_dir=paths["runs"],
         seed=quinfig.seed,
         local_rank=quinfig.local_rank,
-        world_size=quinfig.world_size,
         effective_bsz=quinfig.effective_bsz,
-        gradient_checkpointing=quinfig.model.gradient_checkpointing,
+        nodes=quinfig.nnodes,
+        gpus_per_node=quinfig.nproc_per_node,
     )
-
-    # Load Dataset w/ Preprocessing, Batching, and Collating
-    custom_eval_datasets, lm_dataset = load_datasets(quinfig, paths, tokenizer, overwatch)
-
-    # Fix All Dataset Permissions
-    set_permissions(paths)
 
     # Initialize Trainer, with the relevant arguments
     overwatch.info("Initializing Model Trainer...")
@@ -136,11 +161,15 @@ def train() -> OnlineBenchmarkTrainer:
     else:
         frequencies = quinfig.checkpoint_frequency
 
-    callbacks = [
-        CustomCheckpointCallback(frequencies=frequencies),
-    ]
-    if os.getenv("WANDB_DISABLED", "false").lower() not in ["true", "1", "yes"]:
-        callbacks.append(
+    trainer = OnlineBenchmarkTrainer(
+        model=model,
+        args=training_args,
+        data_collator=default_data_collator,  # De Facto Collator uses Padding, which we DO NOT want!
+        train_dataset=lm_dataset["train"],
+        eval_dataset=lm_dataset["validation"],
+        custom_eval_datasets=custom_eval_datasets,
+        tokenizer=tokenizer,
+        callbacks=[
             CustomWandbCallback(
                 quinfig.wandb,
                 json_file=str(paths["runs"] / "metrics.json"),
@@ -150,18 +179,8 @@ def train() -> OnlineBenchmarkTrainer:
                 wandb_dir=str(paths["runs"]),
                 api_key_path=quinfig.wandb_api_key_path,
             ),
-        )
-
-    trainer = OnlineBenchmarkTrainer(
-        model=model,
-        args=training_args,
-        data_collator=LMDataCollator(tokenizer),  # De Facto Collator uses Padding, which we DO NOT want!
-        dataset_name=quinfig.dataset.id,
-        train_dataset=lm_dataset["train"],
-        eval_dataset=lm_dataset["validation"],
-        custom_eval_datasets=custom_eval_datasets,
-        tokenizer=tokenizer,
-        callbacks=callbacks,
+            CustomCheckpointCallback(frequencies=frequencies),
+        ],
     )
 
     if quinfig.local_rank <= 0 and last_checkpoint is None:
@@ -186,80 +205,5 @@ def train() -> OnlineBenchmarkTrainer:
     return trainer
 
 
-def load_datasets(quinfig, paths, tokenizer, overwatch):
-    if quinfig.world_size > 1:
-        overwatch.info("Distributed Training detected. Forking preprocessing on 0th local rank...")
-        _preprocess_once_per_machine(quinfig, paths, tokenizer, overwatch)
-
-    overwatch.info(f"Downloading and Preprocessing Dataset `{quinfig.dataset.id}`...")
-    lm_dataset = build_indexed_dataset(
-        tokenizer,
-        paths,
-        dataset_id=quinfig.dataset.id,
-        dataset_name=quinfig.dataset.name,
-        dataset_dir=quinfig.dataset.dataset_dir,
-        seq_len=quinfig.model.seq_len,
-        preprocessing_num_proc=quinfig.dataset.num_proc,
-        shuffle_seed=quinfig.seed,
-    )
-
-    # Load Online Eval Datasets
-    custom_eval_datasets = dict()
-    for eval_dataset_arg in list(filter(lambda x: x.startswith("do_"), quinfig.online_eval.keys())):
-        if getattr(quinfig.online_eval, eval_dataset_arg):
-            # Dataset name is in quinfig arg of "do_<dataset>" -> Boolean
-            dataset_name = eval_dataset_arg.lstrip("do_")
-            overwatch.info(f"Downloading and Preprocessing Online Eval Dataset {dataset_name}")
-            custom_eval_datasets[dataset_name] = ONLINE_EVAL_DATA_REGISTRY[dataset_name]["generator"](
-                tokenizer,
-                paths,
-                dataset_id=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["id"],
-                dataset_name=ONLINE_EVAL_DATA_REGISTRY[dataset_name]["name"],
-                validation_ratio=quinfig.dataset.validation_ratio,
-                seq_len=quinfig.model.seq_len,
-                stride=quinfig.online_eval.stride,
-                preprocessing_num_proc=quinfig.dataset.eval_num_proc,
-                ignore_train=True,
-            )["validation"]
-    return custom_eval_datasets, lm_dataset
-
-
-def _preprocess_once_per_machine(quinfig, paths, tokenizer, overwatch):
-    assert quinfig.world_size > 1, "Shouldn't have forked if world_size is 1"
-    import torch.distributed as dist
-
-    # create a group for all ranks on this machine (on the annoying assumption that all machines have the same number of devices running)
-    # TODO: this will not work w/ tpus I think?
-    cur_group, subgroups = dist.new_subgroups()
-    import multiprocessing as mp
-
-    process: Optional[mp.Process] = None
-    if cur_group.rank() == 0:
-        # fork a process and do a sleep/wait for other processes to finish loading
-        cloned_config = copy.deepcopy(quinfig)
-        cloned_config.local_rank = 0
-        cloned_config.world_size = 1
-        process = mp.Process(target=load_datasets, args=(cloned_config, paths, tokenizer, overwatch))
-        process.start()
-
-    while True:
-        status = [None]
-        if cur_group.rank() == 0:
-            status = [process.exitcode]
-
-        dist.broadcast_object_list(status, src=0)
-        if status[0] is not None:
-            break
-
-        time.sleep(10)
-
-    if status[0] != 0:
-        raise RuntimeError(f"Forked process exited with status {status[0]}")
-
-    dist.barrier()  # make sure everyone makes it
-    for subgroup in subgroups:
-        dist.destroy_process_group(subgroup)
-
-
 if __name__ == "__main__":
-    train()
+    main()
