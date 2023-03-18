@@ -1,0 +1,16 @@
+# pubmed.yaml
+#   Configuration for local PubMed data
+---
+dataset:
+    id: pubmed_local
+    name: pubmed_local
+    validation_ratio: null
+
+    # Number of Preprocessing Workers
+    num_proc: 64
+
+    # Number of Evaluation Preprocessing Workers
+    eval_num_proc: 4
+
+    # JSON files to load
+    dataset_dir: /u/scr/nlp/data/mercury/pubmed/orig_data
