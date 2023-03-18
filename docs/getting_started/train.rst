@@ -5,7 +5,7 @@ Training "Hello World"
 ----------------------
 
 You should now be ready to launch a demo training run. There are example
-configurations for training on WikiText-103 in ``conf/mistral-micro.yaml``. You
+configurations for training on WikiText-103 in ``conf/tutorial-gpt2-micro.yaml``. You
 will need to update the artifacts directories and the wandb settings in this file before
 running training.
 
@@ -13,7 +13,7 @@ To launch a training run, use this command (found in ``scripts/run/single-node.s
 
     cd mistral
     conda activate mistral
-    CUDA_VISIBLE_DEVICES=0 python train.py --config conf/mistral-micro.yaml --nnodes 1 --nproc_per_node 1 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 2
+    CUDA_VISIBLE_DEVICES=0 python train.py --config conf/tutorial-gpt2-micro.yaml --nnodes 1 --nproc_per_node 1 --training_arguments.fp16 true --training_arguments.per_device_train_batch_size 2
 
 You may need to adjust your batch size depending on the available GPU memory.
 

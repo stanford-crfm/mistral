@@ -8,52 +8,42 @@ import logging
 import os
 from copy import deepcopy
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List
 
 import datasets
 from transformers import BatchEncoding, PreTrainedTokenizer
 
 from src.corpora.detokenization import DATASET_TOKENIZATION_REGISTRY
 
-from .indexer import IndexedDataset
 
 # Nest Overwatch under root `mistral` logger, inheriting formatting!
-from .tokenization_utils import batch_tokenize
-
-
 overwatch = logging.getLogger("mistral.corpora.auto")
 
 
-def build_indexed_dataset(
+def get_auto_dataset(
     tokenizer: PreTrainedTokenizer,
     paths: Dict[str, Path],
-    dataset_id: str,
-    dataset_name: Optional[str],
-    dataset_dir: Optional[str],
-    seq_len: int,
-    stride: Optional[int] = None,
+    dataset_id: str = "wikitext",
+    dataset_name: str = "wikitext-103-raw-v1",
+    dataset_dir: str = None,
+    validation_ratio: float = 0.0005,
+    seq_len: int = 1024,
     preprocessing_num_proc: int = 64,
+    stride: int = -1,
     ignore_train: bool = False,
-    shuffle_seed: int = 42,
-    train_shuffle_buffer_size: Optional[int] = 10000,
-) -> Dict[str, IndexedDataset]:
-    """Builds Indexed Datasets from a Dataset Dictionary."""
+    detokenize: bool = True,
+) -> datasets.DatasetDict:
+    """Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset."""
 
-    dataset_key = dataset_id
-    if dataset_name is not None:
-        dataset_key = f"{dataset_name}-{dataset_id}"
-
-    # First, Normalize Text if Necessary. Tokenization Strategies are in detokenization.py.
+    # Sanity check on input args
+    stride = seq_len if stride < 0 else stride
+    assert stride <= seq_len, f"Data grouping stride ({stride}) is smaller than sequence length: we are losing data."
     if dataset_dir is not None:
         file_names = os.listdir(dataset_dir)
         file_type = os.path.splitext(file_names[0])[1][1:]
         dataset_files = {}
-        dataset_files["train"] = [
-            f"{dataset_dir}/{fn}" for fn in file_names if "train" in fn and fn.endswith(file_type)
-        ]
-        dataset_files["validation"] = [
-            f"{dataset_dir}/{fn}" for fn in file_names if "validation" in fn and fn.endswith(file_type)
-        ]
+        dataset_files["train"] = [f"{dataset_dir}/{fn}" for fn in file_names if "train" in fn and fn.endswith(file_type)]
+        dataset_files["validation"] = [f"{dataset_dir}/{fn}" for fn in file_names if "validation" in fn and fn.endswith(file_type)]
         file_type = "json" if file_type == "jsonl" else file_type
         assert file_type in ["json", "txt", "csv"]
         dataset = datasets.load_dataset(
@@ -63,51 +53,9 @@ def build_indexed_dataset(
             cache_dir=str(paths["dataset"]),
         )
     else:
-        dataset = datasets.load_dataset(dataset_id, name=dataset_name, cache_dir=str(paths["dataset"]))
-
-    if ignore_train and "train" in dataset:
-        del dataset["train"]
-
-    dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
-
-    # Create Post-Tokenization Cache Paths
-    tokenization_cache = paths["preprocessed"] / dataset_key / "preprocessing" / "tokenization"
-    tokenization_cache.mkdir(parents=True, exist_ok=True)
-
-    post_tokenization_cache_files = {k: tokenization_cache / f"{k}-tokenized" for k in dataset}
-
-    overwatch.info("Building Tokenized Indexed Dataset for {dataset_id}/{dataset_name}...")
-    out_datasets = {}
-    for k, ds in dataset.items():
-        overwatch.info(f"Building Indexed Dataset for {k}")
-        token_iter = batch_tokenize(ds, tokenizer, batch_size=1000)
-        out_datasets[k] = IndexedDataset.build_or_load(token_iter, post_tokenization_cache_files[k], seq_len, stride)  # type: ignore
-
-    if train_shuffle_buffer_size is not None and "train" in out_datasets:
-        out_datasets["train"] = out_datasets["train"].seeded_shuffle(
-            seed=shuffle_seed, buffer_size=train_shuffle_buffer_size
+        dataset = datasets.load_dataset(
+            dataset_id, name=dataset_name, cache_dir=str(paths["dataset"])
         )
-
-    return out_datasets
-
-
-def get_auto_dataset(
-    tokenizer: PreTrainedTokenizer,
-    paths: Dict[str, Path],
-    dataset_id: str = "wikitext",
-    dataset_name: str = "wikitext-103-raw-v1",
-    validation_ratio: float = 0.0005,
-    seq_len: int = 1024,
-    preprocessing_num_proc: int = 64,
-    stride: int = -1,
-    ignore_train: bool = False,
-) -> datasets.DatasetDict:
-    """Run basic tokenization and grouping to turn a Hugging Face Dataset (via `datasets`) into a torch.Dataset."""
-
-    # Sanity check on input args
-    stride = seq_len if stride < 0 else stride
-    assert stride <= seq_len, f"Data grouping stride ({stride}) is smaller than sequence length: we are losing data."
-    dataset = datasets.load_dataset(dataset_id, name=dataset_name, cache_dir=str(paths["dataset"]))
 
     if "validation" not in dataset:
         assert "train" in dataset, "You must have train in dataset to make a validation dataset"
@@ -128,7 +76,8 @@ def get_auto_dataset(
         assert len(dataset) > 0, "You can't set ignore_train = True when there is only train data"
 
     # First, Normalize Text if Necessary. Tokenization Strategies are in detokenization.py.
-    dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
+    if detokenize:
+        dataset = auto_detokenize(dataset_id, dataset, paths["preprocessed"], preprocessing_num_proc)
 
     # Second, run straight-up tokenization
     def tokenize(examples: Dict[str, List[str]]) -> BatchEncoding:
@@ -147,8 +96,7 @@ def get_auto_dataset(
     tokenized_dataset = dataset.map(
         tokenize,
         batched=True,
-        # tokenization is parallelized by huggingface's fast tokenizers
-        num_proc=1 if tokenizer.is_fast else preprocessing_num_proc,
+        num_proc=preprocessing_num_proc,
         remove_columns=next(iter(dataset.values())).column_names,
         cache_file_names=post_tokenization_cache_files,
         load_from_cache_file=True,
@@ -260,7 +208,7 @@ def get_lambada(
 
         beginning_tokens, last_token = tokenizer.encode(text[:start_idx].strip()), tokenizer.encode(" " + last_token)
         num_pad = seq_len - len(beginning_tokens) - len(last_token)
-        assert num_pad >= 0, "LAMBADA example is longer than sequence length, will result in error."
+        assert num_pad >= 0, "LAMBADA example is shorter than sequence length, will result in error."
 
         input_ids = beginning_tokens + last_token + [tokenizer.eos_token_id for _ in range(num_pad)]
         labels = [-100 for _ in beginning_tokens] + [tok for tok in last_token] + [-100 for _ in range(num_pad)]

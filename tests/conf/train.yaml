@@ -6,7 +6,7 @@
 ---
 # Inherit Dataset, Tokenization, Model, and Training Details
 inherit:
-    - datasets/wikitext2-detokenized.yaml
+    - datasets/wikitext2.yaml
     - models/gpt2-micro.yaml
     - trainers/gpt2-small.yaml
 
@@ -56,6 +56,4 @@ log_level: 20
 seed: 21
 
 online_eval:
-    do_wikitext: false
-    do_lambada: false
     stride: 256

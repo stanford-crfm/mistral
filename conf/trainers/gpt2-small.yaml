@@ -19,9 +19,6 @@ training_arguments:
     # We set this dynamically based on DDP Computation [steps = effective_batch / (per_gpu_batch * gpus * nodes)]
     gradient_accumulation_steps: null
 
-    # Boolean whether to use Gradient Checkpointing to save GPU Memory at the expense of runtime
-    gradient_checkpointing: false
-
     # For Online Evaluation, only keep around the Losses
     prediction_loss_only: true
 
@@ -40,7 +37,7 @@ training_arguments:
 
     # LR Scheduling Parameters -- Warmup Steps should be 1% of total steps (Could use ratio)
     lr_scheduler_type: linear   # Cosine not supported if we want to use DeepSpeed Optimizers (gets overwritten!)
-    warmup_steps: 4000
+    warmup_steps: 10000
 
     # Logging Parameters -- Logging Directory (Tensorboard - is this necessary?) should be Overwritten at Runtime!
     run_name: null
@@ -64,7 +61,7 @@ training_arguments:
     deepspeed: null
 
     # Dataloader Parallelism
-    dataloader_num_workers: 0
+    dataloader_num_workers: 4
 
     # Should be overwritten from the Top-Level Config or CLI!
     local_rank: null

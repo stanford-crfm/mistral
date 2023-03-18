@@ -18,7 +18,7 @@ Run run_generation.py With Your Model
 -------------------------------------
 
 As your model training runs, it should save checkpoints with all of the model resources in the directory
-you specified with ``artifacts.run_dir`` in the ``conf/mistral-micro.yaml`` config file.
+you specified with ``articfacts.run_dir`` in the ``conf/tutorial-gpt2-micro.yaml`` config file.
 
 For this example, lets assume you have saved the checkpoints in ``/home/tutorial-gpt2-micro/runs/run-1``. If you trained
 for 400000 steps, you should have a corresponding checkpoint at ``/home/tutorial-gpt2-micro/runs/run-1/checkpoint-400000``.

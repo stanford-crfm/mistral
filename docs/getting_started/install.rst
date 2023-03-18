@@ -10,9 +10,9 @@ Get the code ::
 
 Set up the mistral conda env ::
 
-    conda create -n mistral python=3.8.12 pytorch=1.11.0 torchdata cudatoolkit=11.3 -c pytorch
+    cd mistral
+    conda env create -f environments/environment-gpu.yaml
     conda activate mistral
-    pip install -r setup/pip-requirements.txt
 
 You may need to alter this environment depending on your CUDA set up.
 
@@ -34,7 +34,7 @@ During this process you will be asked to specify which team to use as well.
 
 The project and group for a training run are set in the main
 config file with the ``wandb`` and ``group`` keys respectively.
-See ``conf/mistral-micro.yaml`` for an example.
+See ``conf/tutorial-gpt2-micro.yaml`` for an example.
 
 If you do not want to send logs to Weights & Biases, run this command in the main mistral directory ::
 

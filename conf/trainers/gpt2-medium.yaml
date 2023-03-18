@@ -1,4 +1,4 @@
-# gpt2-medium.yaml
+# gpt2-small.yaml
 #   Trainer config for Full GPT-2 Medium, with the full fixed batch size of 512 (with gradient accumulation).
 #   This contract exactly follows that of HF.TrainingArguments so we can pass as a simple **kwargs -- make sure this
 #   continues to stay valid!
@@ -18,10 +18,6 @@ training_arguments:
 
     # We set this dynamically based on DDP Computation [steps = effective_batch / (per_gpu_batch * gpus * nodes)]
     gradient_accumulation_steps: null
-
-    # Boolean whether to use Gradient Checkpointing to save GPU Memory at the expense of runtime
-    gradient_checkpointing: false
-
 
     # For Online Evaluation, only keep around the Losses
     prediction_loss_only: true
@@ -65,7 +61,7 @@ training_arguments:
     deepspeed: null
 
     # Dataloader Parallelism
-    dataloader_num_workers: 0
+    dataloader_num_workers: 4
 
     # Should be overwritten from the Top-Level Config or CLI!
     local_rank: null

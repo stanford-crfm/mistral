@@ -199,7 +199,7 @@ The demo script ``gcp/run-demo-job.sh`` simply launches training with DeepSpeed:
 .. include:: ../../gcp/run-demo-job.sh
    :literal:
 
-Make sure to update ``conf/mistral-micro.yaml`` to include your project specific values for Weights & Biases
+Make sure to update ``conf/tutorial-gpt2-micro.yaml`` to include your project specific values for Weights & Biases
 and the directories to store the cache and models, as described in the :doc:`Configuration section<../getting_started/config>`.
 
 You can learn more about DeepSpeed training in the :doc:`DeepSpeed tutorial<deepspeed>`.

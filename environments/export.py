@@ -21,10 +21,11 @@ MAP = {
 
 
 def export() -> None:
-    # Default & Simple Argparse --> Just takes one argument :: `arch` (typically < cpu | gpu >)
+    # Default & Simple Argparse --> Just takes one argument :: `arch` in < cpu | gpu >
     parser = argparse.ArgumentParser(description="Export Conda Environment for the Given Architecture.")
-    parser.add_argument("-a", "--arch", type=str, help="Architecture in < cpu | gpu | m1 >.")
+    parser.add_argument("-a", "--arch", default="gpu", type=str, help="Architecture in < cpu | gpu >.")
     args = parser.parse_args()
+    assert args.arch in ["cpu", "gpu"], f"Architecture `{args.arch}` not defined - try one of < cpu | gpu >!"
 
     # Remove existing environment.yaml
     environment_yaml = Path("environments", f"environment-{args.arch}.yaml")

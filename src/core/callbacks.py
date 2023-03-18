@@ -87,10 +87,10 @@ class CustomWandbCallback(WandbCallback):
         """Simple method to log memory usage at the end of every training batch."""
         if state.is_world_process_zero and torch.cuda.is_available():
             memory_usage = {
-                f"{prefix}/memory_allocated": torch.cuda.memory_allocated() / 2**20,
-                f"{prefix}/memory_max_allocated": torch.cuda.max_memory_allocated() / 2**20,
-                f"{prefix}/memory_reserved": torch.cuda.memory_reserved() / 2**20,
-                f"{prefix}/memory_max_reserved": torch.cuda.max_memory_reserved() / 2**20,
+                f"{prefix}/memory_allocated": torch.cuda.memory_allocated() / 2 ** 20,
+                f"{prefix}/memory_max_allocated": torch.cuda.max_memory_allocated() / 2 ** 20,
+                f"{prefix}/memory_reserved": torch.cuda.memory_reserved() / 2 ** 20,
+                f"{prefix}/memory_max_reserved": torch.cuda.max_memory_reserved() / 2 ** 20,
             }
             # Log to _all_ loggers
             self._wandb.log(memory_usage, step=state.global_step)
@@ -155,10 +155,10 @@ class CustomWandbCallback(WandbCallback):
             self._wandb.config.update(combined_dict, allow_val_change=True)
 
             # Keep track of Model Topology and Gradients, Unsupported on TPU
-            if not is_torch_tpu_available() and os.getenv("WANDB_WATCH") != "false":
-                self._wandb.watch(
-                    model, log=os.getenv("WANDB_WATCH", "gradients"), log_freq=max(100, args.logging_steps)
-                )
+            #if not is_torch_tpu_available() and os.getenv("WANDB_WATCH") != "false":
+                #self._wandb.watch(
+                    #model, log=os.getenv("WANDB_WATCH", "gradients"), log_freq=max(100, args.logging_steps)
+                #)
 
             # Custom JSON Resume Behavior
             if self.resume and os.path.exists(self.json_file):
@@ -271,8 +271,8 @@ class CustomWandbCallback(WandbCallback):
         # Process Zero Barrier
         if state.is_world_process_zero:
             # Watch the model
-            os.environ["WANDB_WATCH"] = "gradients"
-            self._wandb.watch(model, log="gradients", log_freq=args.eval_steps)
+            #os.environ["WANDB_WATCH"] = "gradients"
+            #self._wandb.watch(model, log="gradients", log_freq=args.eval_steps)
 
             # Log model information
             self._wandb.log(

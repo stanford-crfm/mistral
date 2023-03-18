@@ -6,21 +6,7 @@ more model configurations, different types of architectures, etc.
 """
 
 # Model Names
-REGISTRY = {
-    "gpt2-small": "gpt2",
-    "gpt2-medium": "gpt2-medium",
-    "gpt2-large": "gpt2-large",
-    "gpt2-xl": "gpt2-xl",
-    "mistral-small": "gpt2",
-    "mistral-medium": "gpt2-medium",
-}
+REGISTRY = {"gpt2-small": "gpt2", "gpt2-medium": "gpt2-medium", "gpt2-large": "gpt2-large", "gpt2-xl": "gpt2-xl", "gpt_neo": "EleutherAI/gpt-neo-2.7B"}
 
 # Absolute Paths
-PATH_REGISTRY = {
-    "gpt2-small": "gpt2",
-    "gpt2-medium": "gpt2",
-    "gpt2-large": "gpt2",
-    "gpt2-xl": "gpt2",
-    "mistral-small": "gpt2",
-    "mistral-medium": "gpt2-medium",
-}
+PATH_REGISTRY = {"gpt2-small": "gpt2", "gpt2-medium": "gpt2", "gpt2-large": "gpt2", "gpt2-xl": "gpt2", "gpt_neo": "EleutherAI/gpt-neo-2.7B"}

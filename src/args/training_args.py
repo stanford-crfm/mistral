@@ -7,7 +7,6 @@ accumulation).
 """
 import logging
 from pathlib import Path
-from typing import Optional
 
 from munch import Munch
 from transformers import TrainingArguments
@@ -21,11 +20,11 @@ def get_training_arguments(
     quinfig_args: Munch,
     run_name: str,
     output_dir: Path,
-    seed: int,
-    local_rank: int,
-    world_size: int,
-    effective_bsz: int,
-    gradient_checkpointing: Optional[bool] = None,
+    seed: int = 21,
+    local_rank: int = 0,
+    effective_bsz: int = 512,
+    nodes: int = 1,
+    gpus_per_node: int = 8,
 ) -> TrainingArguments:
     """Initialize Training Arguments from Quinfig and Runtime-Defined Variables."""
 
@@ -35,15 +34,10 @@ def get_training_arguments(
     training_args.run_name = run_name
     training_args.output_dir = output_dir
     training_args.seed = seed
-    training_args.data_seed = seed
     training_args.local_rank = local_rank
 
     # Since we Implement a Custom W&B / JSON Logging Callback, we don't report to anyone -- we've gone rogue!
     training_args.report_to = "none"
-
-    # do it this way so we start supporting gradient_checkpointing in training_args à la Transformers
-    if gradient_checkpointing is not None:
-        training_args.gradient_checkpointing = gradient_checkpointing
 
     # If "sharded_ddp" is None --> replace with False
     if training_args.sharded_ddp is None:
@@ -63,23 +57,13 @@ def get_training_arguments(
 
     # Compute Gradient Accumulation Dynamically
     training_args.gradient_accumulation_steps = effective_bsz // (
-        quinfig_args.per_device_train_batch_size * world_size
+        quinfig_args.per_device_train_batch_size * gpus_per_node * nodes
     )
     overwatch.info(
-        f"Setting Gradient Accumulation Steps = `{training_args.gradient_accumulation_steps}` [BSZ: {effective_bsz} "
-        f"World Size: {world_size} Device BSZ: {quinfig_args.per_device_train_batch_size}]"
+        f"Setting Gradient Accumulation Steps = `{training_args.gradient_accumulation_steps}` [Node(s): {nodes} - "
+        f"GPU(s): {gpus_per_node} - Device BSZ: {quinfig_args.per_device_train_batch_size}]"
     )
-    if (
-        training_args.gradient_accumulation_steps <= 0
-        or effective_bsz % training_args.gradient_accumulation_steps != 0
-    ):
-        raise ValueError("Incompatible sizes for gradient accumulation!")
 
-    args = TrainingArguments(**training_args)
-
-    # TODO(dlwh): report this bug to transformers
-    assert (
-        args.dataloader_num_workers == 0 or world_size == 1
-    ), "dataloader_num_workers must be 0 for multi-gpu training in HF right now"
-
-    return args
+    training_args.bf16 = True
+    training_args.fp16 = False
+    return TrainingArguments(**training_args)
