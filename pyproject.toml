@@ -12,3 +12,27 @@ force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
 line_length = 119
+
+[mypy]
+python_version = 3.6
+disable_error_code = "override"
+ignore_missing_imports = true
+ignore_errors = true
+follow_imports = "silent"
+strict_optional = false
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_no_return = true
+warn_unreachle = true
+allow_redefinition = true
+show_error_codes = true
+check_untyped_defs = true
+files = [
+    "src",
+    "tests",
+    "train.py"
+]
+
+[[tool.mypy.overrides]]
+module = ["mypy-src.*"]
+ignore_errors = false
