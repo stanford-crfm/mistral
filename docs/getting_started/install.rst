@@ -10,6 +10,7 @@ Get the code ::
 
 Set up the mistral conda env ::
 
+    cd mistral
     conda create -n mistral python=3.8.12 pytorch=1.11.0 torchdata cudatoolkit=11.3 -c pytorch
     conda activate mistral
     pip install -r setup/pip-requirements.txt
